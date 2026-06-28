@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createLead } from "@/app/actions";
 
 interface FormState {
   name: string;
@@ -12,15 +13,23 @@ const initialState: FormState = { name: "", email: "", phone: "" };
 
 export default function LeadForm() {
   const [form, setForm] = useState<FormState>(initialState);
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    console.log("제출된 데이터:", form);
+    setStatus("loading");
+    try {
+      await createLead(form);
+      setStatus("success");
+      setForm(initialState);
+    } catch {
+      setStatus("error");
+    }
   }
 
   return (
@@ -73,11 +82,19 @@ export default function LeadForm() {
         />
       </div>
 
+      {status === "success" && (
+        <p className="text-sm text-green-600">신청이 완료됐습니다. 감사합니다!</p>
+      )}
+      {status === "error" && (
+        <p className="text-sm text-red-500">오류가 발생했습니다. 다시 시도해주세요.</p>
+      )}
+
       <button
         type="submit"
-        className="mt-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 active:bg-blue-800"
+        disabled={status === "loading"}
+        className="mt-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 active:bg-blue-800 disabled:opacity-60"
       >
-        신청하기
+        {status === "loading" ? "처리 중..." : "신청하기"}
       </button>
     </form>
   );
