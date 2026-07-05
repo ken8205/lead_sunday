@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createLead } from "@/app/actions";
+import FormField from "@/components/FormField";
 
 interface FormState {
   name: string;
@@ -34,53 +35,9 @@ export default function LeadForm() {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="name" className="text-sm font-medium text-gray-700">
-          이름
-        </label>
-        <input
-          id="name"
-          name="name"
-          type="text"
-          required
-          placeholder="홍길동"
-          value={form.name}
-          onChange={handleChange}
-          className="rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-        />
-      </div>
-
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="email" className="text-sm font-medium text-gray-700">
-          이메일
-        </label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          required
-          placeholder="example@email.com"
-          value={form.email}
-          onChange={handleChange}
-          className="rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-        />
-      </div>
-
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="phone" className="text-sm font-medium text-gray-700">
-          전화번호
-        </label>
-        <input
-          id="phone"
-          name="phone"
-          type="tel"
-          required
-          placeholder="010-0000-0000"
-          value={form.phone}
-          onChange={handleChange}
-          className="rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-        />
-      </div>
+      <FormField id="name" label="이름" type="text" value={form.name} onChange={handleChange} placeholder="홍길동" />
+      <FormField id="email" label="이메일" type="email" value={form.email} onChange={handleChange} placeholder="example@email.com" />
+      <FormField id="phone" label="전화번호" type="tel" value={form.phone} onChange={handleChange} placeholder="010-0000-0000" />
 
       {status === "success" && (
         <p className="text-sm text-green-600">신청이 완료됐습니다. 감사합니다!</p>

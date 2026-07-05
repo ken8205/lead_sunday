@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getLeads } from "@/app/actions";
+import { getLeadById } from "@/app/actions";
 import LeadEditForm from "@/components/LeadEditForm";
 import Link from "next/link";
 
@@ -9,8 +9,7 @@ export default async function EditLeadPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const leads = await getLeads();
-  const lead = leads.find((l) => l.id === Number(id));
+  const lead = await getLeadById(Number(id));
 
   if (!lead) notFound();
 

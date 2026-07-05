@@ -7,3 +7,5 @@ export const leads = pgTable("leads", {
   phone: text("phone").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export type Lead = typeof leads.$inferSelect;

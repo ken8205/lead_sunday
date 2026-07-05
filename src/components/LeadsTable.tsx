@@ -2,20 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { deleteLead } from "@/app/actions";
-
-interface Lead {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  createdAt: Date;
-}
+import type { Lead } from "@/db/schema";
 
 export default function LeadsTable({ leads }: { leads: Lead[] }) {
   const router = useRouter();
 
-  async function handleDelete(id: number, name: string) {
-    if (!window.confirm(`"${name}"을(를) 삭제하시겠습니까?`)) return;
+  async function handleDelete(id: number) {
     await deleteLead(id);
     router.refresh();
   }
@@ -62,7 +54,11 @@ export default function LeadsTable({ leads }: { leads: Lead[] }) {
                     수정
                   </button>
                   <button
-                    onClick={() => handleDelete(lead.id, lead.name)}
+                    onClick={() => {
+                      if (window.confirm(`"${lead.name}"을(를) 삭제하시겠습니까?`)) {
+                        handleDelete(lead.id);
+                      }
+                    }}
                     className="rounded-md bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition"
                   >
                     삭제
