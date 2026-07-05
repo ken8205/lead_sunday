@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
-import { getLeadById } from "@/app/actions";
+import { getLeadById, getMemosForLead } from "@/app/actions";
 import LeadEditForm from "@/components/LeadEditForm";
+import LeadMemos from "@/components/LeadMemos";
 import Link from "next/link";
 
 export default async function EditLeadPage({
@@ -9,7 +10,14 @@ export default async function EditLeadPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const lead = await getLeadById(Number(id));
+  const leadId = Number(id);
+
+  if (isNaN(leadId) || leadId <= 0) notFound();
+
+  const [lead, memos] = await Promise.all([
+    getLeadById(leadId),
+    getMemosForLead(leadId),
+  ]);
 
   if (!lead) notFound();
 
@@ -26,8 +34,15 @@ export default async function EditLeadPage({
           <h1 className="mt-4 text-2xl font-bold text-gray-900">리드 수정</h1>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
-          <LeadEditForm lead={lead} />
+        <div className="flex flex-col gap-6">
+          <div className="rounded-xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
+            <LeadEditForm lead={lead} />
+          </div>
+
+          <div className="rounded-xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
+            <h2 className="text-base font-semibold text-gray-900 mb-4">메모</h2>
+            <LeadMemos leadId={lead.id} memos={memos} />
+          </div>
         </div>
       </div>
     </div>

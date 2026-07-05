@@ -1,19 +1,35 @@
 "use server";
 
 import { db } from "@/db";
-import { leads } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { leads, leadMemos } from "@/db/schema";
+import { eq, desc, asc } from "drizzle-orm";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+if (!process.env.RESEND_API_KEY) {
+  console.warn("[Resend] RESEND_API_KEY is not set — email notifications are disabled");
+}
+
+function escapeHtml(str: string) {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 function leadNotificationHtml(data: { name: string; email: string; phone: string }) {
+  const name = escapeHtml(data.name);
+  const email = escapeHtml(data.email);
+  const phone = escapeHtml(data.phone);
   return `
     <h2>새 리드 접수</h2>
     <table style="border-collapse:collapse;width:100%;max-width:480px">
-      <tr><td style="padding:8px 12px;background:#f3f4f6;font-weight:600">이름</td><td style="padding:8px 12px">${data.name}</td></tr>
-      <tr><td style="padding:8px 12px;background:#f3f4f6;font-weight:600">이메일</td><td style="padding:8px 12px">${data.email}</td></tr>
-      <tr><td style="padding:8px 12px;background:#f3f4f6;font-weight:600">전화번호</td><td style="padding:8px 12px">${data.phone}</td></tr>
+      <tr><td style="padding:8px 12px;background:#f3f4f6;font-weight:600">이름</td><td style="padding:8px 12px">${name}</td></tr>
+      <tr><td style="padding:8px 12px;background:#f3f4f6;font-weight:600">이메일</td><td style="padding:8px 12px">${email}</td></tr>
+      <tr><td style="padding:8px 12px;background:#f3f4f6;font-weight:600">전화번호</td><td style="padding:8px 12px">${phone}</td></tr>
     </table>
   `;
 }
@@ -23,7 +39,14 @@ export async function createLead(data: {
   email: string;
   phone: string;
 }) {
-  await db.insert(leads).values(data);
+  try {
+    await db.insert(leads).values(data);
+  } catch (err: unknown) {
+    if (err && typeof err === "object" && "code" in err && err.code === "23505") {
+      throw new Error("이미 등록된 이메일입니다.");
+    }
+    throw err;
+  }
 
   try {
     const { data: emailData, error } = await resend.emails.send({
@@ -52,12 +75,31 @@ export async function getLeadById(id: number) {
 }
 
 export async function deleteLead(id: number) {
-  await db.delete(leads).where(eq(leads.id, id));
+  const deleted = await db.delete(leads).where(eq(leads.id, id)).returning({ id: leads.id });
+  if (deleted.length === 0) throw new Error("Lead not found");
 }
 
 export async function updateLead(
   id: number,
   data: { name: string; email: string; phone: string }
 ) {
-  await db.update(leads).set(data).where(eq(leads.id, id));
+  const updated = await db
+    .update(leads)
+    .set(data)
+    .where(eq(leads.id, id))
+    .returning({ id: leads.id });
+  if (updated.length === 0) throw new Error("Lead not found");
+}
+
+export async function getMemosForLead(leadId: number) {
+  return db
+    .select()
+    .from(leadMemos)
+    .where(eq(leadMemos.leadId, leadId))
+    .orderBy(asc(leadMemos.createdAt));
+}
+
+export async function addMemo(leadId: number, content: string) {
+  if (!content.trim()) throw new Error("Content is required");
+  await db.insert(leadMemos).values({ leadId, content });
 }

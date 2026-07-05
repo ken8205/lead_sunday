@@ -25,6 +25,7 @@ export default function LeadEditForm({ lead }: { lead: Lead }) {
     setStatus("loading");
     try {
       await updateLead(lead.id, form);
+      setStatus("idle");
       router.push("/admin");
     } catch {
       setStatus("error");
