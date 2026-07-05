@@ -1,10 +1,10 @@
-import { getLeads } from "@/app/actions";
+import { getLeadsWithMemos } from "@/app/actions";
 import { logout } from "@/app/admin/login/actions";
 import LeadsTable from "@/components/LeadsTable";
 import Link from "next/link";
 
 export default async function AdminPage() {
-  const leads = await getLeads();
+  const leads = await getLeadsWithMemos();
 
   return (
     <div className="min-h-screen bg-gray-50">

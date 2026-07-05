@@ -2,9 +2,32 @@
 
 import { useRouter } from "next/navigation";
 import { deleteLead } from "@/app/actions";
-import type { Lead } from "@/db/schema";
+import type { Lead, LeadMemo } from "@/db/schema";
 
-export default function LeadsTable({ leads }: { leads: Lead[] }) {
+type LeadWithMemos = Lead & { memos: LeadMemo[] };
+
+function MemoPreview({ memos }: { memos: LeadMemo[] }) {
+  if (memos.length === 0) {
+    return <span className="text-gray-300">—</span>;
+  }
+  const latest = memos[memos.length - 1];
+  const truncated =
+    latest.content.length > 32
+      ? latest.content.slice(0, 32) + "…"
+      : latest.content;
+  return (
+    <span className="text-gray-600">
+      {truncated}
+      {memos.length > 1 && (
+        <span className="ml-1.5 rounded-full bg-gray-100 px-1.5 py-0.5 text-xs text-gray-400">
+          +{memos.length - 1}
+        </span>
+      )}
+    </span>
+  );
+}
+
+export default function LeadsTable({ leads }: { leads: LeadWithMemos[] }) {
   const router = useRouter();
 
   async function handleDelete(id: number) {
@@ -27,6 +50,7 @@ export default function LeadsTable({ leads }: { leads: Lead[] }) {
             <th className="pb-3 pr-6 font-medium">이메일</th>
             <th className="pb-3 pr-6 font-medium">전화번호</th>
             <th className="pb-3 pr-6 font-medium">신청일시</th>
+            <th className="pb-3 pr-6 font-medium">최근 메모</th>
             <th className="pb-3 font-medium">액션</th>
           </tr>
         </thead>
@@ -44,6 +68,9 @@ export default function LeadsTable({ leads }: { leads: Lead[] }) {
                   hour: "2-digit",
                   minute: "2-digit",
                 })}
+              </td>
+              <td className="py-3.5 pr-6 max-w-[200px]">
+                <MemoPreview memos={lead.memos} />
               </td>
               <td className="py-3.5">
                 <div className="flex gap-2">

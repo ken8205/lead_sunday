@@ -91,6 +91,26 @@ export async function updateLead(
   if (updated.length === 0) throw new Error("Lead not found");
 }
 
+export async function getLeadsWithMemos() {
+  const [allLeads, allMemos] = await Promise.all([
+    db.select().from(leads).orderBy(desc(leads.createdAt)),
+    db.select().from(leadMemos).orderBy(asc(leadMemos.createdAt)),
+  ]);
+
+  const memosByLeadId = allMemos.reduce<Record<number, typeof allMemos>>(
+    (acc, memo) => {
+      (acc[memo.leadId] ??= []).push(memo);
+      return acc;
+    },
+    {}
+  );
+
+  return allLeads.map((lead) => ({
+    ...lead,
+    memos: memosByLeadId[lead.id] ?? [],
+  }));
+}
+
 export async function getMemosForLead(leadId: number) {
   return db
     .select()
