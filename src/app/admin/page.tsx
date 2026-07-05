@@ -1,4 +1,5 @@
 import { getLeads } from "@/app/actions";
+import { logout } from "@/app/admin/login/actions";
 import LeadsTable from "@/components/LeadsTable";
 import Link from "next/link";
 
@@ -13,12 +14,22 @@ export default async function AdminPage() {
             <h1 className="text-2xl font-bold text-gray-900">리드 관리</h1>
             <p className="mt-1 text-sm text-gray-500">총 {leads.length}건</p>
           </div>
-          <Link
-            href="/"
-            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition"
-          >
-            신청 페이지
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/"
+              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition"
+            >
+              신청 페이지
+            </Link>
+            <form action={logout}>
+              <button
+                type="submit"
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 transition"
+              >
+                로그아웃
+              </button>
+            </form>
+          </div>
         </div>
 
         <div className="rounded-xl border border-gray-200 bg-white px-6 py-5 shadow-sm">
