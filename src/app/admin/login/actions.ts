@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ADMIN_COOKIE, computeToken } from "@/lib/admin-auth";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 export async function login(
   _: unknown,
@@ -28,6 +29,13 @@ export async function login(
     maxAge: 60 * 60 * 24 * 7, // 7일
     path: "/",
   });
+
+  const posthog = getPostHogClient();
+  posthog.capture({
+    distinctId: "admin",
+    event: "admin_login",
+  });
+  await posthog.flush();
 
   redirect("/admin");
 }

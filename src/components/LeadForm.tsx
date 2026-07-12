@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createLead } from "@/app/actions";
 import FormField from "@/components/FormField";
+import posthog from "posthog-js";
 
 interface FormState {
   name: string;
@@ -27,9 +28,11 @@ export default function LeadForm() {
     try {
       await createLead(form);
       setStatus("success");
+      posthog.capture("lead_form_submitted");
       setForm(initialState);
     } catch {
       setStatus("error");
+      posthog.capture("lead_form_error");
     }
   }
 

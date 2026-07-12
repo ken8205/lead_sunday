@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { updateLead } from "@/app/actions";
 import FormField from "@/components/FormField";
 import type { Lead } from "@/db/schema";
+import posthog from "posthog-js";
 
 export default function LeadEditForm({ lead }: { lead: Lead }) {
   const router = useRouter();
@@ -26,6 +27,7 @@ export default function LeadEditForm({ lead }: { lead: Lead }) {
     try {
       await updateLead(lead.id, form);
       setStatus("idle");
+      posthog.capture("lead_updated", { lead_id: lead.id });
       router.push("/admin");
     } catch {
       setStatus("error");

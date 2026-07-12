@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { deleteLead } from "@/app/actions";
 import type { Lead, LeadMemo } from "@/db/schema";
+import posthog from "posthog-js";
 
 type LeadWithMemos = Lead & { memos: LeadMemo[] };
 
@@ -32,6 +33,7 @@ export default function LeadsTable({ leads }: { leads: LeadWithMemos[] }) {
 
   async function handleDelete(id: number) {
     await deleteLead(id);
+    posthog.capture("lead_deleted", { lead_id: id });
     router.refresh();
   }
 

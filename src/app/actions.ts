@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { leads, leadMemos } from "@/db/schema";
 import { eq, desc, asc } from "drizzle-orm";
 import { Resend } from "resend";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -47,6 +48,13 @@ export async function createLead(data: {
     }
     throw err;
   }
+
+  const posthog = getPostHogClient();
+  posthog.capture({
+    distinctId: "anonymous",
+    event: "lead_created",
+  });
+  await posthog.flush();
 
   try {
     const { data: emailData, error } = await resend.emails.send({
