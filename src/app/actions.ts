@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { leads, leadMemos } from "@/db/schema";
 import { eq, desc, asc } from "drizzle-orm";
 import { Resend } from "resend";
+import { getPostHogServerClient } from "@/lib/posthog/server";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -34,11 +35,14 @@ function leadNotificationHtml(data: { name: string; email: string; phone: string
   `;
 }
 
-export async function createLead(data: {
-  name: string;
-  email: string;
-  phone: string;
-}) {
+export async function createLead(
+  data: {
+    name: string;
+    email: string;
+    phone: string;
+  },
+  pageUrl?: string
+) {
   try {
     await db.insert(leads).values(data);
   } catch (err: unknown) {
@@ -47,6 +51,17 @@ export async function createLead(data: {
     }
     throw err;
   }
+
+  getPostHogServerClient()?.capture({
+    distinctId: data.email,
+    event: "lead_created",
+    properties: {
+      name: data.name,
+      phone: data.phone,
+      $current_url: pageUrl,
+      $set: { name: data.name, phone: data.phone },
+    },
+  });
 
   try {
     const { data: emailData, error } = await resend.emails.send({

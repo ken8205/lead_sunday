@@ -25,7 +25,7 @@ export default function LeadForm() {
     e.preventDefault();
     setStatus("loading");
     try {
-      await createLead(form);
+      await createLead(form, window.location.href);
       setStatus("success");
       setForm(initialState);
     } catch {
