@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { addMemo } from "@/app/actions";
 import type { LeadMemo } from "@/db/schema";
+import posthog from "posthog-js";
 
 export default function LeadMemos({
   leadId,
@@ -23,6 +24,7 @@ export default function LeadMemos({
     try {
       await addMemo(leadId, content.trim());
       setContent("");
+      posthog.capture("memo_added", { lead_id: leadId });
       router.refresh();
       setStatus("idle");
     } catch (err) {
