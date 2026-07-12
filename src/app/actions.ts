@@ -21,16 +21,18 @@ function escapeHtml(str: string) {
     .replace(/'/g, "&#039;");
 }
 
-function leadNotificationHtml(data: { name: string; email: string; phone: string }) {
+function leadNotificationHtml(data: { name: string; email: string; phone: string; inquiry?: string }) {
   const name = escapeHtml(data.name);
   const email = escapeHtml(data.email);
   const phone = escapeHtml(data.phone);
+  const inquiry = data.inquiry ? escapeHtml(data.inquiry).replace(/\n/g, "<br>") : "-";
   return `
     <h2>새 리드 접수</h2>
     <table style="border-collapse:collapse;width:100%;max-width:480px">
       <tr><td style="padding:8px 12px;background:#f3f4f6;font-weight:600">이름</td><td style="padding:8px 12px">${name}</td></tr>
       <tr><td style="padding:8px 12px;background:#f3f4f6;font-weight:600">이메일</td><td style="padding:8px 12px">${email}</td></tr>
       <tr><td style="padding:8px 12px;background:#f3f4f6;font-weight:600">전화번호</td><td style="padding:8px 12px">${phone}</td></tr>
+      <tr><td style="padding:8px 12px;background:#f3f4f6;font-weight:600">문의 내용</td><td style="padding:8px 12px">${inquiry}</td></tr>
     </table>
   `;
 }
@@ -72,11 +74,12 @@ export async function createLead(
     name: string;
     email: string;
     phone: string;
+    inquiry?: string;
   },
   pageUrl?: string
 ) {
   try {
-    await db.insert(leads).values(data);
+    await db.insert(leads).values({ ...data, inquiry: data.inquiry?.trim() || null });
   } catch (err: unknown) {
     if (err && typeof err === "object" && "code" in err && err.code === "23505") {
       throw new Error("이미 등록된 이메일입니다.");
@@ -128,11 +131,11 @@ export async function deleteLead(id: number) {
 
 export async function updateLead(
   id: number,
-  data: { name: string; email: string; phone: string }
+  data: { name: string; email: string; phone: string; inquiry?: string }
 ) {
   const updated = await db
     .update(leads)
-    .set(data)
+    .set({ ...data, inquiry: data.inquiry?.trim() || null })
     .where(eq(leads.id, id))
     .returning({ id: leads.id });
   if (updated.length === 0) throw new Error("Lead not found");
