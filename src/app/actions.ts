@@ -35,6 +35,38 @@ function leadNotificationHtml(data: { name: string; email: string; phone: string
   `;
 }
 
+function errorNotificationHtml(data: { message: string; digest?: string; url?: string }) {
+  const message = escapeHtml(data.message);
+  const digest = data.digest ? escapeHtml(data.digest) : "-";
+  const url = data.url ? escapeHtml(data.url) : "-";
+  const time = new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" });
+  return `
+    <h2>예상치 못한 에러 발생</h2>
+    <table style="border-collapse:collapse;width:100%;max-width:560px">
+      <tr><td style="padding:8px 12px;background:#f3f4f6;font-weight:600">메시지</td><td style="padding:8px 12px">${message}</td></tr>
+      <tr><td style="padding:8px 12px;background:#f3f4f6;font-weight:600">Digest</td><td style="padding:8px 12px">${digest}</td></tr>
+      <tr><td style="padding:8px 12px;background:#f3f4f6;font-weight:600">URL</td><td style="padding:8px 12px">${url}</td></tr>
+      <tr><td style="padding:8px 12px;background:#f3f4f6;font-weight:600">시각</td><td style="padding:8px 12px">${time} (KST)</td></tr>
+    </table>
+  `;
+}
+
+export async function reportError(data: { message: string; digest?: string; url?: string }) {
+  try {
+    const { error } = await resend.emails.send({
+      from: "Lead Sunday <onboarding@resend.dev>",
+      to: "kenpark8500@gmail.com",
+      subject: "[Lead Sunday] 예상치 못한 에러 발생",
+      html: errorNotificationHtml(data),
+    });
+    if (error) {
+      console.error("[Resend] 에러 알림 메일 발송 실패:", error);
+    }
+  } catch (err) {
+    console.error("[Resend] 에러 알림 메일 발송 오류:", err);
+  }
+}
+
 export async function createLead(
   data: {
     name: string;
