@@ -27,6 +27,14 @@ function MemoPreview({ memos }: { memos: LeadMemo[] }) {
   );
 }
 
+function InquiryPreview({ inquiry }: { inquiry: string | null }) {
+  if (!inquiry) {
+    return <span className="text-gray-300">—</span>;
+  }
+  const truncated = inquiry.length > 32 ? inquiry.slice(0, 32) + "…" : inquiry;
+  return <span className="text-gray-600">{truncated}</span>;
+}
+
 export default function LeadsTable({ leads }: { leads: LeadWithMemos[] }) {
   const router = useRouter();
 
@@ -50,6 +58,7 @@ export default function LeadsTable({ leads }: { leads: LeadWithMemos[] }) {
             <th className="pb-3 pr-6 font-medium">이메일</th>
             <th className="pb-3 pr-6 font-medium">전화번호</th>
             <th className="pb-3 pr-6 font-medium">신청일시</th>
+            <th className="pb-3 pr-6 font-medium">문의 내용</th>
             <th className="pb-3 pr-6 font-medium">최근 메모</th>
             <th className="pb-3 font-medium">액션</th>
           </tr>
@@ -68,6 +77,9 @@ export default function LeadsTable({ leads }: { leads: LeadWithMemos[] }) {
                   hour: "2-digit",
                   minute: "2-digit",
                 })}
+              </td>
+              <td className="py-3.5 pr-6 max-w-[200px]">
+                <InquiryPreview inquiry={lead.inquiry} />
               </td>
               <td className="py-3.5 pr-6 max-w-[200px]">
                 <MemoPreview memos={lead.memos} />

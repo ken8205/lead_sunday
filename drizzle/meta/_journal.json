@@ -8,6 +8,13 @@
       "when": 1783232673349,
       "tag": "0000_wet_magdalene",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1783837694911,
+      "tag": "0001_unusual_northstar",
+      "breakpoints": true
     }
   ]
 }
