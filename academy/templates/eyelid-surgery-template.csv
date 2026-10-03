@@ -1,0 +1,3 @@
+patient_id,eye,age_at_surgery,sex,procedure,ptosis_surgery_type,anesthesia,brow_procedure,mrd1_pre_mm,mrd1_post_3m_mm,mrd1_post_6m_mm,levator_function_mm,pfh_pre_mm,pfh_post_3m_mm,dermatochalasis_grade,asymmetry_post,complication_type,reoperation,follow_up_days,patient_satisfaction_score
+E001,R,,,,,,,,,,,,,,,,,,
+E001,L,,,,,,,,,,,,,,,,,,
