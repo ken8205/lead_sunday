@@ -1,0 +1,8 @@
+# 환자 식별 가능 데이터 커밋 금지
+research/**/*.xlsx
+research/**/*.csv
+research/**/raw/
+*.dcm
+*.jpg
+*.jpeg
+*.png
