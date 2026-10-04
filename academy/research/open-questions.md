@@ -7,3 +7,6 @@
 - [ ] IDEA-001: 직접 선행연구 유무 추가 확인(검색어 확장, Google Scholar)
 - [ ] IDEA-002: 정식 체계적 검색으로 동아시아 사진 MRD1 연구 확인
 - [ ] 학회 커리큘럼 수령 후 로드맵 gap 분석
+- [ ] Hong 2025가 언급한 "smiling test / pulling test"의 원 출처와 방법 (IDEA-001, IDEA-005)
+- [ ] midcheek groove 해부 정의 통일 연구 및 지방이식 근거 검색
+- [ ] 초음파로 밴드 위아래 층과 cannula 위치를 본 연구 검색

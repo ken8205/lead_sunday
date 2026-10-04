@@ -49,6 +49,9 @@ H3(가능한 설명 요인): 피부·피하 탄력, nasolabial vs medial cheek �
 5. 술자가 항상 ZM을 넘어 박리하는 습관이면 변이가 사라져 예측 연구가 어려움
 6. 표본 수, 교란(연령, 피부 두께, BMI, 이전 필러·수술, 흡연), IRB·개인정보
 
+## 추가 단서 (2026-10-06)
+Hong 2025(JPRAS Open, PMC12828540)가 midcheek groove·infraorbital 필러 전 진단법으로 "smiling test"와 "pulling test"를 언급(방법 세부는 본문에 없음). 필러 반응 예측용 당김 검사 개념이 이미 있을 수 있음 → 원 출처 확인 필요 (open-questions에 등록)
+
 ## 학습자에게 확인할 것 (질문)
 - 현재 주로 쓰는 박리 방식(extended SMAS, deep plane 등)과 ZM을 넘는 범위를 기록하는지
 - "NLF 리프팅이 잘 된다"를 수술 중 어떻게 판단하는지(손으로 당겨보기? 표시 지점? 육안?)
