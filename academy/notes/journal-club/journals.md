@@ -1,6 +1,6 @@
 # 우선순위 저널 (학습자 지정 2026-10-05)
 
-학습자가 "plastic and reconstructive surgery, aesthetic surgery journal, anesthetic plastic surgery"를 중요 저널로 지정. 세 번째는 Aesthetic Plastic Surgery로 이해함(확인 필요).
+학습자가 "plastic and reconstructive surgery, aesthetic surgery journal, anesthetic plastic surgery"를 중요 저널로 지정. 세 번째는 Aesthetic Plastic Surgery(APS)로 확정(2026-10-05 학습자 확인).
 
 | 약칭 | 저널 | PubMed 검색 태그 |
 |---|---|---|
