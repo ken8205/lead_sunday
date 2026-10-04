@@ -53,6 +53,9 @@ Rohrich RJ, Pessa JE. The fat compartments of the face: anatomy and clinical imp
 ## 학습자 응답 (2026-10-06)
 "구획 개념이 수술에 도움이 되는지는 잘 모르겠다. 학회에서는 굉장히 의미 있고 임상적 의미가 크다고 해서 알아야겠다. 어떤 부위로 접근하면 주입이 잘 되고, 어떤 주행은 막히는 느낌이 가끔 있어서 제대로 알고 싶다." → IDEA-007로 기록, 주제 노트 notes/topics/facial-fat-compartments.md
 
+## 학습자 박리 경험 (2026-10-06)
+"박리할 때 zygomatic ligament만 명확히 느끼는 듯하다. masseteric ligament는 거의 못 느낀다. ZM을 넘어가면 어느 순간 박리가 갑자기 열리면서 잘 된다. 잘 모르겠다." → 논문과 비교: zygomatic ligament와 ZM 이후 용이성은 일치, masseteric 융합선은 불일치(주제 노트 notes/topics/facial-fat-compartments.md 1-1)
+
 ## 잠정 판정 (토론 후 갱신 가능)
 - 구획 해부 관찰: 근거 중간. 원 논문은 시신 30 hemiface, 정량·재현성 없음. 후속 영상 연구(Schenck 2018)가 구획별 거동 차이를 지지
 - 노화 기전과 하안검 인과 서술: 근거 낮음(가설)

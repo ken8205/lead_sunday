@@ -17,6 +17,15 @@
 | Deep 구획(저자가 "이전 기술 없음"이라 서술) | deep medial cheek fat(levator anguli oris 주위), lateral deep(lateral temporal-cheek 아래) |
 임상 포인트(논문 서술): ZM은 여러 구획에 부착되므로 내측 볼 지방을 올리려면 ZM 너머까지 박리 필요, 구획 사이 융합 구역은 혈관이 많고 신경 위험(zygomatic ligament 부위는 안면신경, 귀 아래 융합부는 greater auricular nerve)
 
+## 1-1. 원장님 박리 경험과 논문 비교 (2026-10-06)
+| 항목 | 논문 서술 [V, 원문] | 원장님 경험 | 판단 |
+|---|---|---|---|
+| Zygomatic ligament | 중간 볼·inferior orbital·lateral orbital 구획이 만나는 septa 융합부, 혈관이 많고 안면신경 위험 구역 | 박리 시 명확히 느낀다 | 일치 |
+| ZM를 넘은 뒤 | "zygomaticus major를 넘고 나면 박리가 훨씬 쉬워진다" | 어느 순간 박리가 갑자기 열리며 잘 된다 | 일치 |
+| Masseteric(parotido-masseteric) ligament | medial과 middle cheek 구획이 만나는 plane에 해당, 구획 사이 융합선 | 거의 못 느낀다 | 불일치(의문) |
+가능한 설명 [E, 검증 전]: (1) 그 부위는 인대라기보다 얇은 막성 경계일 수 있음 (2) 원장님의 박리면이 그 융합선 아래·위로 지나감 (3) 고정·신선 시신과 생체의 조직 차이 (4) 도구(가위, 손가락, cannula)와 힘에 따른 감각 차이 (5) 사람마다 두께 차이. 다음 수술에서 관찰해 기록하면 자료가 됨(템플릿에 항목 추가)
+Cotofana 2020(Dermatol Surg 46(8):e16-22, PMID 31688233)은 ZM 아래면에서 시작해 buccal space와 deep midfacial fat 구획 사이를 가로지르는 transverse facial septum을 보고해, ZM 부위가 층이 바뀌는 경계라는 점과 맞닿음 [V, 초록]
+
 ## 2. 이 논문이 학회에서 강조되는 이유 [E]
 - 구획에 이름과 경계를 붙여 수술·주입의 공통 언어를 제공함(어디에 어떤 층에 무엇을 넣는가)
 - 필러, 지방이식, 거상, 눈밑지방재배치의 설계가 구획 단위로 정리됨

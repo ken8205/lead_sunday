@@ -8,6 +8,7 @@
 ## 질문·아이디어·연구 거리
 - `research/ideas.md` — 아이디어 목록(IDEA-001~): 수기 견인과 ZM 박리, ImageJ MRD1, brow-press, 안륜근 절제량, midcheek groove 저항 소실
 - `research/open-questions.md` — 확인해야 할 질문
+- `research/clinical-experience-log.md` — 원장님 임상 경험 원 발언 기록(시간순, 원자료)
 
 ## 주제 노트(해부·시술 지식)
 - `notes/topics/midcheek-groove-indian-band.md` — Midcheek groove(Indian band)
