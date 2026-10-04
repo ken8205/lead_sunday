@@ -26,6 +26,14 @@
 가능한 설명 [E, 검증 전]: (1) 그 부위는 인대라기보다 얇은 막성 경계일 수 있음 (2) 원장님의 박리면이 그 융합선 아래·위로 지나감 (3) 고정·신선 시신과 생체의 조직 차이 (4) 도구(가위, 손가락, cannula)와 힘에 따른 감각 차이 (5) 사람마다 두께 차이. 다음 수술에서 관찰해 기록하면 자료가 됨(템플릿에 항목 추가)
 Cotofana 2020(Dermatol Surg 46(8):e16-22, PMID 31688233)은 ZM 아래면에서 시작해 buccal space와 deep midfacial fat 구획 사이를 가로지르는 transverse facial septum을 보고해, ZM 부위가 층이 바뀌는 경계라는 점과 맞닿음 [V, 초록]
 
+## 1-2. Discussion 보충 (원문 확인, 이전에 덜 다룬 항목)
+- 혈관: 구획 사이 전이 구역은 혈관이 풍부(박리에서 출혈·고정 구역). 구획은 angiosome이 아니라 피부 공급 perforator 사이에 위치. ZM과 DAO에는 septa를 지나는 myocutaneous perforator가 있을 수 있음(Whetzel & Mathes, Taylor & Palmer 선행 연구 인용) [V]
+- 신경: zygomatic ligament 부위는 여러 구획이 모이는 융합부로 안면신경 위험 구역. 귀 아래는 lateral temporal-cheek과 postauricular 구획 사이 융합부(저자는 "platysma ligament"가 이 융합점일 수 있다고 추정), 인식 못 하면 greater auricular nerve 손상 위험. Mandibular ligament는 submental crease(platysma 피부 부착)와 DAO 기시가 융합하는 곳 [V]
+- 박리 함정: lateral과 middle cheek 구획 사이 평면은 buccal fat으로 쉽게 이어짐, ZM이 랜드마크. jowl을 올리려면 ZM 내측까지 박리해야 부착이 풀림 [V]
+- 깊은 층: SOOF, ROOF, buccal fat은 선행 연구(Aiache, May, Stuzin, Jackson), 저자는 levator anguli 주위, lip elevator 아래 등 추가 깊은 구획을 제안. "지방은 대부분의 안면 근육 위·아래에 있어 활주(gliding)를 돕는다" [V]
+- 노화 모델: 젊은 얼굴은 구획 간 전이가 매끄럽고 노화는 급한 윤곽 변화(부피 손실 또는 구획 malposition), 인대 약화만으로는 구획 변화를 설명하기 부족, 구획 경계 전단(shearing)이 연부 조직 malposition의 추가 요인일 수 있음 [V]
+- 하안검: 음의 vector → scleral show, snap test로 중안면 거상 시 개선, 저자는 lid laxity·canthal 약화는 작은 역할이라 서술(근거: 임상 관찰, 가설) [V 서술]
+
 ## 2. 이 논문이 학회에서 강조되는 이유 [E]
 - 구획에 이름과 경계를 붙여 수술·주입의 공통 언어를 제공함(어디에 어떤 층에 무엇을 넣는가)
 - 필러, 지방이식, 거상, 눈밑지방재배치의 설계가 구획 단위로 정리됨

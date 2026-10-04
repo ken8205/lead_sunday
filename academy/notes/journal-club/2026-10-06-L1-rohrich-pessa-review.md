@@ -63,4 +63,12 @@ Rohrich RJ, Pessa JE. The fat compartments of the face: anatomy and clinical imp
 - 읽는 순서: 구획 지도 암기 → 자기 경험 대응 → 후속 3편 → 한계 기록 (주제 노트 참조)
 - 근거 확신도: 해부 개념 중간, 임상 인과 낮음
 
-## 학습자 3줄 요약 (미작성)
+## 3줄 요약 (학습자 요청으로 Claude가 초안 작성, 학습자가 수정 가능)
+1. 이 논문은 안면 피하지방이 하나의 덩어리가 아니라 septal barrier로 나뉜 여러 구획이라는 것을, 시신 30개 hemiface에 methylene blue를 주입해 보였고, 일부 retaining ligament(zygomatic ligament 등)는 인접 구획의 septa가 만나는 융합선이라고 해석했다.
+2. 내 경험과 일치한 것은 zygomatic ligament이 박리 때 명확히 느껴지고 ZM을 넘으면 박리가 쉬워진다는 점이다. 맞지 않거나 긴장되는 것은 masseteric 융합선이 거의 안 느껴진다는 점과, 당기면 중안면·jowl이 함께 변하는 관찰(하강 성분)에 비해 논문이 "NLF·jowl 지방 보존, 단순 lateral traction 무효"라고 서술한 점이다.
+3. 약점은 정량·통계·재현성·눈가림이 없고, 염색 경계가 해부 경계인지 확산 경계인지 구분되지 않으며, 고령 시신의 단면 관찰로 노화 "과정"과 하안검 연쇄(음의 vector 등)를 추론한 점이다.
+
+## 커버리지 점검 (Results/Discussion, 2026-10-06 학습자 질문)
+Results: 구획별 정의·경계는 주제 노트 표(1)로 정리 완료. 시신 구성, 염색 방법, 구획 확인 hemiface 수도 기록.
+Discussion 세부 중 채팅·노트에서 아직 충분히 다루지 않았던 항목(보충 완료, 주제 노트 1-2에 정리): (1) 구획 사이 전이 구역은 혈관이 많고 구획은 angiosome이 아님(Whetzel & Mathes 선행), 구획 사이 septa에 ZM·DAO의 myocutaneous perforator (2) 안면신경(zygomatic ligament 부위), greater auricular nerve(귀 아래 융합부, "platysma ligament = 융합점" 가설), mandibular ligament (3) 외측-중간 볼 구획 사이 평면이 buccal fat으로 이어지는 함정, ZM이 랜드마크 (4) 깊은 층(SOOF, ROOF, buccal fat)은 선행 연구, 저자는 추가 깊은 구획 제안, 지방은 근육 위아래에 있어 활주를 돕는다 (5) 젊은 얼굴은 구획 간 전이가 매끄럽고 노화는 급한 윤곽 변화 (6) 인대 약화만으로는 구획 변화를 설명 못 함
+

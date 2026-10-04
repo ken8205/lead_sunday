@@ -21,6 +21,7 @@
 ## 논문
 - `notes/journal-club/reading-log.md` — 읽은 논문 요약 목록과 저널별 카운터
 - `notes/journal-club/library.csv` — 서지 전체(읽음/대기/주제별), 참고문헌 관리 프로그램용
+- `notes/journal-club/enrichment-queue.md` — 보강 트랙(스케줄 외 추가 논문)
 - `notes/journal-club/journals.md` — 우선순위 저널(PRS, ASJ, APS)과 검색식
 - `notes/journal-club/2026-*-*.md` — 개별 저널리뷰 노트
 - `notes/journal-club/week-NN-plan.md` — 주간 계획

@@ -39,3 +39,6 @@ PC 앞에 앉는 날은 수·토에 jamovi/R 실습을 덧붙인다.
 - 매주 파트별 근거 지도 1장 (`notes/journal-club/week-NN-*.md`)
 - 누적 문헌 DB (`notes/journal-club/reading-log.md`)
 - 통계는 논문 해부를 통해 습득, 마지막에 직접 분석 프로젝트
+
+## 보강 트랙 (2026-10-06 학습자 결정)
+주간 4편은 스케줄대로 진행하고, 개념 보강·후속 논문은 `notes/journal-club/enrichment-queue.md`에 별도로 쌓아 추가로 읽는다(필수 아님, 주간 편수를 대체하지 않음).

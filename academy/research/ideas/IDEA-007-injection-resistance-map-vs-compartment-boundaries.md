@@ -26,6 +26,9 @@ H3. 저항 변화 지점 근처에서 층이 바뀌어 표층 이탈과 필러 �
 ## 박리 경험 추가 (2026-10-06)
 박리할 때 zygomatic ligament는 명확히 느끼고 masseteric ligament는 거의 못 느끼며, ZM을 넘으면 어느 순간 박리가 갑자기 열리면서 잘 된다고 함. 논문의 zygomatic ligament, ZM 이후 박리 용이성 서술과 일치하고 masseteric 융합선은 일치하지 않음(주제 노트 1-1 참조). 주입 저항과 박리 감각을 같은 구획 지도에 표시하는 설계로 통합 가능
 
+## 학습자 추정 (2026-10-06)
+주입이 막히는 곳은 아마 zygomatic ligament 또는 transverse facial septum 근처일 것 같다 → H1(구획 사이 septal fusion 구역에서 저항)과 일치하는 학습자 자신의 가설. Cotofana 2020의 transverse facial septum(ZM 아래면에서 시작, buccal space와 deep midfacial fat 사이 경계)과 직접 연결됨. 검증: 저항 위치를 기록하고 초음파·해부 지표와 대조
+
 ## 학습자에게 확인할 것
 - 막히는 방향·부위의 예(어느 부위에서 어느 방향으로)
 - 막힐 때 느낌(딱딱한 끈끈함, 팽팽함, 앞으로 안 나감)과 대처
