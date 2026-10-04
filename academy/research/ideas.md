@@ -10,3 +10,4 @@
 | IDEA-004 | 2026-10-05 | 안륜근 절제량 정량 + 건성안 대규모 연구 | 논문 1 리뷰 | 아이디어 | research/ideas/IDEA-004-orbicularis-resection-quantified.md |
 | IDEA-005 | 2026-10-06 | Midcheek groove 통과 시 저항 소실·층 얇아짐, 표층 필러 비침 | 학습자 임상 관찰 | 문헌 1차 확인, 직접 연구 못 찾음 | research/ideas/IDEA-005-midcheek-groove-resistance-loss-superficial-filler.md |
 | IDEA-006 | 2026-10-06 | 당기면 중안면·jowl이 바뀌는 관찰 vs 구획 보존 모델, descent vs deflation 구분 검사 | 학습자 임상 관찰(논문 2 리뷰 중) | 문헌 1차 확인(부분 지지), 직접 연구 못 찾음 | research/ideas/IDEA-006-traction-reverses-aging-descent-vs-deflation.md |
+| IDEA-007 | 2026-10-06 | 주입이 잘 되는/막히는 방향 vs 구획 경계 지도 | 학습자 임상 감각(논문 2 토론) | 문헌 1차 확인, 저항 직접 연구 못 찾음 | research/ideas/IDEA-007-injection-resistance-map-vs-compartment-boundaries.md |

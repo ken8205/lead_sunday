@@ -11,6 +11,7 @@
 
 ## 주제 노트(해부·시술 지식)
 - `notes/topics/midcheek-groove-indian-band.md` — Midcheek groove(Indian band)
+- `notes/topics/facial-fat-compartments.md` — 안면 지방 구획 지도, Rohrich & Pessa 2007과 후속 문헌, 읽기 가이드
 (앞으로 주제별 노트를 이 폴더에 추가하고 여기에 한 줄 등록)
 
 ## 논문
