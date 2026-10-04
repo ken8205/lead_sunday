@@ -20,3 +20,14 @@
 ## 근거 수준
 - LOE(Level of Evidence, 학술지가 저자에게 요청): 연구 설계 종류로 매기는 사다리. 대체로 I = 무작위대조시험(RCT), II = 전향 코호트, III = 후향·환자-대조, IV = 증례 시리즈, V = 전문가 의견. 연구의 질까지 보증하지 않음
 - GRADE: 결과에 대한 "확신도"를 높음/중등도/낮음/매우 낮음으로 평가. RCT는 높음에서 시작해 비뚤림 위험, 부정확성(넓은 CI), 비직접성 등으로 내려감
+
+## 약어 풀이 (논문 3 이후 추가, 2026-10-08)
+- CI = Confidence Interval = 신뢰구간. 진짜 값이 있을 법한 범위(여론조사의 오차범위)
+- I² ("아이 스퀘어") = 연구들 결과가 얼마나 서로 다른지(이질성)를 0~100%로 나타낸 숫자. 클수록 연구마다 결과가 제각각이라 합친 평균을 믿기 어렵다
+- OR = Odds Ratio = 오즈비. 두 군을 비교하는 숫자(1이면 차이 없음)
+- RCT = Randomized Controlled Trial = 무작위 대조 시험
+- BoNT-A = Botulinum Neurotoxin type A = 보툴리눔 톡신 A
+- ONA = onabotulinumtoxinA(Botox 계열), ABO = abobotulinumtoxinA(Dysport 계열), INCO = incobotulinumtoxinA(Xeomin 계열)
+- 메타분석 = 비슷한 여러 연구의 결과를 합쳐서 하나의 숫자로 요약하는 방법
+- 포리스트 플롯 = 연구마다 결과와 오차범위를 가로 막대로, 합친 결과는 마름모로 그린 그림
+- 위약(placebo) = 효과 없는 가짜 주사나 약. 주사 자체로 생기는 불편을 가려내기 위해 사용
