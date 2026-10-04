@@ -35,6 +35,9 @@
 ### 우선순위 저널
 학습자 지정: Plastic and Reconstructive Surgery(PRS), Aesthetic Surgery Journal(ASJ), Aesthetic Plastic Surgery(APS). 매주 논문 중 최소 2편은 이 저널에서 선정하고 `notes/journal-club/journals.md`, `reading-log.md` 카운터를 관리한다. 저널 위상이 근거 수준을 보장하지 않으므로 설계로 판정한다.
 
+### 연구 아이디어·고민거리 기록 (필수)
+학습자가 임상 관찰, 질문, 고민, 논문 아이디어를 말하면 **그 자리에서** `research/ideas.md` 인덱스에 추가하고 `research/ideas/IDEA-NNN-*.md`에 원 발언(거의 그대로), 임상 질문, 가설, 선행문헌 검색 결과(찾지 못한 경우도 검색 범위와 함께), 설계 후보, 방법론상 어려운 점, 다음 단계를 정리한다. 논문 리뷰에서 파생된 아이디어와 미결 질문(`research/open-questions.md`)도 기록한다. 세션 종료 전에 빠진 것이 없는지 점검한다. "선행연구가 없다"고 단정하지 않고 "이번 검색에서 찾지 못했다"고 쓴다.
+
 ### 문헌 정리
 읽은 논문은 `notes/journal-club/reading-log.md`(요약 목록), 개별 리뷰 노트, `library.csv`(서지 전체, 상태·파트·근거 수준 포함, 참고문헌 관리 프로그램으로 가져갈 수 있는 형태)에 기록한다. 서지는 PubMed로 확인된 것만 넣는다.
 

@@ -1,0 +1,2 @@
+study_id,age,sex,height_cm,weight_kg,smoker,prior_filler,prior_facelift,skin_thickness_est,nlf_wsrs_pre,posture_for_traction,traction_vector_description,traction_response_grade_0to3,traction_response_photo_ref,surgery_technique,plane_used,zm_lateral_border_identified,zm_passed_yn,distance_beyond_zm_mm,zygomatic_ligament_released_yn,deep_fat_mobilization_yn,zm_plication_yn,tension_free_endpoint_reached_yn,intraop_assessment_note,nlf_wsrs_1m,nlf_wsrs_6m,nlf_wsrs_12m,facial_nerve_weakness_yn,other_complication,recurrence_yn,followup_days
+S001,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
