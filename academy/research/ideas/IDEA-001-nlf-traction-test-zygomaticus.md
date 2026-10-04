@@ -55,6 +55,9 @@ Hong 2025(JPRAS Open, PMC12828540)가 midcheek groove·infraorbital 필러 전 �
 ## 연결 (2026-10-06)
 IDEA-006: 수기 견인 반응은 descent vs deflation vs 고정(tethering)을 가르는 표현형 검사가 될 수 있다는 통합 가설. 두 아이디어는 같은 표준 견인 프로토콜로 함께 설계하는 것이 효율적
 
+## 학습자 견인 방법 (2026-10-06)
+방향은 NLF와 jowl이 없어지는 우상향, 세기는 없어질 정도, 앉은 자세. 비반응은 마른 사람 또는 피부가 잘 안 당겨지는 사람. 프로토콜 초안: research/protocols/traction-test-protocol-draft.md
+
 ## 학습자에게 확인할 것 (질문)
 - 현재 주로 쓰는 박리 방식(extended SMAS, deep plane 등)과 ZM을 넘는 범위를 기록하는지
 - "NLF 리프팅이 잘 된다"를 수술 중 어떻게 판단하는지(손으로 당겨보기? 표시 지점? 육안?)

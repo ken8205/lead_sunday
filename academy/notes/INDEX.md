@@ -15,6 +15,9 @@
 - `notes/topics/facial-fat-compartments.md` — 안면 지방 구획 지도, Rohrich & Pessa 2007과 후속 문헌, 읽기 가이드
 (앞으로 주제별 노트를 이 폴더에 추가하고 여기에 한 줄 등록)
 
+## 프로토콜·서식
+- `research/protocols/traction-test-protocol-draft.md` — 수기 견인 검사 프로토콜 초안(VECTRA 3D와 2D 대안)
+
 ## 논문
 - `notes/journal-club/reading-log.md` — 읽은 논문 요약 목록과 저널별 카운터
 - `notes/journal-club/library.csv` — 서지 전체(읽음/대기/주제별), 참고문헌 관리 프로그램용
