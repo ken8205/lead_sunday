@@ -43,3 +43,7 @@ DATABASE_URL=                      # Postgres connection string (Transaction mod
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 ```
+
+## Academy (성형외과 학습 프로그램)
+
+이 저장소의 `academy/` 폴더는 이 앱과 별개인 성형외과 평생 학습 프로그램이다. 사용자가 성형외과 학습, 논문 리뷰, 연구 아이디어, 필러·거상·눈성형·통계 등을 이야기하거나 "내 아이디어", "공부 이어서"라고 하면 **먼저 `academy/CLAUDE.md`와 `academy/notes/INDEX.md`, `academy/MY-IDEAS.md`를 읽고** 그 규칙(근거 태그, 인용 검증, 개인정보 금지, 아이디어 기록)을 따른다.

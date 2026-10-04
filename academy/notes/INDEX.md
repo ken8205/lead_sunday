@@ -2,6 +2,9 @@
 
 이 저장소의 파일이 학습 기억이다. 새 세션은 먼저 이 인덱스와 `progress/`, `research/ideas.md`, `research/open-questions.md`를 읽고 이어간다.
 
+## 먼저 보세요
+- `MY-IDEAS.md` — 원장님이 말씀하신 아이디어·질문 한눈에 보기(모바일용), 아직 답하지 않은 질문 포함
+
 ## 질문·아이디어·연구 거리
 - `research/ideas.md` — 아이디어 목록(IDEA-001~): 수기 견인과 ZM 박리, ImageJ MRD1, brow-press, 안륜근 절제량, midcheek groove 저항 소실
 - `research/open-questions.md` — 확인해야 할 질문
