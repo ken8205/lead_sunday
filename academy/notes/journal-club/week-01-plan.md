@@ -6,8 +6,12 @@
 |---|---|---|---|---|---|
 | 1 | 월 10/5 | 최신 | 눈(하수+상안검) | Rojanasakul S, Putthirangsiwong B. Role of Orbicularis Oculi Resection in External Levator Advancement for Aponeurotic Blepharoptosis: A Prospective RCT. Aesthetic Plast Surg 2026;50(5):1717-1724. PMID 41575571, DOI 10.1007/s00266-026-05617-5 | PMC13008993 (Claude가 읽음) |
 | 2 | 화 10/6 | 이정표 | 안면 해부 | Rohrich RJ, Pessa JE. The fat compartments of the face: anatomy and clinical implications for cosmetic surgery. Plast Reconstr Surg 2007;119(7):2219-2227. PMID 17519724, DOI 10.1097/01.prs.0000265403.66886.54 | 학습자 PDF 필요 |
-| 3 | 목 10/8 | 최신 | 보톡스·필러·실리프팅(안전성) | Cruz VMS et al. Adverse Events in Nonsurgical Facial Aesthetic Procedures: A Systematic Review and Meta-Analysis. Oral Dis 2025/2026;32(2):384-394. PMID 41047572, DOI 10.1111/odi.70109 | PMC13077022 (Claude가 읽음) |
-| 4 | 금 10/9 | 이정표 | 필러 안전 | Beleznay K, Carruthers JDA, Humphrey S, Jones D. Avoiding and Treating Blindness From Fillers: A Review of the World Literature. Dermatol Surg 2015;41(10):1097-1117. PMID 26356847, DOI 10.1097/DSS.0000000000000486 | 학습자 PDF 필요 |
+| 3 | 목 10/8 | 최신 | 보툴리눔(안전성) | Zargaran D, Zoller F, Zargaran A, Rahman E, Woollard A, Weyrich T, Mosahebi A. Complications of Cosmetic Botulinum Toxin A Injections to the Upper Face: A Systematic Review and Meta-Analysis. **Aesthet Surg J** 2022;42(5):NP327-NP336. PMID 35178552, DOI 10.1093/asj/sjac036 | PMC9005453 (Claude가 읽음) |
+| 4 | 금 10/9 | 이정표 | 필러 안전 (저널: Dermatol Surg) | Beleznay K, Carruthers JDA, Humphrey S, Jones D. Avoiding and Treating Blindness From Fillers: A Review of the World Literature. Dermatol Surg 2015;41(10):1097-1117. PMID 26356847, DOI 10.1097/DSS.0000000000000486 | 학습자 PDF 필요 |
+
+| (선택) | 주말 | 최신 | 필러 합병증 | Alhusain AM et al. Hyaluronidase Protocol in Management of HA Filler-Related Vascular Complications: SR and MA. **Aesthetic Plast Surg** 2026;50(6):2300-2317 (online 2025-11-17). PMID 41249530, DOI 10.1007/s00266-025-05431-5 | 구해야 함 |
+
+변경 기록: 목요일 논문을 Cruz 2025(Oral Dis)에서 Zargaran 2022(ASJ)로 교체(우선순위 저널 3종 중심). Cruz 논문은 backlog로.
 
 ## 계획표
 | 요일 | 내용 (30~60분) | 사전 준비 |
