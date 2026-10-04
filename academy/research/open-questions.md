@@ -10,3 +10,5 @@
 - [ ] Hong 2025가 언급한 "smiling test / pulling test"의 원 출처와 방법 (IDEA-001, IDEA-005)
 - [ ] midcheek groove 해부 정의 통일 연구 및 지방이식 근거 검색
 - [ ] 초음파로 밴드 위아래 층과 cannula 위치를 본 연구 검색
+- [ ] Lambros의 사진 중첩 연구 원문과 노화에서 descent vs deflation 논쟁 문헌 정리 (IDEA-006, 서지 [U])
+- [ ] 수기 견인 반응과 3D/CT 부피 변화를 다룬 연구 추가 검색 (IDEA-001, IDEA-006)

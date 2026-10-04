@@ -46,4 +46,8 @@ Rohrich RJ, Pessa JE. The fat compartments of the face: anatomy and clinical imp
 - 이후 이 개념을 지지하거나 반박한 후속 해부·영상 연구(PubMed 검색 필요)
 - 이 논문이 이후 문헌에서 어떻게 인용·수정되었는지(인용 분석은 미수행)
 
-## 학습자 응답 (대기)
+## 학습자 임상 의견 (2026-10-06)
+- 관찰: NLF를 당기면 꺼진 중안면이 채워지고 jowl이 사라지며 외측이 채워짐 → 논문의 "NLF·jowl 보존, 중안면 꺼짐" 모델이 잘못된 것 아닌가? (IDEA-006에 기록, 조사 결과: 논문은 "보존"이라 서술하고 malposition도 인정, Ramesh 2021 등 하강 모델과의 관계 정리)
+- 논문 서술 중 학습자 관찰과 긴장되는 부분: Fig. 2 "NLF·jowl 지방 보존", Fig. 14 설명 "lateral traction은 NLF 두드러짐에 거의 효과 없음"
+
+## 학습자 응답 (대기: 구획 경계가 수술장에서 선명한지)

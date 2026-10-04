@@ -9,3 +9,4 @@
 | IDEA-003 | 2026-10-04 | 수술 전 brow-press 반응과 수술 후 눈썹 하강 | 학습자 진료 방식 + 논문 | 아이디어 | research/ideas/IDEA-003-brow-press-and-brow-descent.md |
 | IDEA-004 | 2026-10-05 | 안륜근 절제량 정량 + 건성안 대규모 연구 | 논문 1 리뷰 | 아이디어 | research/ideas/IDEA-004-orbicularis-resection-quantified.md |
 | IDEA-005 | 2026-10-06 | Midcheek groove 통과 시 저항 소실·층 얇아짐, 표층 필러 비침 | 학습자 임상 관찰 | 문헌 1차 확인, 직접 연구 못 찾음 | research/ideas/IDEA-005-midcheek-groove-resistance-loss-superficial-filler.md |
+| IDEA-006 | 2026-10-06 | 당기면 중안면·jowl이 바뀌는 관찰 vs 구획 보존 모델, descent vs deflation 구분 검사 | 학습자 임상 관찰(논문 2 리뷰 중) | 문헌 1차 확인(부분 지지), 직접 연구 못 찾음 | research/ideas/IDEA-006-traction-reverses-aging-descent-vs-deflation.md |
