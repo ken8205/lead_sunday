@@ -3,7 +3,7 @@
 ## 서지
 Rohrich RJ, Pessa JE. The fat compartments of the face: anatomy and clinical implications for cosmetic surgery. **Plast Reconstr Surg** 2007;119(7):2219-2227. PMID 17519724, DOI 10.1097/01.prs.0000265403.66886.54
 - 파트: 안면 해부 / 유형: 이정표(주관적 판단 [E], 인용수 미확인) / 저널: 우선순위(PRS)
-- 전문: 업로드된 웹 저장본(MHT)의 본문 텍스트와 그림 설명을 읽음. **그림 이미지는 직접 보지 않음.** 원문 파일은 저장소에 저장하지 않음(저작권)
+- 전문: 업로드 PDF 9쪽 전체(본문, 그림 14개, 참고문헌 13개)를 읽고 그림 이미지도 직접 확인함. 원문 파일은 저장소에 저장하지 않음(저작권)
 - 이해상충 없음(저자 명시)
 
 ## 원문 확인 사실
@@ -15,6 +15,16 @@ Rohrich RJ, Pessa JE. The fat compartments of the face: anatomy and clinical imp
 - 시신 실험: nasolabial fat을 medial cheek fat 아래로 재배치하면 nasolabial fold가 완화된다고 서술(정량 없음)
 - 우연한 관찰: nasolabial 구획의 부피는 시신의 나이·성별에 따라 거의 다르지 않았음(수치 없음)
 - 저자 스스로 인정: jowl fat은 "가장 덜 이해된 구획", 노화 중 행동은 알려져 있지 않음. 질문이 더 연구가 필요하다고 결론
+
+## 그림 확인 (이미지 직접 열람, 제 관찰이며 해상도 한계가 있음)
+- Fig. 1: 작가의 도해(자료 아님). Fig. 2: 고령 남성 한 명의 임상 사진 — midface hollowing은 있고 nasolabial·jowl 지방은 보존된다는 "흔한 임상 관찰"의 유일한 시각 근거(n=1 이미지)
+- Fig. 3: 이마 주입 염색이 측두–볼–경부로 이어지는 띠 모양으로 번지고 nasolabial은 별도로 염색됨(사진 + 도해)
+- Fig. 4~13: 구획마다 시신 1구의 사진 1~2장, 피부판을 걷은 상태에서 염색 영역과 구조물 표시. 구획별로 서로 다른 시신 사진으로 보임
+- 일부 사진(Fig. 8, 9, 11 등)에서는 염색 경계에 연한 번짐(청록색 그라데이션)이 보이고 어떤 사진(Fig. 4, 10)은 비교적 뚜렷함. 번짐이 확산인지 실제 경계 근처 조직 변화인지는 사진으로 판단 불가
+- Fig. 13 오른쪽: latex(red/blue)로 nasolabial과 jowl 분리를 단면으로 시사
+- Fig. 14: 설명문은 nasolabial 지방을 medial cheek fat 아래로 재배치해 윤곽 변형을 줄일 수 있다고 하나, 위·아래 두 장은 수술 시야(봉합사 보임)와 깊은 중안면 지방 염색(red arrow)을 보여주며 fold 완화를 사진만으로 확인하기 어려움. 전후 비교, 계측 없음
+- 참고문헌 13개 중 "volume loss" 개념(Lambros)은 personal communication으로 인용됨
+- 투고 2006.7.27, 채택 2006.10.13, 저자 이해상충 없음 명시, 학술지 LOE 표기 없음(2007 논문)
 
 ## 비판적 평가 (초안, 학습자와 토론 예정)
 관찰된 것(해부): 구획이 염색 경계로 구분됨
