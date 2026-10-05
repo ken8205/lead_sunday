@@ -11,3 +11,4 @@
 | IDEA-005 | 2026-10-06 | Midcheek groove 통과 시 저항 소실·층 얇아짐, 표층 필러 비침 | 학습자 임상 관찰 | 문헌 1차 확인, 직접 연구 못 찾음 | research/ideas/IDEA-005-midcheek-groove-resistance-loss-superficial-filler.md |
 | IDEA-006 | 2026-10-06 | 당기면 중안면·jowl이 바뀌는 관찰 vs 구획 보존 모델, descent vs deflation 구분 검사 | 학습자 임상 관찰(논문 2 리뷰 중) | 문헌 1차 확인(부분 지지), 직접 연구 못 찾음 | research/ideas/IDEA-006-traction-reverses-aging-descent-vs-deflation.md |
 | IDEA-007 | 2026-10-06 | 주입이 잘 되는/막히는 방향 vs 구획 경계 지도 | 학습자 임상 감각(논문 2 토론) | 문헌 1차 확인, 저항 직접 연구 못 찾음 | research/ideas/IDEA-007-injection-resistance-map-vs-compartment-boundaries.md |
+| IDEA-008 | 2026-10-08 | 보톡스 후 눈꺼풀이 처져 보이는 환자(눈꺼풀 피부 처짐·약한 눈 뜨는 힘·이마 보상)를 시술 전에 가려낼 수 있나 | 학습자 임상 경험(논문 3 리뷰 중) | 문헌 1차 확인, 직접 예측 연구 못 찾음(제한적 검색) | research/ideas/IDEA-008-botox-ptosis-risk-stratification.md |

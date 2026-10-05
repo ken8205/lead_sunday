@@ -6,7 +6,7 @@
 - `MY-IDEAS.md` — 원장님이 말씀하신 아이디어·질문 한눈에 보기(모바일용), 아직 답하지 않은 질문 포함
 
 ## 질문·아이디어·연구 거리
-- `research/ideas.md` — 아이디어 목록(IDEA-001~): 수기 견인과 ZM 박리, ImageJ MRD1, brow-press, 안륜근 절제량, midcheek groove 저항 소실
+- `research/ideas.md` — 아이디어 목록(IDEA-001~): 수기 견인과 ZM 박리, ImageJ MRD1, brow-press, 안륜근 절제량, midcheek groove 저항 소실, 보톡스 후 눈꺼풀 처져 보임 위험 환자(IDEA-008)
 - `research/open-questions.md` — 확인해야 할 질문
 - `research/clinical-experience-log.md` — 원장님 임상 경험 원 발언 기록(시간순, 원자료)
 
