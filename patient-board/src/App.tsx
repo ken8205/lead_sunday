@@ -67,7 +67,7 @@ function samplePatients(): Patient[] {
     mk(3, '이다라', '1982-07-21', 'surgery', '하안검', '정실장', 'or', 'in_progress', 25),
     mk(4, '박마바', '1990-01-30', 'treatment', '실리프팅', '유빈', 'wait', 'waiting', 12),
     mk(5, '정사아', '1979-05-09', 'consult', '미니거상', '도은', 'consult1', 'ready', 14, 'manager'),
-    mk(6, '오자차', '1985-12-25', 'followup', '눈밑지방재배치', '유빈', 'wait', 'left', 40),
+    mk(6, '오자차', '1985-12-25', 'followup', '눈밑지방재배치', '유빈', 'desk', 'left', 40),
     mk(7, '최카타', '1972-08-17', 'followup', '안면거상 경과', '도은', 'recov2', 'ready', 6, 'nurse'),
     mk(8, '강파하', '1988-02-03', 'treatment', '스킨부스터', '유빈', 'treat', 'ready', 11, 'doctor'),
     mk(9, '송타퓨', '1993-09-09', 'consult', '코 성형 상담', '도은', 'consult2', 'ready', 4, 'coordinator'),
@@ -95,8 +95,8 @@ export default function App() {
   }
 
   const selected = patients.find((p) => p.id === selectedId)
-  // 새 카드는 대기실에서 시작한다. 대기실이 없으면 카드를 놓을 수 있는 첫 번째 방.
-  const defaultRoomId = (rooms.find((r) => r.id === 'wait' && !r.decor) ?? rooms.find((r) => !r.decor))?.id ?? rooms[0].id
+  // 새 카드는 데스크에서 시작한다. 데스크가 없으면 카드를 놓을 수 있는 첫 번째 방.
+  const defaultRoomId = (rooms.find((r) => r.id === 'desk' && !r.decor) ?? rooms.find((r) => !r.decor))?.id ?? rooms[0].id
 
   // 삭제되거나 없어진 방에 있던 카드는 기본 방으로 옮겨 화면에서 사라지지 않게 한다.
   useEffect(() => {

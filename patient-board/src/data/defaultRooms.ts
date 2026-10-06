@@ -16,8 +16,10 @@ const layout: [string, string, number, number, number, number, Tone, boolean?][]
   ['recov1', '회복실 I', 160, 340, 420, 256, 'clinic'],
   ['treat', '치료실', 590, 210, 340, 196, 'clinic'],
   ['recov2', '회복실 II', 590, 416, 340, 180, 'clinic'],
+  // 데스크는 회복실 I 바로 아래에 맞춘다.
+  ['desk', '데스크', 160, 611, 420, 110, 'front'],
   // 아랫줄
-  ['wait', '대기실', 30, 611, 540, 402, 'front'],
+  ['wait', '대기실', 30, 731, 540, 282, 'front'],
   ['consult2', '상담실 II / 촬영실', 590, 611, 340, 196, 'clinic'],
   ['consult1', '상담실 I', 590, 817, 340, 196, 'clinic'],
 ]
