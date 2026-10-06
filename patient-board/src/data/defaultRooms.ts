@@ -4,7 +4,7 @@ import type { Room } from '../types'
 // 설정 화면에서 수정 가능하게 할 예정.
 const SCALE = 1.3
 const PAD = 16
-const LEFT_EXTRA = 170 // 건물 왼쪽 바깥에 있는 파우더룸 자리
+const LEFT_EXTRA = 0
 
 const toPx = (v: number, extra = 0) => Math.round((v + extra) * SCALE + PAD)
 
@@ -14,9 +14,9 @@ const layout: [string, string, number, number, number, number, boolean?][] = [
   ['pantry', '탕비실', 400, 0, 230, 142],
   ['treat', '치료실', 400, 143, 230, 142],
   ['recov2', '회복실 II', 415, 285, 215, 140],
-  ['recov1', '회복실 I', 175, 175, 160, 230],
-  ['dressing', '탈의실', -150, 160, 130, 110],
-  ['powder', '파우더룸', -150, 275, 130, 110],
+  ['dressing', '탈의실', 120, 155, 135, 75],
+  ['powder', '파우더룸', 255, 155, 135, 75],
+  ['recov1', '회복실 I', 175, 235, 160, 170],
   ['desk', '데스크', 20, 430, 230, 85], // 스케치에 없음: 임의 배치(확인 필요)
   ['wait', '대기실', 25, 520, 410, 320],
   ['consult2', '상담실 II / 촬영실', 485, 520, 145, 145],
