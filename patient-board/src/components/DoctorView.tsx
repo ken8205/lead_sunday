@@ -1,6 +1,7 @@
 import type { Patient, Room } from '../types'
-import { STATUS_LABEL } from '../types'
+import { CATEGORY_LABEL, statusLabel } from '../types'
 import { elapsedMinutes, formatClock } from '../lib/time'
+import { sortQueue } from '../lib/queue'
 import { isAlert } from './FloorPlan'
 
 interface Props {
@@ -8,6 +9,7 @@ interface Props {
   rooms: Room[]
   now: number
   alertMin: number
+  order: string[]
 }
 
 function Row({ p, roomName, now, alertMin }: { p: Patient; roomName: string; now: number; alertMin: number }) {
@@ -16,10 +18,11 @@ function Row({ p, roomName, now, alertMin }: { p: Patient; roomName: string; now
     <li className={`prow prow-${p.status}${alert ? ' prow-alert' : ''}`}>
       <div className="prow-top">
         <span className="prow-name">{p.name}</span>
-        <span className="prow-status">{STATUS_LABEL[p.status]}</span>
+        <span className="prow-status">{statusLabel(p)}</span>
       </div>
       <div className="prow-sub">
-        {p.birthDate} · {p.procedure}
+        {p.birthDate}
+        {p.category ? ` · ${CATEGORY_LABEL[p.category]}` : ''} · {p.procedure}
         {p.staff ? ` / ${p.staff}` : ''}
       </div>
       <div className="prow-time">
@@ -32,34 +35,39 @@ function Row({ p, roomName, now, alertMin }: { p: Patient; roomName: string; now
   )
 }
 
-// 원장용 보기: 평면도 대신 목록. 준비 완료 환자를 맨 위에, 그다음 방별로 보여 준다.
-export function DoctorView({ patients, rooms, now, alertMin }: Props) {
+const isDoctorReady = (p: Patient) => p.status === 'ready' && (p.waitFor ?? 'doctor') === 'doctor'
+
+// 원장용 보기: 평면도 대신 목록. 원장 대기 환자를 맨 위에, 그다음 방별로 보여 준다.
+// 실장·간호사 대기 환자는 방별 목록에 상태 이름과 함께 나온다.
+export function DoctorView({ patients, rooms, now, alertMin, order }: Props) {
   const roomName = (id: string) => rooms.find((r) => r.id === id)?.name ?? ''
   const active = patients.filter((p) => p.status !== 'left')
   const byEntry = (a: Patient, b: Patient) => a.enteredRoomAt - b.enteredRoomAt
-  const ready = active.filter((p) => p.status === 'ready').sort(byEntry)
-  const rest = active.filter((p) => p.status !== 'ready')
+  const doctorReady = sortQueue(active.filter(isDoctorReady), order)
+  const rest = active.filter((p) => !isDoctorReady(p))
   const groups = rooms
     .filter((r) => !r.decor)
     .map((r) => ({ room: r, list: rest.filter((p) => p.roomId === r.id).sort(byEntry) }))
     .filter((g) => g.list.length > 0)
-  const count = (st: Patient['status']) => active.filter((p) => p.status === st).length
+  const countWait = (t: 'manager' | 'nurse') => active.filter((p) => p.status === 'ready' && p.waitFor === t).length
 
   return (
     <div className="doctor">
       <div className="summary">
-        <span className="chip chip-ready">준비 완료 {count('ready')}</span>
-        <span className="chip">대기 {count('waiting')}</span>
-        <span className="chip chip-in_progress">진행 중 {count('in_progress')}</span>
+        <span className="chip chip-ready">원장 대기 {doctorReady.length}</span>
+        {countWait('manager') > 0 && <span className="chip chip-ready">실장 대기 {countWait('manager')}</span>}
+        {countWait('nurse') > 0 && <span className="chip chip-ready">간호사 대기 {countWait('nurse')}</span>}
+        <span className="chip">대기 {active.filter((p) => p.status === 'waiting').length}</span>
+        <span className="chip chip-in_progress">진행 중 {active.filter((p) => p.status === 'in_progress').length}</span>
       </div>
 
       {active.length === 0 && <p className="empty-all">현재 보드에 환자가 없습니다.</p>}
 
-      {ready.length > 0 && (
+      {doctorReady.length > 0 && (
         <section className="dgroup dgroup-ready">
-          <h2>준비 완료 · 원장 대기</h2>
+          <h2>원장 대기</h2>
           <ul>
-            {ready.map((p) => (
+            {doctorReady.map((p) => (
               <Row key={p.id} p={p} roomName={roomName(p.roomId)} now={now} alertMin={alertMin} />
             ))}
           </ul>

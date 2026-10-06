@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { Move, Patient, PatientStatus } from '../types'
+import type { Category, Move, Patient, PatientStatus, WaitFor } from '../types'
 
 // 1~6단계: 브라우저 localStorage에만 저장한다. 7단계에서 Supabase로 교체할 단일 지점.
 const KEY = 'patient-board:v1'
@@ -8,23 +8,25 @@ interface State {
   patients: Patient[]
   moves: Move[]
   archive: Patient[] // 하루가 지나 보드에서 내려간 귀가 카드 (기록 표시용)
+  order: string[] // 먼저 볼 순서를 손으로 정한 환자 id (앞쪽이 우선). 없으면 대기 시간순
 }
 
 export interface NewPatient {
   name: string
   birthDate: string
   procedure: string
+  category: Category
   staff: string
 }
 
 function load(): State {
   try {
     const raw = localStorage.getItem(KEY)
-    if (raw) return { archive: [], ...(JSON.parse(raw) as Partial<State>) } as State
+    if (raw) return { archive: [], order: [], ...(JSON.parse(raw) as Partial<State>) } as State
   } catch {
     // 저장소를 못 읽으면 빈 보드로 시작
   }
-  return { patients: [], moves: [], archive: [] }
+  return { patients: [], moves: [], archive: [], order: [] }
 }
 
 const uid = () => crypto.randomUUID()
@@ -77,14 +79,21 @@ export function useBoard() {
     }))
   }, [])
 
-  const setStatus = useCallback((patientId: string, status: PatientStatus) => {
+  const setStatus = useCallback((patientId: string, status: PatientStatus, waitFor?: WaitFor) => {
     setState((s) => {
       const p = s.patients.find((x) => x.id === patientId)
-      if (!p || p.status === status) return s
-      const m: Move = { id: uid(), patientId, fromRoomId: p.roomId, toRoomId: p.roomId, status, at: Date.now() }
-      return { ...s, patients: s.patients.map((x) => (x.id === patientId ? { ...x, status } : x)), moves: [...s.moves, m] }
+      const target = status === 'ready' ? (waitFor ?? 'doctor') : undefined
+      if (!p || (p.status === status && (p.waitFor ?? undefined) === target)) return s
+      const m: Move = { id: uid(), patientId, fromRoomId: p.roomId, toRoomId: p.roomId, status, waitFor: target, at: Date.now() }
+      return {
+        ...s,
+        patients: s.patients.map((x) => (x.id === patientId ? { ...x, status, waitFor: target } : x)),
+        moves: [...s.moves, m],
+      }
     })
   }, [])
+
+  const setOrder = useCallback((order: string[]) => setState((s) => ({ ...s, order })), [])
 
   // 오늘 이전에 귀가 처리된 카드는 보드에서 내리고 기록(이동 로그)만 남긴다.
   const sweepLeft = useCallback(() => {
@@ -106,7 +115,7 @@ export function useBoard() {
   }, [sweepLeft])
 
   const replaceAll = useCallback((patients: Patient[]) => {
-    setState({ patients, moves: [], archive: [] })
+    setState({ patients, moves: [], archive: [], order: [] })
   }, [])
 
   return {
@@ -116,6 +125,8 @@ export function useBoard() {
     addPatient,
     movePatient,
     setStatus,
+    order: state.order,
+    setOrder,
     removePatient,
     replaceAll,
   }

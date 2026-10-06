@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import type { Room } from '../types'
+import type { Category, Room } from '../types'
+import { CATEGORY_LABEL } from '../types'
 import type { NewPatient } from '../store/useBoard'
 
 const STAFF_SUGGESTIONS = ['유빈', '도은', '정실장']
@@ -15,6 +16,7 @@ export function AddPatientDialog({ rooms, defaultRoomId, onSubmit, onClose }: Pr
   const [name, setName] = useState('')
   const [birthDate, setBirthDate] = useState('')
   const [procedure, setProcedure] = useState('')
+  const [category, setCategory] = useState<Category>('consult')
   const [staff, setStaff] = useState('')
   const [roomId, setRoomId] = useState(defaultRoomId)
 
@@ -29,7 +31,7 @@ export function AddPatientDialog({ rooms, defaultRoomId, onSubmit, onClose }: Pr
         onSubmit={(e) => {
           e.preventDefault()
           if (!valid) return
-          onSubmit({ name: name.trim(), birthDate, procedure: procedure.trim(), staff: staff.trim() }, roomId)
+          onSubmit({ name: name.trim(), birthDate, procedure: procedure.trim(), category, staff: staff.trim() }, roomId)
         }}
       >
         <h2>환자 카드 추가</h2>
@@ -40,6 +42,16 @@ export function AddPatientDialog({ rooms, defaultRoomId, onSubmit, onClose }: Pr
         <label>
           생년월일
           <input type="date" min="1900-01-01" max={today} value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
+        </label>
+        <label>
+          분류
+          <select value={category} onChange={(e) => setCategory(e.target.value as Category)}>
+            {(Object.keys(CATEGORY_LABEL) as Category[]).map((c) => (
+              <option key={c} value={c}>
+                {CATEGORY_LABEL[c]}
+              </option>
+            ))}
+          </select>
         </label>
         <label>
           수술/시술명

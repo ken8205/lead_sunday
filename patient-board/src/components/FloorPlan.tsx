@@ -1,9 +1,9 @@
 import { useRef, useState } from 'react'
 import type { PointerEvent } from 'react'
 import type { Patient, Room } from '../types'
-import { STATUS_LABEL } from '../types'
+import { CATEGORY_LABEL, statusLabel } from '../types'
 import { elapsedMinutes, formatClock } from '../lib/time'
-import { building, canvas } from '../data/defaultRooms'
+import { building, canvasFor } from '../data/defaultRooms'
 
 const CARD_W = 168
 const CARD_H = 78
@@ -43,10 +43,11 @@ function CardBody({ p, now, alertMin }: { p: Patient; now: number; alertMin: num
     <>
       <rect width={CARD_W} height={CARD_H} rx={8} className={`card card-${p.status}${alert ? ' card-alert' : ''}`} />
       <text x={10} y={20} className="card-name">
-        {p.name} · {STATUS_LABEL[p.status]}
+        {p.name} · {statusLabel(p)}
       </text>
       <text x={10} y={37} className="card-sub">
         {p.birthDate}
+        {p.category ? ` · ${CATEGORY_LABEL[p.category]}` : ''}
       </text>
       <text x={10} y={52} className="card-sub">
         {p.procedure}
@@ -134,10 +135,11 @@ export function FloorPlan({ rooms, patients, now, alertMin, selectedId, onSelect
     onSelect(null)
   }
 
+  const cv = canvasFor(rooms)
   const dragged = drag ? patients.find((p) => p.id === drag.id) : undefined
 
   return (
-    <svg ref={svgRef} viewBox={`0 0 ${canvas.w} ${canvas.h}`} className="floorplan" role="img" aria-label="병원 평면도">
+    <svg ref={svgRef} viewBox={`0 0 ${cv.w} ${cv.h}`} className="floorplan" role="img" aria-label="병원 평면도">
       <rect x={building.x} y={building.y} width={building.w} height={building.h} rx={18} className="building" />
       {rooms.map((r) => {
         const classes = ['room', `tone-${r.tone ?? 'clinic'}`]

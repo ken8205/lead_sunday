@@ -39,3 +39,11 @@ export const defaultRooms: Room[] = layout.map(([id, name, x, y, w, h, tone, dec
 // 건물 외곽선과 전체 캔버스 크기
 export const building = { x: 20, y: 20, w: 920, h: 1036 }
 export const canvas = { w: 960, h: 1076 }
+
+// 방을 추가하거나 옮겨도 모두 보이도록 캔버스 크기를 방 위치에서 계산한다.
+export function canvasFor(rooms: Room[]) {
+  return {
+    w: Math.max(canvas.w, ...rooms.map((r) => r.x + r.w + 30)),
+    h: Math.max(canvas.h, ...rooms.map((r) => r.y + r.h + 30)),
+  }
+}
