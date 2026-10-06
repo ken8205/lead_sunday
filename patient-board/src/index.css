@@ -1,5 +1,5 @@
 body { margin: 0; font-family: system-ui, 'Noto Sans KR', sans-serif; background: #f4f5f7; color: #1f2937; }
-main { max-width: 1100px; margin: 0 auto; padding: 16px; }
+main { max-width: 1240px; margin: 0 auto; padding: 16px; }
 h1 { font-size: 20px; margin: 0 0 4px; }
 .note { margin: 0 0 12px; color: #6b7280; font-size: 13px; }
 .floorplan { display: block; margin: 0 auto; max-width: 900px; width: 100%; height: auto; background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; }
@@ -47,3 +47,23 @@ body { background: linear-gradient(#f8fafc, #eef2f7); }
 .movelog ul { list-style: none; margin: 0; padding: 0; font-size: 14px; display: grid; gap: 4px; }
 .movelog time { color: #64748b; font-variant-numeric: tabular-nums; }
 .movelog .empty { margin: 0; color: #94a3b8; font-size: 14px; }
+.card-time { font-size: 13px; font-weight: 700; fill: #111827; }
+.card-clock { font-size: 11px; font-weight: 400; fill: #475569; }
+.card-time-alert { fill: #b91c1c; }
+.card-alert { stroke: #dc2626; stroke-width: 4; }
+.card-ready { animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 50% { stroke-opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .card-ready { animation: none; } }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 270px; gap: 16px; align-items: start; }
+.readylist { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; position: sticky; top: 8px; }
+.readylist h2 { margin: 0 0 8px; font-size: 15px; color: #b45309; }
+.readylist ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.readylist button { width: 100%; text-align: left; min-height: 56px; padding: 8px 12px; border-radius: 10px; border: 2px solid #d97706; background: #fef3c7; cursor: pointer; display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; font-size: 15px; }
+.readylist button.selected { border-color: #7c3aed; background: #ede9fe; }
+.readylist .mins { font-weight: 700; color: #92400e; }
+.readylist .sub { grid-column: 1 / -1; font-size: 12px; color: #475569; }
+.readylist .empty { margin: 0; color: #94a3b8; font-size: 14px; }
+.btn-active { background: #1e293b; color: #fff; border-color: #1e293b; }
+.alert-setting { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: #475569; }
+.alert-setting input { width: 56px; min-height: 40px; font-size: 16px; text-align: center; border: 1px solid #cbd5e1; border-radius: 8px; }
+@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .readylist { position: static; order: -1; } }

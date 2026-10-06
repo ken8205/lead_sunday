@@ -1,4 +1,5 @@
 import type { Move, Patient, Room } from '../types'
+import { STATUS_LABEL } from '../types'
 import { formatClock } from '../lib/time'
 
 interface Props {
@@ -21,7 +22,9 @@ export function MoveLog({ moves, patients, rooms }: Props) {
             <li key={m.id}>
               <time>{formatClock(m.at)}</time>{' '}
               <strong>{patients.find((p) => p.id === m.patientId)?.name ?? '(삭제된 카드)'}</strong>{' '}
-              {roomName(m.fromRoomId)} → {roomName(m.toRoomId)}
+              {m.fromRoomId !== null && m.fromRoomId === m.toRoomId
+                ? `${roomName(m.toRoomId)} · 상태 → ${STATUS_LABEL[m.status]}`
+                : `${roomName(m.fromRoomId)} → ${roomName(m.toRoomId)}`}
             </li>
           ))}
         </ul>

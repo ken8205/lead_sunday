@@ -2,11 +2,11 @@ import { useRef, useState } from 'react'
 import type { PointerEvent } from 'react'
 import type { Patient, Room } from '../types'
 import { STATUS_LABEL } from '../types'
-import { elapsedMinutes } from '../lib/time'
+import { elapsedMinutes, formatClock } from '../lib/time'
 import { building, canvas } from '../data/defaultRooms'
 
 const CARD_W = 168
-const CARD_H = 62
+const CARD_H = 78
 const GAP = 6
 const DRAG_THRESHOLD = 6 // px. 이보다 적게 움직이면 탭으로 본다.
 
@@ -14,6 +14,7 @@ interface Props {
   rooms: Room[]
   patients: Patient[]
   now: number
+  alertMin: number
   selectedId: string | null
   onSelect: (id: string | null) => void
   onMove: (patientId: string, roomId: string) => void
@@ -32,25 +33,34 @@ interface DragState {
   overRoomId: string | null
 }
 
-function CardBody({ p, now }: { p: Patient; now: number }) {
+export function isAlert(p: Patient, now: number, alertMin: number): boolean {
+  return (p.status === 'waiting' || p.status === 'ready') && elapsedMinutes(p.enteredRoomAt, now) >= alertMin
+}
+
+function CardBody({ p, now, alertMin }: { p: Patient; now: number; alertMin: number }) {
+  const alert = isAlert(p, now, alertMin)
   return (
     <>
-      <rect width={CARD_W} height={CARD_H} rx={8} className={`card card-${p.status}`} />
+      <rect width={CARD_W} height={CARD_H} rx={8} className={`card card-${p.status}${alert ? ' card-alert' : ''}`} />
       <text x={10} y={20} className="card-name">
         {p.name} · {STATUS_LABEL[p.status]}
       </text>
-      <text x={10} y={38} className="card-sub">
-        {p.birthDate} · {elapsedMinutes(p.enteredRoomAt, now)}분
+      <text x={10} y={37} className="card-sub">
+        {p.birthDate}
       </text>
-      <text x={10} y={54} className="card-sub">
+      <text x={10} y={52} className="card-sub">
         {p.procedure}
         {p.staff ? ` / ${p.staff}` : ''}
+      </text>
+      <text x={10} y={70} className={`card-time${alert ? ' card-time-alert' : ''}`}>
+        {p.status === 'left' ? '귀가' : `${elapsedMinutes(p.enteredRoomAt, now)}분`}
+        <tspan className="card-clock"> · 입실 {formatClock(p.enteredRoomAt)}</tspan>
       </text>
     </>
   )
 }
 
-export function FloorPlan({ rooms, patients, now, selectedId, onSelect, onMove }: Props) {
+export function FloorPlan({ rooms, patients, now, alertMin, selectedId, onSelect, onMove }: Props) {
   const svgRef = useRef<SVGSVGElement>(null)
   const dragRef = useRef<{ id: string; sx: number; sy: number; dx: number; dy: number; moved: boolean } | null>(null)
   const [drag, setDrag] = useState<DragState | null>(null)
@@ -149,12 +159,12 @@ export function FloorPlan({ rooms, patients, now, selectedId, onSelect, onMove }
           onPointerUp={onCardUp}
           onPointerCancel={onCardCancel}
         >
-          <CardBody p={item.p} now={now} />
+          <CardBody p={item.p} now={now} alertMin={alertMin} />
         </g>
       ))}
       {drag && dragged && (
         <g transform={`translate(${drag.x}, ${drag.y})`} className="card-ghost">
-          <CardBody p={dragged} now={now} />
+          <CardBody p={dragged} now={now} alertMin={alertMin} />
         </g>
       )}
     </svg>
