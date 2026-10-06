@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { defaultRooms } from './data/defaultRooms'
 import { FloorPlan } from './components/FloorPlan'
 import { AddPatientDialog } from './components/AddPatientDialog'
@@ -13,6 +13,29 @@ const rooms = defaultRooms
 const DESK_ID = 'desk'
 const STATUSES: PatientStatus[] = ['waiting', 'ready', 'in_progress', 'left']
 const ALERT_KEY = 'patient-board:alertMin'
+
+// 브라우저 확인창 대신 쓰는 두 번 누르기 버튼 (3초 안에 한 번 더 누르면 실행)
+function ConfirmButton({ label, confirmLabel, className = '', onConfirm }: { label: string; confirmLabel: string; className?: string; onConfirm: () => void }) {
+  const [armed, setArmed] = useState(false)
+  useEffect(() => {
+    if (!armed) return
+    const t = setTimeout(() => setArmed(false), 3000)
+    return () => clearTimeout(t)
+  }, [armed])
+  return (
+    <button
+      className={`btn ${className}${armed ? ' btn-armed' : ''}`}
+      onClick={() => {
+        if (armed) {
+          setArmed(false)
+          onConfirm()
+        } else setArmed(true)
+      }}
+    >
+      {armed ? confirmLabel : label}
+    </button>
+  )
+}
 
 function loadAlertMin(): number {
   try {
@@ -90,17 +113,14 @@ export default function App() {
           <button className="btn" onClick={() => replaceAll(samplePatients())}>
             예시 채우기
           </button>
-          <button
-            className="btn"
-            onClick={() => {
-              if (confirm('보드의 모든 카드를 지울까요?')) {
-                replaceAll([])
-                setSelectedId(null)
-              }
+          <ConfirmButton
+            label="모두 비우기"
+            confirmLabel="정말 비우기"
+            onConfirm={() => {
+              replaceAll([])
+              setSelectedId(null)
             }}
-          >
-            모두 비우기
-          </button>
+          />
         </div>
       </header>
 
@@ -122,17 +142,15 @@ export default function App() {
                 {STATUS_LABEL[st]}
               </button>
             ))}
-            <button
-              className="btn btn-danger"
-              onClick={() => {
-                if (confirm(`${selected.name} 카드를 삭제할까요? (이동 기록도 함께 지워집니다)`)) {
-                  removePatient(selected.id)
-                  setSelectedId(null)
-                }
+            <ConfirmButton
+              label="카드 삭제"
+              confirmLabel="정말 삭제 (기록도 삭제)"
+              className="btn-danger"
+              onConfirm={() => {
+                removePatient(selected.id)
+                setSelectedId(null)
               }}
-            >
-              카드 삭제
-            </button>
+            />
             <button className="btn" onClick={() => setSelectedId(null)}>
               선택 취소
             </button>

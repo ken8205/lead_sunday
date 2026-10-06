@@ -67,3 +67,4 @@ body { background: linear-gradient(#f8fafc, #eef2f7); }
 .alert-setting { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: #475569; }
 .alert-setting input { width: 56px; min-height: 40px; font-size: 16px; text-align: center; border: 1px solid #cbd5e1; border-radius: 8px; }
 @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .readylist { position: static; order: -1; } }
+.btn-armed { background: #dc2626; border-color: #dc2626; color: #fff; font-weight: 700; }
