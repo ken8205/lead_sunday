@@ -15,13 +15,13 @@ interface Props {
 export function FloorPlan({ rooms, patients }: Props) {
   return (
     <svg viewBox={`0 0 ${canvas.w} ${canvas.h}`} className="floorplan" role="img" aria-label="병원 평면도">
-      <rect x={building.x} y={building.y} width={building.w} height={building.h} className="building" />
+      <rect x={building.x} y={building.y} width={building.w} height={building.h} rx={18} className="building" />
       {rooms.map((r) => {
         const cols = Math.max(1, Math.floor((r.w - 10 + GAP) / (CARD_W + GAP)))
         const inRoom = patients.filter((p) => p.roomId === r.id)
         return (
           <g key={r.id}>
-            <rect x={r.x} y={r.y} width={r.w} height={r.h} rx={6} className={r.decor ? 'room room-decor' : 'room'} />
+            <rect x={r.x} y={r.y} width={r.w} height={r.h} rx={12} className={`room tone-${r.tone ?? 'clinic'}${r.decor ? ' room-decor' : ''}`} />
             <text x={r.x + 10} y={r.y + 22} className="room-name">
               {r.name}
             </text>

@@ -3,7 +3,6 @@ main { max-width: 1100px; margin: 0 auto; padding: 16px; }
 h1 { font-size: 20px; margin: 0 0 4px; }
 .note { margin: 0 0 12px; color: #6b7280; font-size: 13px; }
 .floorplan { display: block; margin: 0 auto; max-width: 900px; width: 100%; height: auto; background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; }
-.room { fill: #f9fafb; stroke: #9ca3af; stroke-width: 2; }
 .room-name { font-size: 16px; font-weight: 700; fill: #374151; }
 .card { stroke-width: 2; }
 .card-waiting { fill: #e5e7eb; stroke: #9ca3af; }
@@ -12,6 +11,12 @@ h1 { font-size: 20px; margin: 0 0 4px; }
 .card-left { fill: #d1fae5; stroke: #059669; }
 .card-name { font-size: 14px; font-weight: 700; fill: #111827; }
 .card-sub { font-size: 11px; fill: #374151; }
-.building { fill: #fffdf7; stroke: #374151; stroke-width: 5; }
 .room-decor { fill: #eceff3; stroke-dasharray: 6 4; }
 .room-decor .room-name { fill: #6b7280; }
+.building { fill: #ffffff; stroke: #94a3b8; stroke-width: 4; }
+.room { stroke: #cbd5e1; stroke-width: 1.5; }
+.tone-clinic { fill: #eff6ff; }
+.tone-front { fill: #f0fdf4; }
+.tone-support { fill: #f1f5f9; }
+.room-name { fill: #334155; }
+body { background: linear-gradient(#f8fafc, #eef2f7); }

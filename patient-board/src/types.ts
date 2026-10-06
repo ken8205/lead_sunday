@@ -9,6 +9,7 @@ export interface Room {
   w: number
   h: number
   order: number
+  tone?: 'clinic' | 'front' | 'support' // 방 색 구분(진료/접수·대기/지원)
   decor?: boolean // true면 환자 카드를 둘 수 없는 장식 공간(화장실 등)
 }
 
