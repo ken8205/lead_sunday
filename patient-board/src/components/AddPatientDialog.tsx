@@ -20,7 +20,8 @@ export function AddPatientDialog({ rooms, defaultRoomId, onSubmit, onClose }: Pr
   const [staff, setStaff] = useState('')
   const [roomId, setRoomId] = useState(defaultRoomId)
 
-  const valid = name.trim() !== '' && birthDate !== '' && procedure.trim() !== ''
+  const isMeeting = category === 'meeting' // 미팅은 생년월일 없이 이름과 목적만 받는다
+  const valid = name.trim() !== '' && (isMeeting || birthDate !== '') && procedure.trim() !== ''
   const today = new Date().toISOString().slice(0, 10)
 
   return (
@@ -31,18 +32,10 @@ export function AddPatientDialog({ rooms, defaultRoomId, onSubmit, onClose }: Pr
         onSubmit={(e) => {
           e.preventDefault()
           if (!valid) return
-          onSubmit({ name: name.trim(), birthDate, procedure: procedure.trim(), category, staff: staff.trim() }, roomId)
+          onSubmit({ name: name.trim(), birthDate: isMeeting ? '' : birthDate, procedure: procedure.trim(), category, staff: staff.trim() }, roomId)
         }}
       >
         <h2>환자 카드 추가</h2>
-        <label>
-          환자 이름
-          <input autoFocus value={name} onChange={(e) => setName(e.target.value)} />
-        </label>
-        <label>
-          생년월일
-          <input type="date" min="1900-01-01" max={today} value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
-        </label>
         <label>
           분류
           <select value={category} onChange={(e) => setCategory(e.target.value as Category)}>
@@ -54,7 +47,17 @@ export function AddPatientDialog({ rooms, defaultRoomId, onSubmit, onClose }: Pr
           </select>
         </label>
         <label>
-          수술/시술명
+          {isMeeting ? '이름' : '환자 이름'}
+          <input autoFocus value={name} onChange={(e) => setName(e.target.value)} />
+        </label>
+        {!isMeeting && (
+          <label>
+            생년월일
+            <input type="date" min="1900-01-01" max={today} value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
+          </label>
+        )}
+        <label>
+          {isMeeting ? '목적' : '수술/시술명'}
           <input value={procedure} onChange={(e) => setProcedure(e.target.value)} />
         </label>
         <label>

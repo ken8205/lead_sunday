@@ -12,8 +12,8 @@ export const CATEGORY_LABEL: Record<Category, string> = {
 }
 
 // '준비 완료'일 때 누구를 기다리는지
-export type WaitFor = 'doctor' | 'manager' | 'nurse'
-export const WAIT_FOR_LABEL: Record<WaitFor, string> = { doctor: '원장', manager: '실장', nurse: '간호사' }
+export type WaitFor = 'doctor' | 'manager' | 'nurse' | 'coordinator'
+export const WAIT_FOR_LABEL: Record<WaitFor, string> = { doctor: '원장', manager: '실장', nurse: '간호사', coordinator: '코디' }
 
 export interface Room {
   id: string
@@ -29,9 +29,9 @@ export interface Room {
 
 export interface Patient {
   id: string
-  name: string // 환자 이름 (실명)
-  birthDate: string // YYYY-MM-DD
-  procedure: string // 수술/시술명
+  name: string // 환자 이름 (실명). 미팅은 상대방 이름
+  birthDate: string // YYYY-MM-DD (미팅은 빈 값)
+  procedure: string // 수술/시술명. 미팅은 목적
   category?: Category // 분류 (이전 버전 데이터에는 없을 수 있음)
   waitFor?: WaitFor // status가 ready일 때 기다리는 사람 (없으면 원장)
   staff: string // 담당자
@@ -60,4 +60,9 @@ export interface Move {
 
 export function statusLabel(p: { status: PatientStatus; waitFor?: WaitFor }): string {
   return p.status === 'ready' ? `${WAIT_FOR_LABEL[p.waitFor ?? 'doctor']} 대기` : STATUS_LABEL[p.status]
+}
+
+// 카드 둘째 줄: 생년월일 · 분류 (미팅은 생년월일이 없다)
+export function metaLine(p: { birthDate: string; category?: Category }): string {
+  return [p.birthDate, p.category ? CATEGORY_LABEL[p.category] : ''].filter(Boolean).join(' · ')
 }

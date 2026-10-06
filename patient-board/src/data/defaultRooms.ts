@@ -8,7 +8,7 @@ type Tone = NonNullable<Room['tone']>
 const layout: [string, string, number, number, number, number, Tone, boolean?][] = [
   // 윗줄
   ['wc', 'W.C', 30, 30, 120, 170, 'support', true],
-  ['or', '수술실(OR)', 160, 30, 420, 170, 'clinic'],
+  ['or', 'OR', 160, 30, 420, 170, 'clinic'],
   ['pantry', '탕비실', 590, 30, 340, 170, 'support'],
   // 가운데
   ['dressing', '탈의실', 160, 210, 205, 120, 'support'],
@@ -16,12 +16,10 @@ const layout: [string, string, number, number, number, number, Tone, boolean?][]
   ['recov1', '회복실 I', 160, 340, 420, 256, 'clinic'],
   ['treat', '치료실', 590, 210, 340, 196, 'clinic'],
   ['recov2', '회복실 II', 590, 416, 340, 180, 'clinic'],
-  // 데스크 (스케치에 없음: 임의 배치, 확인 필요)
-  ['desk', '데스크', 160, 611, 420, 120, 'front'],
   // 아랫줄
-  ['wait', '대기실', 30, 746, 540, 300, 'front'],
-  ['consult2', '상담실 II / 촬영실', 590, 746, 340, 150, 'clinic'],
-  ['consult1', '상담실 I', 590, 906, 340, 140, 'clinic'],
+  ['wait', '대기실', 30, 611, 540, 402, 'front'],
+  ['consult2', '상담실 II / 촬영실', 590, 611, 340, 196, 'clinic'],
+  ['consult1', '상담실 I', 590, 817, 340, 196, 'clinic'],
 ]
 
 export const defaultRooms: Room[] = layout.map(([id, name, x, y, w, h, tone, decor], i) => ({
@@ -37,8 +35,8 @@ export const defaultRooms: Room[] = layout.map(([id, name, x, y, w, h, tone, dec
 }))
 
 // 건물 외곽선과 전체 캔버스 크기
-export const building = { x: 20, y: 20, w: 920, h: 1036 }
-export const canvas = { w: 960, h: 1076 }
+export const building = { x: 20, y: 20, w: 920, h: 1006 }
+export const canvas = { w: 960, h: 1046 }
 
 // 방을 추가하거나 옮겨도 모두 보이도록 캔버스 크기를 방 위치에서 계산한다.
 export function canvasFor(rooms: Room[]) {

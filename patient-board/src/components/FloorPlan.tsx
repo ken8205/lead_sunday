@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import type { PointerEvent } from 'react'
 import type { Patient, Room } from '../types'
-import { CATEGORY_LABEL, statusLabel } from '../types'
+import { metaLine, statusLabel } from '../types'
 import { elapsedMinutes, formatClock } from '../lib/time'
 import { building, canvasFor } from '../data/defaultRooms'
 
@@ -46,8 +46,7 @@ function CardBody({ p, now, alertMin }: { p: Patient; now: number; alertMin: num
         {p.name} · {statusLabel(p)}
       </text>
       <text x={10} y={37} className="card-sub">
-        {p.birthDate}
-        {p.category ? ` · ${CATEGORY_LABEL[p.category]}` : ''}
+        {metaLine(p)}
       </text>
       <text x={10} y={52} className="card-sub">
         {p.procedure}

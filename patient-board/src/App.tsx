@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { FloorPlan } from './components/FloorPlan'
 import { AddPatientDialog } from './components/AddPatientDialog'
 import { MoveLog } from './components/MoveLog'
@@ -18,6 +18,7 @@ const STATUS_OPTIONS: { label: string; status: PatientStatus; waitFor?: WaitFor 
   { label: '원장 대기', status: 'ready', waitFor: 'doctor' },
   { label: '실장 대기', status: 'ready', waitFor: 'manager' },
   { label: '간호사 대기', status: 'ready', waitFor: 'nurse' },
+  { label: '코디 대기', status: 'ready', waitFor: 'coordinator' },
   { label: '진행 중', status: 'in_progress' },
   { label: '귀가', status: 'left' },
 ]
@@ -66,9 +67,11 @@ function samplePatients(): Patient[] {
     mk(3, '이다라', '1982-07-21', 'surgery', '하안검', '정실장', 'or', 'in_progress', 25),
     mk(4, '박마바', '1990-01-30', 'treatment', '실리프팅', '유빈', 'wait', 'waiting', 12),
     mk(5, '정사아', '1979-05-09', 'consult', '미니거상', '도은', 'consult1', 'ready', 14, 'manager'),
-    mk(6, '오자차', '1985-12-25', 'followup', '눈밑지방재배치', '유빈', 'desk', 'left', 40),
+    mk(6, '오자차', '1985-12-25', 'followup', '눈밑지방재배치', '유빈', 'wait', 'left', 40),
     mk(7, '최카타', '1972-08-17', 'followup', '안면거상 경과', '도은', 'recov2', 'ready', 6, 'nurse'),
     mk(8, '강파하', '1988-02-03', 'treatment', '스킨부스터', '유빈', 'treat', 'ready', 11, 'doctor'),
+    mk(9, '송타퓨', '1993-09-09', 'consult', '코 성형 상담', '도은', 'consult2', 'ready', 4, 'coordinator'),
+    mk(10, '김업체', '', 'meeting', '장비 도입 미팅', '정실장', 'consult1', 'in_progress', 15),
   ]
 }
 
@@ -92,7 +95,14 @@ export default function App() {
   }
 
   const selected = patients.find((p) => p.id === selectedId)
-  const defaultRoomId = (rooms.find((r) => r.id === 'desk' && !r.decor) ?? rooms.find((r) => !r.decor))?.id ?? rooms[0].id
+  // 새 카드는 대기실에서 시작한다. 대기실이 없으면 카드를 놓을 수 있는 첫 번째 방.
+  const defaultRoomId = (rooms.find((r) => r.id === 'wait' && !r.decor) ?? rooms.find((r) => !r.decor))?.id ?? rooms[0].id
+
+  // 삭제되거나 없어진 방에 있던 카드는 기본 방으로 옮겨 화면에서 사라지지 않게 한다.
+  useEffect(() => {
+    const ids = new Set(rooms.map((r) => r.id))
+    patients.filter((p) => !ids.has(p.roomId)).forEach((p) => movePatient(p.id, defaultRoomId))
+  }, [rooms, patients, defaultRoomId, movePatient])
   const isActive = (o: (typeof STATUS_OPTIONS)[number]) =>
     !!selected && selected.status === o.status && (o.status !== 'ready' || (selected.waitFor ?? 'doctor') === o.waitFor)
 
@@ -101,7 +111,7 @@ export default function App() {
       <header className="topbar">
         <div>
           <h1>페이스플러스 환자 동선 보드</h1>
-          <p className="note">5단계: 설정 · 이 기기의 브라우저에만 저장됩니다</p>
+          <p className="note">이 기기의 브라우저에만 저장됩니다</p>
         </div>
         <div className="tabs" role="tablist">
           {(

@@ -1,5 +1,5 @@
-import type { Patient, Room } from '../types'
-import { CATEGORY_LABEL, statusLabel } from '../types'
+import type { Patient, Room, WaitFor } from '../types'
+import { WAIT_FOR_LABEL, metaLine, statusLabel } from '../types'
 import { elapsedMinutes, formatClock } from '../lib/time'
 import { sortQueue } from '../lib/queue'
 import { isAlert } from './FloorPlan'
@@ -21,8 +21,7 @@ function Row({ p, roomName, now, alertMin }: { p: Patient; roomName: string; now
         <span className="prow-status">{statusLabel(p)}</span>
       </div>
       <div className="prow-sub">
-        {p.birthDate}
-        {p.category ? ` · ${CATEGORY_LABEL[p.category]}` : ''} · {p.procedure}
+        {[metaLine(p), p.procedure].filter(Boolean).join(' · ')}
         {p.staff ? ` / ${p.staff}` : ''}
       </div>
       <div className="prow-time">
@@ -49,14 +48,20 @@ export function DoctorView({ patients, rooms, now, alertMin, order }: Props) {
     .filter((r) => !r.decor)
     .map((r) => ({ room: r, list: rest.filter((p) => p.roomId === r.id).sort(byEntry) }))
     .filter((g) => g.list.length > 0)
-  const countWait = (t: 'manager' | 'nurse') => active.filter((p) => p.status === 'ready' && p.waitFor === t).length
+  const countWait = (t: WaitFor) => active.filter((p) => p.status === 'ready' && p.waitFor === t).length
 
   return (
     <div className="doctor">
       <div className="summary">
         <span className="chip chip-ready">원장 대기 {doctorReady.length}</span>
-        {countWait('manager') > 0 && <span className="chip chip-ready">실장 대기 {countWait('manager')}</span>}
-        {countWait('nurse') > 0 && <span className="chip chip-ready">간호사 대기 {countWait('nurse')}</span>}
+        {(['manager', 'nurse', 'coordinator'] as WaitFor[]).map(
+          (t) =>
+            countWait(t) > 0 && (
+              <span key={t} className="chip chip-ready">
+                {WAIT_FOR_LABEL[t]} 대기 {countWait(t)}
+              </span>
+            ),
+        )}
         <span className="chip">대기 {active.filter((p) => p.status === 'waiting').length}</span>
         <span className="chip chip-in_progress">진행 중 {active.filter((p) => p.status === 'in_progress').length}</span>
       </div>

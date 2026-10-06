@@ -15,7 +15,7 @@ interface Props {
   onReorder: (order: string[]) => void
 }
 
-const TARGETS: WaitFor[] = ['doctor', 'manager', 'nurse']
+const TARGETS: WaitFor[] = ['doctor', 'manager', 'nurse', 'coordinator']
 
 interface DragState {
   target: WaitFor
