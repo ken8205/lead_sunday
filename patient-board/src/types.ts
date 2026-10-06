@@ -31,3 +31,12 @@ export const STATUS_LABEL: Record<PatientStatus, string> = {
   in_progress: '진행 중',
   left: '귀가',
 }
+
+export interface Move {
+  id: string
+  patientId: string
+  fromRoomId: string | null // 카드 생성 시에는 null
+  toRoomId: string
+  status: PatientStatus
+  at: number
+}

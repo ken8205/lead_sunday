@@ -20,3 +20,30 @@ h1 { font-size: 20px; margin: 0 0 4px; }
 .tone-support { fill: #f1f5f9; }
 .room-name { fill: #334155; }
 body { background: linear-gradient(#f8fafc, #eef2f7); }
+.topbar { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: flex-end; margin-bottom: 8px; }
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid #cbd5e1; background: #fff; font-size: 15px; cursor: pointer; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-primary { background: #2563eb; border-color: #2563eb; color: #fff; font-weight: 700; }
+.btn-danger { color: #b91c1c; border-color: #fca5a5; }
+.hint { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-height: 44px; margin-bottom: 8px; padding: 0 12px; border-radius: 10px; background: #fff; border: 1px solid #e2e8f0; font-size: 14px; color: #475569; }
+.hint-active { background: #f5f3ff; border-color: #7c3aed; color: #4c1d95; }
+.hint span { flex: 1; }
+.card-g { cursor: grab; touch-action: none; user-select: none; }
+.card-selected .card { stroke: #7c3aed; stroke-width: 5; }
+.card-dim { opacity: 0.35; }
+.card-ghost { pointer-events: none; opacity: 0.92; filter: drop-shadow(0 6px 8px rgba(0,0,0,0.25)); }
+.floorplan text { pointer-events: none; user-select: none; }
+.room-target { cursor: pointer; stroke: #7c3aed; stroke-width: 2.5; stroke-dasharray: 8 5; }
+.room-over { stroke: #7c3aed; stroke-width: 4; stroke-dasharray: none; fill: #ede9fe; }
+.overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.45); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 10; }
+.dialog { background: #fff; border-radius: 16px; padding: 20px; width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 12px; }
+.dialog h2 { margin: 0; font-size: 18px; }
+.dialog label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #475569; }
+.dialog input, .dialog select { min-height: 44px; padding: 0 10px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 8px; }
+.dialog-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+.movelog { max-width: 900px; margin: 16px auto 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 16px; }
+.movelog h2 { margin: 0 0 8px; font-size: 15px; }
+.movelog ul { list-style: none; margin: 0; padding: 0; font-size: 14px; display: grid; gap: 4px; }
+.movelog time { color: #64748b; font-variant-numeric: tabular-nums; }
+.movelog .empty { margin: 0; color: #94a3b8; font-size: 14px; }
