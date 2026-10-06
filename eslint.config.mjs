@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // patient-board는 별도 Vite 앱이라 이 설정으로 검사하지 않는다.
+    "patient-board/**",
   ]),
 ]);
 
