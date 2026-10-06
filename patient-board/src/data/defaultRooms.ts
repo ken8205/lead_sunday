@@ -17,7 +17,7 @@ const layout: [string, string, number, number, number, number, Tone, boolean?][]
   ['treat', '치료실', 590, 200, 340, 170, 'clinic'],
   ['recov2', '회복실 II', 590, 380, 340, 170, 'clinic'],
   // 데스크 (스케치에 없음: 임의 배치, 확인 필요)
-  ['desk', '데스크', 30, 565, 400, 110, 'front'],
+  ['desk', '데스크', 160, 565, 420, 110, 'front'],
   // 아랫줄
   ['wait', '대기실', 30, 690, 540, 290, 'front'],
   ['consult2', '상담실 II / 촬영실', 590, 690, 340, 140, 'clinic'],
