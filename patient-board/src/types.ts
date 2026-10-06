@@ -9,6 +9,7 @@ export interface Room {
   w: number
   h: number
   order: number
+  decor?: boolean // true면 환자 카드를 둘 수 없는 장식 공간(화장실 등)
 }
 
 export interface Patient {
