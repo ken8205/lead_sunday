@@ -64,6 +64,8 @@ export function FloorPlan({ rooms, patients, now, alertMin, selectedId, onSelect
   const svgRef = useRef<SVGSVGElement>(null)
   const dragRef = useRef<{ id: string; sx: number; sy: number; dx: number; dy: number; moved: boolean } | null>(null)
   const [drag, setDrag] = useState<DragState | null>(null)
+  // 터치에서는 카드에서 손을 뗀 직후 카드 밑의 방에도 click이 발생한다. 그 클릭은 무시한다.
+  const lastCardUpAt = useRef(0)
 
   const toSvg = (e: PointerEvent) => {
     const svg = svgRef.current!
@@ -109,6 +111,7 @@ export function FloorPlan({ rooms, patients, now, alertMin, selectedId, onSelect
     const d = dragRef.current
     dragRef.current = null
     if (!d) return
+    lastCardUpAt.current = Date.now()
     if (d.moved) {
       const pt = toSvg(e)
       const target = roomAt(pt.x, pt.y)
@@ -126,6 +129,7 @@ export function FloorPlan({ rooms, patients, now, alertMin, selectedId, onSelect
 
   const onRoomClick = (r: Room) => {
     if (!selectedId || r.decor) return
+    if (Date.now() - lastCardUpAt.current < 400) return
     onMove(selectedId, r.id)
     onSelect(null)
   }

@@ -4,6 +4,7 @@ import { FloorPlan } from './components/FloorPlan'
 import { AddPatientDialog } from './components/AddPatientDialog'
 import { MoveLog } from './components/MoveLog'
 import { ReadyList } from './components/ReadyList'
+import { DoctorView } from './components/DoctorView'
 import { useBoard } from './store/useBoard'
 import { useNow } from './hooks/useNow'
 import { STATUS_LABEL } from './types'
@@ -77,6 +78,8 @@ export default function App() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [adding, setAdding] = useState(false)
   const [alertMin, setAlertMin] = useState(loadAlertMin)
+  // 폰처럼 좁은 화면에서는 원장 보기로 시작한다.
+  const [view, setView] = useState<'board' | 'doctor'>(() => (window.matchMedia('(max-width: 700px)').matches ? 'doctor' : 'board'))
 
   const selected = patients.find((p) => p.id === selectedId)
 
@@ -85,8 +88,17 @@ export default function App() {
       <header className="topbar">
         <div>
           <h1>페이스플러스 환자 동선 보드</h1>
-          <p className="note">3단계: 상태·대기 시간 · 이 기기의 브라우저에만 저장됩니다</p>
+          <p className="note">4단계: 원장 모바일 보기 · 이 기기의 브라우저에만 저장됩니다</p>
         </div>
+        <div className="tabs" role="tablist">
+          <button className={view === 'board' ? 'on' : ''} onClick={() => setView('board')}>
+            보드
+          </button>
+          <button className={view === 'doctor' ? 'on' : ''} onClick={() => setView('doctor')}>
+            원장 보기
+          </button>
+        </div>
+        {view === 'board' && (
         <div className="toolbar">
           <label className="alert-setting">
             대기 강조 기준
@@ -122,8 +134,13 @@ export default function App() {
             }}
           />
         </div>
+        )}
       </header>
 
+      {view === 'doctor' ? (
+        <DoctorView patients={patients} rooms={rooms} now={now} alertMin={alertMin} />
+      ) : (
+      <>
       <div className={`hint${selected ? ' hint-active' : ''}`}>
         {selected ? (
           <>
@@ -174,6 +191,8 @@ export default function App() {
       </div>
 
       <MoveLog moves={moves} patients={[...patients, ...archive]} rooms={rooms} />
+      </>
+      )}
 
       {adding && (
         <AddPatientDialog
