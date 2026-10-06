@@ -6,9 +6,10 @@ interface Props {
   moves: Move[]
   patients: Patient[]
   rooms: Room[]
+  staffName?: (id?: string) => string
 }
 
-export function MoveLog({ moves, patients, rooms }: Props) {
+export function MoveLog({ moves, patients, rooms, staffName }: Props) {
   const roomName = (id: string | null) => (id ? (rooms.find((r) => r.id === id)?.name ?? '?') : '신규')
   const recent = moves.slice(-10).reverse()
   return (
@@ -25,6 +26,7 @@ export function MoveLog({ moves, patients, rooms }: Props) {
               {m.fromRoomId !== null && m.fromRoomId === m.toRoomId
                 ? `${roomName(m.toRoomId)} · 상태 → ${statusLabel(m)}`
                 : `${roomName(m.fromRoomId)} → ${roomName(m.toRoomId)}`}
+              {staffName?.(m.by) ? <span className="by"> · {staffName(m.by)}</span> : null}
             </li>
           ))}
         </ul>

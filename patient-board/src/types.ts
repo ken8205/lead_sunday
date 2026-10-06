@@ -11,6 +11,10 @@ export const CATEGORY_LABEL: Record<Category, string> = {
   meeting: '미팅',
 }
 
+// 직원 역할
+export type Role = 'doctor' | 'manager' | 'nurse' | 'coordinator'
+export const ROLE_LABEL: Record<Role, string> = { doctor: '원장', manager: '실장', nurse: '간호사', coordinator: '코디' }
+
 // '준비 완료'일 때 누구를 기다리는지
 export type WaitFor = 'doctor' | 'manager' | 'nurse' | 'coordinator'
 export const WAIT_FOR_LABEL: Record<WaitFor, string> = { doctor: '원장', manager: '실장', nurse: '간호사', coordinator: '코디' }
@@ -56,6 +60,7 @@ export interface Move {
   status: PatientStatus
   waitFor?: WaitFor
   at: number
+  by?: string // 옮긴 직원 id (서버 모드)
 }
 
 export function statusLabel(p: { status: PatientStatus; waitFor?: WaitFor }): string {

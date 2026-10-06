@@ -31,7 +31,22 @@ function load(): State {
 
 const uid = () => crypto.randomUUID()
 
-export function useBoard() {
+export interface BoardApi {
+  patients: Patient[]
+  archive: Patient[]
+  moves: Move[]
+  order: string[]
+  setOrder: (order: string[]) => void
+  addPatient: (input: NewPatient, roomId: string) => void
+  movePatient: (patientId: string, toRoomId: string) => void
+  setStatus: (patientId: string, status: PatientStatus, waitFor?: WaitFor) => void
+  removePatient: (patientId: string) => void
+  replaceAll?: (patients: Patient[]) => void // 이 브라우저 전용 모드에서만 (예시 채우기, 비우기)
+  ready: boolean
+  error: string | null
+}
+
+export function useLocalBoard(): BoardApi {
   const [state, setState] = useState<State>(load)
 
   useEffect(() => {
@@ -129,5 +144,7 @@ export function useBoard() {
     setOrder,
     removePatient,
     replaceAll,
+    ready: true,
+    error: null,
   }
 }

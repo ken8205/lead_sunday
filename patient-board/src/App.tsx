@@ -6,8 +6,13 @@ import { ReadyList } from './components/ReadyList'
 import { DoctorView } from './components/DoctorView'
 import { SettingsPage } from './components/SettingsPage'
 import { ConfirmButton } from './components/ConfirmButton'
-import { useBoard } from './store/useBoard'
-import { useRooms } from './store/useRooms'
+import { useBoardStore, useRoomsStore } from './store'
+import { LoginPage } from './components/LoginPage'
+import { useAuth } from './hooks/useAuth'
+import type { StaffUser } from './hooks/useAuth'
+import { useStaffList } from './hooks/useStaffList'
+import { isCloud } from './lib/supabase'
+import { ROLE_LABEL } from './types'
 import { useNow } from './hooks/useNow'
 import type { Category, Patient, PatientStatus, WaitFor } from './types'
 
@@ -75,9 +80,17 @@ function samplePatients(): Patient[] {
   ]
 }
 
-export default function App() {
-  const { patients, archive, moves, order, setOrder, addPatient, movePatient, setStatus, removePatient, replaceAll } = useBoard()
-  const { rooms, setRooms } = useRooms()
+interface BoardProps {
+  user?: StaffUser // 서버 모드에서 로그인한 직원
+  onSignOut?: () => void
+}
+
+function Board({ user, onSignOut }: BoardProps) {
+  const { patients, archive, moves, order, setOrder, addPatient, movePatient, setStatus, removePatient, replaceAll, ready: boardReady, error } = useBoardStore()
+  const { rooms, setRooms, ready: roomsReady } = useRoomsStore()
+  const staffList = useStaffList(isCloud)
+  const staffName = (id?: string) => (id ? (staffList.find((x) => x.id === id)?.name ?? '') : '')
+  const staffSuggestions = isCloud ? staffList.filter((x) => x.active).map((x) => x.name) : undefined
   const now = useNow(15000)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [adding, setAdding] = useState(false)
@@ -100,9 +113,10 @@ export default function App() {
 
   // 삭제되거나 없어진 방에 있던 카드는 기본 방으로 옮겨 화면에서 사라지지 않게 한다.
   useEffect(() => {
+    if (!boardReady || !roomsReady) return // 서버에서 방과 카드를 모두 불러오기 전에는 건드리지 않는다
     const ids = new Set(rooms.map((r) => r.id))
     patients.filter((p) => !ids.has(p.roomId)).forEach((p) => movePatient(p.id, defaultRoomId))
-  }, [rooms, patients, defaultRoomId, movePatient])
+  }, [rooms, patients, defaultRoomId, movePatient, boardReady, roomsReady])
   const isActive = (o: (typeof STATUS_OPTIONS)[number]) =>
     !!selected && selected.status === o.status && (o.status !== 'ready' || (selected.waitFor ?? 'doctor') === o.waitFor)
 
@@ -111,7 +125,7 @@ export default function App() {
       <header className="topbar">
         <div>
           <h1>페이스플러스 환자 동선 보드</h1>
-          <p className="note">이 기기의 브라우저에만 저장됩니다</p>
+          <p className="note">{user ? `${user.name}${user.name === ROLE_LABEL[user.role] ? '' : ` ${ROLE_LABEL[user.role]}`} 로그인 중 · 모든 기기에 실시간 공유됩니다` : '이 기기의 브라우저에만 저장됩니다'}</p>
         </div>
         <div className="tabs" role="tablist">
           {(
@@ -126,31 +140,43 @@ export default function App() {
             </button>
           ))}
         </div>
+        {onSignOut && (
+          <button className="btn" onClick={onSignOut}>
+            로그아웃
+          </button>
+        )}
         {view === 'board' && (
           <div className="toolbar">
             <button className="btn btn-primary" onClick={() => setAdding(true)}>
               + 환자 추가
             </button>
-            <button className="btn" onClick={() => replaceAll(samplePatients())}>
-              예시 채우기
-            </button>
-            <ConfirmButton
-              label="모두 비우기"
-              confirmLabel="정말 비우기"
-              onConfirm={() => {
-                replaceAll([])
-                setSelectedId(null)
-              }}
-            />
+            {replaceAll && (
+              <>
+                <button className="btn" onClick={() => replaceAll(samplePatients())}>
+                  예시 채우기
+                </button>
+                <ConfirmButton
+                  label="모두 비우기"
+                  confirmLabel="정말 비우기"
+                  onConfirm={() => {
+                    replaceAll([])
+                    setSelectedId(null)
+                  }}
+                />
+              </>
+            )}
           </div>
         )}
       </header>
 
-      {view === 'doctor' && <DoctorView patients={patients} rooms={rooms} now={now} alertMin={alertMin} order={order} />}
+      {error && <div className="banner-error">{error}</div>}
+      {(!boardReady || !roomsReady) && <p className="empty-all">서버에서 불러오는 중…</p>}
 
-      {view === 'settings' && <SettingsPage rooms={rooms} setRooms={setRooms} patients={patients} alertMin={alertMin} setAlertMin={setAlertMin} />}
+      {boardReady && roomsReady && view === 'doctor' && <DoctorView patients={patients} rooms={rooms} now={now} alertMin={alertMin} order={order} />}
 
-      {view === 'board' && (
+      {boardReady && roomsReady && view === 'settings' && <SettingsPage rooms={rooms} setRooms={setRooms} patients={patients} alertMin={alertMin} setAlertMin={setAlertMin} />}
+
+      {boardReady && roomsReady && view === 'board' && (
         <>
           <div className={`hint${selected ? ' hint-active' : ''}`}>
             {selected ? (
@@ -193,7 +219,7 @@ export default function App() {
             <ReadyList patients={patients} rooms={rooms} now={now} selectedId={selectedId} onSelect={setSelectedId} order={order} onReorder={setOrder} />
           </div>
 
-          <MoveLog moves={moves} patients={[...patients, ...archive]} rooms={rooms} />
+          <MoveLog moves={moves} patients={[...patients, ...archive]} rooms={rooms} staffName={staffName} />
         </>
       )}
 
@@ -201,6 +227,7 @@ export default function App() {
         <AddPatientDialog
           rooms={rooms}
           defaultRoomId={defaultRoomId}
+          staffSuggestions={staffSuggestions}
           onClose={() => setAdding(false)}
           onSubmit={(p, roomId) => {
             addPatient(p, roomId)
@@ -210,4 +237,27 @@ export default function App() {
       )}
     </main>
   )
+}
+
+function CloudGate() {
+  const { state, signIn, signOut } = useAuth()
+  if (state.status === 'loading') return <p className="empty-all">불러오는 중…</p>
+  if (state.status === 'out') return <LoginPage onSignIn={signIn} />
+  if (state.status === 'denied')
+    return (
+      <div className="login">
+        <div className="login-card">
+          <h1>접근 권한이 없습니다</h1>
+          <p className="note">{state.email} 계정은 보드를 볼 수 없습니다. 원장님께 문의하세요.</p>
+          <button className="btn" onClick={signOut}>
+            로그아웃
+          </button>
+        </div>
+      </div>
+    )
+  return <Board user={state.user} onSignOut={signOut} />
+}
+
+export default function App() {
+  return isCloud ? <CloudGate /> : <Board />
 }

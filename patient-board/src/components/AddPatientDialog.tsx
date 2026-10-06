@@ -3,16 +3,17 @@ import type { Category, Room } from '../types'
 import { CATEGORY_LABEL } from '../types'
 import type { NewPatient } from '../store/useBoard'
 
-const STAFF_SUGGESTIONS = ['유빈', '도은', '정실장']
+const DEFAULT_STAFF_SUGGESTIONS = ['유빈', '도은', '정실장']
 
 interface Props {
   rooms: Room[]
   defaultRoomId: string
+  staffSuggestions?: string[] // 서버 모드에서는 활성 직원 이름
   onSubmit: (p: NewPatient, roomId: string) => void
   onClose: () => void
 }
 
-export function AddPatientDialog({ rooms, defaultRoomId, onSubmit, onClose }: Props) {
+export function AddPatientDialog({ rooms, defaultRoomId, staffSuggestions = DEFAULT_STAFF_SUGGESTIONS, onSubmit, onClose }: Props) {
   const [name, setName] = useState('')
   const [birthDate, setBirthDate] = useState('')
   const [procedure, setProcedure] = useState('')
@@ -64,7 +65,7 @@ export function AddPatientDialog({ rooms, defaultRoomId, onSubmit, onClose }: Pr
           담당자
           <input list="staff-list" value={staff} onChange={(e) => setStaff(e.target.value)} />
           <datalist id="staff-list">
-            {STAFF_SUGGESTIONS.map((s) => (
+            {staffSuggestions.map((s) => (
               <option key={s} value={s} />
             ))}
           </datalist>

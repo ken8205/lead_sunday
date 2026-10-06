@@ -129,7 +129,7 @@ export function FloorPlan({ rooms, patients, now, alertMin, selectedId, onSelect
 
   const onRoomClick = (r: Room) => {
     if (!selectedId || r.decor) return
-    if (Date.now() - lastCardUpAt.current < 400) return
+    if (Date.now() - lastCardUpAt.current < 150) return
     onMove(selectedId, r.id)
     onSelect(null)
   }
