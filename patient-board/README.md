@@ -45,10 +45,21 @@ VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...       # 공개용 키만. secre
 HTTPS로 배포하면 폰/태블릿 브라우저 메뉴의 "홈 화면에 추가"로 앱처럼 열 수 있습니다.
 서비스 워커는 네트워크 우선이라, 새 버전을 배포하면 다음 접속 때 바로 바뀝니다.
 
-## 배포 (정적 호스팅, 예: Vercel)
+## 배포 (Vercel)
 
-`npm run build`로 만든 `dist/` 폴더를 올리면 됩니다. Vercel에서는 이 폴더(`patient-board`)를
-루트로 지정하고 Framework = Vite로 두면 됩니다.
+이 저장소에는 기존 앱(Next.js, 저장소 루트)과 이 앱(`patient-board`)이 함께 있어서, **Vercel 프로젝트를 앱마다 따로** 만듭니다.
+
+1. Vercel에서 New Project → 이 저장소 Import.
+2. **Root Directory**: `patient-board`, **Framework Preset**: Vite (빌드 `npm run build`, 출력 `dist`).
+3. **Environment Variables** (Production, Preview, Development 모두):
+   - `VITE_SUPABASE_URL` = Supabase 프로젝트 주소 (`https://<프로젝트>.supabase.co`, 뒤에 `/rest/v1/` 없이)
+   - `VITE_SUPABASE_PUBLISHABLE_KEY` = 공개용 키 (`sb_publishable_...`). secret/service_role 키는 절대 넣지 않음.
+4. Production은 `main` 브랜치를 따라갑니다. 프로젝트를 만든 직후에는 배포가 없고, `main`에 새 변경이 올라와야 첫 배포가 시작됩니다.
+5. 배포된 주소를 열면 로그인 화면이 나옵니다. 환경 변수가 없으면 로그인 없는 "이 브라우저 전용 모드"로 열리므로, 실환자 정보를 넣기 전에 반드시 로그인 화면이 나오는지 확인하세요.
+
+환경 변수를 바꾸면 **Redeploy**해야 반영됩니다.
+
+> 기존 앱(`lead-sunday` 프로젝트)의 배포는 해당 앱의 DB 연결 문제로 실패 중입니다(2026-10 기준). `patient-board`와 무관합니다.
 
 ## 다음 단계 (7단계, 정해야 할 것)
 
