@@ -64,7 +64,7 @@ function samplePatients(): Patient[] {
     status,
     waitFor,
     enteredRoomAt: now - mins * 60000,
-    createdAt: now - mins * 60000,
+    createdAt: now - (mins + 15 + i * 5) * 60000, // 방에 들어오기 전 대기 시간이 있었던 것처럼
   })
   return [
     mk(1, '홍길동', '1968-03-14', 'treatment', '안면거상 시술', '유빈', 'treat', 'ready', 8, 'doctor'),
