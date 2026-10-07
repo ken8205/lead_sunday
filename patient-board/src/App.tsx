@@ -8,6 +8,7 @@ import { SettingsPage } from './components/SettingsPage'
 import { ConfirmButton } from './components/ConfirmButton'
 import { useBoardStore, useRoomsStore } from './store'
 import { LoginPage } from './components/LoginPage'
+import { ChangePasswordDialog } from './components/ChangePasswordDialog'
 import { useAuth } from './hooks/useAuth'
 import type { StaffUser } from './hooks/useAuth'
 import { useStaffList } from './hooks/useStaffList'
@@ -83,9 +84,10 @@ function samplePatients(): Patient[] {
 interface BoardProps {
   user?: StaffUser // 서버 모드에서 로그인한 직원
   onSignOut?: () => void
+  onChangePassword?: (current: string, next: string) => Promise<string | null>
 }
 
-function Board({ user, onSignOut }: BoardProps) {
+function Board({ user, onSignOut, onChangePassword }: BoardProps) {
   const { patients, archive, moves, order, setOrder, addPatient, movePatient, setStatus, removePatient, replaceAll, ready: boardReady, error } = useBoardStore()
   const { rooms, setRooms, ready: roomsReady } = useRoomsStore()
   const staffList = useStaffList(isCloud)
@@ -94,6 +96,7 @@ function Board({ user, onSignOut }: BoardProps) {
   const now = useNow(15000)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [adding, setAdding] = useState(false)
+  const [changingPw, setChangingPw] = useState(false)
   const [alertMin, setAlertMinState] = useState(loadAlertMin)
   // 폰처럼 좁은 화면에서는 원장 보기로 시작한다.
   const [view, setView] = useState<View>(() => (window.matchMedia('(max-width: 700px)').matches ? 'doctor' : 'board'))
@@ -141,9 +144,16 @@ function Board({ user, onSignOut }: BoardProps) {
           ))}
         </div>
         {onSignOut && (
-          <button className="btn" onClick={onSignOut}>
-            로그아웃
-          </button>
+          <div className="toolbar">
+            {onChangePassword && (
+              <button className="btn" onClick={() => setChangingPw(true)}>
+                비밀번호 변경
+              </button>
+            )}
+            <button className="btn" onClick={onSignOut}>
+              로그아웃
+            </button>
+          </div>
         )}
         {view === 'board' && (
           <div className="toolbar">
@@ -223,6 +233,8 @@ function Board({ user, onSignOut }: BoardProps) {
         </>
       )}
 
+      {changingPw && onChangePassword && <ChangePasswordDialog onChange={onChangePassword} onClose={() => setChangingPw(false)} />}
+
       {adding && (
         <AddPatientDialog
           rooms={rooms}
@@ -240,7 +252,7 @@ function Board({ user, onSignOut }: BoardProps) {
 }
 
 function CloudGate() {
-  const { state, signIn, signOut } = useAuth()
+  const { state, signIn, signOut, changePassword } = useAuth()
   if (state.status === 'loading') return <p className="empty-all">불러오는 중…</p>
   if (state.status === 'out') return <LoginPage onSignIn={signIn} />
   if (state.status === 'denied')
@@ -255,7 +267,7 @@ function CloudGate() {
         </div>
       </div>
     )
-  return <Board user={state.user} onSignOut={signOut} />
+  return <Board user={state.user} onSignOut={signOut} onChangePassword={changePassword} />
 }
 
 export default function App() {

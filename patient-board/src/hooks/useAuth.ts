@@ -57,9 +57,24 @@ export function useAuth() {
     [sb],
   )
 
+  // 본인 비밀번호 변경. 열려 있는 화면을 다른 사람이 쓰는 경우를 막으려고 현재 비밀번호로 다시 확인한다.
+  const changePassword = useCallback(
+    async (current: string, next: string): Promise<string | null> => {
+      const { data } = await sb.auth.getSession()
+      const email = data.session?.user.email
+      if (!email) return '로그인 정보를 찾을 수 없습니다. 다시 로그인해 주세요.'
+      const check = await sb.auth.signInWithPassword({ email, password: current })
+      if (check.error) return '현재 비밀번호가 맞지 않습니다.'
+      const { error } = await sb.auth.updateUser({ password: next })
+      if (error) return `비밀번호를 바꾸지 못했습니다: ${error.message}`
+      return null
+    },
+    [sb],
+  )
+
   const signOut = useCallback(async () => {
     await sb.auth.signOut()
   }, [sb])
 
-  return { state, signIn, signOut }
+  return { state, signIn, signOut, changePassword }
 }
