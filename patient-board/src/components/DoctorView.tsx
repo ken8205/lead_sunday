@@ -1,6 +1,6 @@
 import type { Patient, Room, WaitFor } from '../types'
 import { WAIT_FOR_LABEL, metaLine, statusLabel } from '../types'
-import { elapsedMinutes, formatClock } from '../lib/time'
+import { elapsedMinutes, formatClock, formatTotal } from '../lib/time'
 import { sortQueue } from '../lib/queue'
 import { isAlert } from './FloorPlan'
 
@@ -27,7 +27,7 @@ function Row({ p, roomName, now, alertMin }: { p: Patient; roomName: string; now
       <div className="prow-time">
         <b className={alert ? 'alert' : ''}>{elapsedMinutes(p.enteredRoomAt, now)}분</b>{' '}
         <small>
-          {roomName} · 입실 {formatClock(p.enteredRoomAt)}
+          {roomName} · 입실 {formatClock(p.enteredRoomAt)} · 총 {formatTotal(p.createdAt, now)}
         </small>
       </div>
     </li>

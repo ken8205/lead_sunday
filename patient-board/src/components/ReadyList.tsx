@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import type { PointerEvent } from 'react'
 import type { Patient, Room, WaitFor } from '../types'
 import { WAIT_FOR_LABEL } from '../types'
-import { elapsedMinutes } from '../lib/time'
+import { elapsedMinutes, formatTotal } from '../lib/time'
 import { sortQueue } from '../lib/queue'
 
 interface Props {
@@ -104,7 +104,9 @@ export function ReadyList({ patients, rooms, now, selectedId, onSelect, order, o
                     </span>
                     <button className={selectedId === p.id ? 'selected' : ''} onClick={() => onSelect(selectedId === p.id ? null : p.id)}>
                       <strong>{p.name}</strong>
-                      <span className="mins">{elapsedMinutes(p.enteredRoomAt, now)}분</span>
+                      <span className="mins">
+                        {elapsedMinutes(p.enteredRoomAt, now)}분<span className="mins-total">/{formatTotal(p.createdAt, now)}</span>
+                      </span>
                       <span className="sub">
                         {rooms.find((r) => r.id === p.roomId)?.name} · {p.procedure}
                       </span>

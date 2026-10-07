@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import type { PointerEvent } from 'react'
 import type { Patient, Room } from '../types'
 import { metaLine, statusLabel } from '../types'
-import { elapsedMinutes, formatClock } from '../lib/time'
+import { elapsedMinutes, formatClock, formatTotal } from '../lib/time'
 import { building, canvasFor } from '../data/defaultRooms'
 
 const CARD_W = 168
@@ -54,7 +54,11 @@ function CardBody({ p, now, alertMin }: { p: Patient; now: number; alertMin: num
       </text>
       <text x={10} y={70} className={`card-time${alert ? ' card-time-alert' : ''}`}>
         {p.status === 'left' ? '귀가' : `${elapsedMinutes(p.enteredRoomAt, now)}분`}
-        <tspan className="card-clock"> · 입실 {formatClock(p.enteredRoomAt)}</tspan>
+        <tspan className="card-clock">
+          {' '}
+          · 입실 {formatClock(p.enteredRoomAt)}
+          {p.status !== 'left' && ` · 총 ${formatTotal(p.createdAt, now)}`}
+        </tspan>
       </text>
     </>
   )
