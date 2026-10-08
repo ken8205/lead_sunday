@@ -17,7 +17,7 @@ import { useStaffList } from './hooks/useStaffList'
 import { isCloud } from './lib/supabase'
 import { ROLE_LABEL } from './types'
 import { useNow } from './hooks/useNow'
-import { withStatusAt } from './lib/statusAt'
+import { withChangedAt } from './lib/changedAt'
 import type { Category, Patient, PatientStatus, WaitFor } from './types'
 
 type View = 'board' | 'doctor' | 'settings'
@@ -133,8 +133,8 @@ function Board({ user, onSignOut, onChangePassword }: BoardProps) {
     saveNumber(LEFT_KEY, v)
   }
   const alert = { redMin: alertMin, dischargeMin }
-  // 화면에 보여 줄 환자: 현재 상태가 된 시각(statusAt)을 이동 기록에서 계산해 붙인다.
-  const shown = useMemo(() => withStatusAt(patients, moves), [patients, moves])
+  // 화면에 보여 줄 환자: 마지막으로 바뀐 시각(changedAt)을 이동 기록에서 계산해 붙인다.
+  const shown = useMemo(() => withChangedAt(patients, moves), [patients, moves])
   // 귀가 처리 후 일정 시간이 지난 카드는 평면도에서 내리고 "귀가" 목록으로 보낸다.
   const onFloor = shown.filter((p) => !isHiddenLeft(p, now, leftMin))
   const leftList = shown.filter((p) => isHiddenLeft(p, now, leftMin))

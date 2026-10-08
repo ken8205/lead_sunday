@@ -97,7 +97,7 @@ function CardBody({ p, now, alert }: { p: Patient; now: number; alert: AlertConf
         {p.status === 'left' ? '귀가' : `${elapsedMinutes(since, now)}분`}
         <tspan className="card-clock">
           {' '}
-          · {p.status === 'discharge' || p.status === 'ready' ? `${formatClock(since)}부터` : `입실 ${formatClock(p.enteredRoomAt)}`}
+          · {p.status === 'left' ? formatClock(since) : `${formatClock(since)}부터`}
           {p.status !== 'left' && ` · 총 ${formatTotal(p.createdAt, now)}`}
         </tspan>
       </text>

@@ -11,7 +11,7 @@ interface Props {
 // 귀가 목록: 평소에는 접어 두고, 누르면 펼쳐 본다.
 export function LeftList({ patients, rooms, onRestore }: Props) {
   const [open, setOpen] = useState(false)
-  const list = [...patients].sort((a, b) => (b.statusAt ?? 0) - (a.statusAt ?? 0))
+  const list = [...patients].sort((a, b) => (b.changedAt ?? 0) - (a.changedAt ?? 0))
   return (
     <section className="leftlist">
       <button className="leftlist-head" aria-expanded={open} onClick={() => setOpen(!open)}>
@@ -28,7 +28,7 @@ export function LeftList({ patients, rooms, onRestore }: Props) {
                 <span className="leftlist-name" title={`${rooms.find((r) => r.id === p.roomId)?.name ?? ''} · ${p.procedure}`}>
                   {p.name}
                 </span>
-                <span className="leftlist-time">{formatClock(p.statusAt ?? p.enteredRoomAt)}</span>
+                <span className="leftlist-time">{formatClock(p.changedAt ?? p.enteredRoomAt)}</span>
                 {onRestore && (
                   <button className="leftlist-undo" onClick={() => onRestore(p.id)} aria-label={`${p.name} 보드로 되돌리기`}>
                     되돌리기
