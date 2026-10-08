@@ -9,13 +9,15 @@ import { ConfirmButton } from './components/ConfirmButton'
 import { useBoardStore, useRoomsStore } from './store'
 import { LoginPage } from './components/LoginPage'
 import { ChangePasswordDialog } from './components/ChangePasswordDialog'
+import { LeftList } from './components/LeftList'
+import { isHiddenLeft } from './lib/left'
 import { useAuth } from './hooks/useAuth'
 import type { StaffUser } from './hooks/useAuth'
 import { useStaffList } from './hooks/useStaffList'
 import { isCloud } from './lib/supabase'
 import { ROLE_LABEL } from './types'
 import { useNow } from './hooks/useNow'
-import { withStatusAt } from './lib/statusAt'
+import { withChangedAt } from './lib/changedAt'
 import type { Category, Patient, PatientStatus, WaitFor } from './types'
 
 type View = 'board' | 'doctor' | 'settings'
@@ -32,6 +34,7 @@ const STATUS_OPTIONS: { label: string; status: PatientStatus; waitFor?: WaitFor 
 ]
 const ALERT_KEY = 'patient-board:alertMin'
 const DISCHARGE_KEY = 'patient-board:dischargeMin'
+const LEFT_KEY = 'patient-board:leftMin'
 
 function loadNumber(key: string, fallback: number): number {
   try {
@@ -82,6 +85,8 @@ function samplePatients(): Patient[] {
     mk(9, '송타퓨', '1993-09-09', 'consult', '코 성형 상담', '도은', 'consult2', 'ready', 4, 'coordinator'),
     mk(11, '조차카', '1969-06-30', 'surgery', '안면거상', '정실장', 'recov1', 'discharge', 35),
     mk(12, '배타파', '1983-10-12', 'treatment', '실리프팅', '유빈', 'recov1', 'discharge', 12),
+    mk(14, 'UTSUNOMIYA ERI (우츠노미야 에리)', '1992-07-10', 'consult', '실리프팅', '원장', 'consult1', 'ready', 5, 'doctor'),
+    mk(13, '문차타', '1977-04-18', 'consult', '상안검 상담', '도은', 'desk', 'left', 3),
     mk(10, '김업체', '', 'meeting', '장비 도입 미팅', '정실장', 'consult1', 'in_progress', 15),
   ]
 }
@@ -104,6 +109,7 @@ function Board({ user, onSignOut, onChangePassword }: BoardProps) {
   const [changingPw, setChangingPw] = useState(false)
   const [alertMin, setAlertMinState] = useState(() => loadNumber(ALERT_KEY, 10)) // 대기 강조 기준(분)
   const [dischargeMin, setDischargeMinState] = useState(() => loadNumber(DISCHARGE_KEY, 30)) // 퇴원대기 강조 기준(분)
+  const [leftMin, setLeftMinState] = useState(() => loadNumber(LEFT_KEY, 10)) // 귀가 후 보드에서 내려갈 때까지(분)
   // 폰처럼 좁은 화면에서는 원장 보기로 시작한다.
   const [view, setView] = useState<View>(() => (window.matchMedia('(max-width: 700px)').matches ? 'doctor' : 'board'))
 
@@ -122,9 +128,16 @@ function Board({ user, onSignOut, onChangePassword }: BoardProps) {
     setDischargeMinState(v)
     saveNumber(DISCHARGE_KEY, v)
   }
+  const setLeftMin = (v: number) => {
+    setLeftMinState(v)
+    saveNumber(LEFT_KEY, v)
+  }
   const alert = { redMin: alertMin, dischargeMin }
-  // 화면에 보여 줄 환자: 현재 상태가 된 시각(statusAt)을 이동 기록에서 계산해 붙인다.
-  const shown = useMemo(() => withStatusAt(patients, moves), [patients, moves])
+  // 화면에 보여 줄 환자: 마지막으로 바뀐 시각(changedAt)을 이동 기록에서 계산해 붙인다.
+  const shown = useMemo(() => withChangedAt(patients, moves), [patients, moves])
+  // 귀가 처리 후 일정 시간이 지난 카드는 평면도에서 내리고 "귀가" 목록으로 보낸다.
+  const onFloor = shown.filter((p) => !isHiddenLeft(p, now, leftMin))
+  const leftList = shown.filter((p) => isHiddenLeft(p, now, leftMin))
 
   const selected = patients.find((p) => p.id === selectedId)
   // 새 카드는 데스크에서 시작한다. 데스크가 없으면 카드를 놓을 수 있는 첫 번째 방.
@@ -198,9 +211,9 @@ function Board({ user, onSignOut, onChangePassword }: BoardProps) {
       {error && <div className="banner-error">{error}</div>}
       {(!boardReady || !roomsReady) && <p className="empty-all">서버에서 불러오는 중…</p>}
 
-      {boardReady && roomsReady && view === 'doctor' && <DoctorView patients={shown} rooms={rooms} now={now} alert={alert} order={order} />}
+      {boardReady && roomsReady && view === 'doctor' && <DoctorView patients={shown} rooms={rooms} now={now} alert={alert} order={order} leftList={leftList} />}
 
-      {boardReady && roomsReady && view === 'settings' && <SettingsPage rooms={rooms} setRooms={setRooms} patients={patients} alertMin={alertMin} setAlertMin={setAlertMin} dischargeMin={dischargeMin} setDischargeMin={setDischargeMin} />}
+      {boardReady && roomsReady && view === 'settings' && <SettingsPage rooms={rooms} setRooms={setRooms} patients={patients} alertMin={alertMin} setAlertMin={setAlertMin} dischargeMin={dischargeMin} setDischargeMin={setDischargeMin} leftMin={leftMin} setLeftMin={setLeftMin} />}
 
       {boardReady && roomsReady && view === 'board' && (
         <>
@@ -241,8 +254,11 @@ function Board({ user, onSignOut, onChangePassword }: BoardProps) {
           </div>
 
           <div className="layout">
-            <FloorPlan rooms={rooms} patients={shown} now={now} alert={alert} selectedId={selectedId} onSelect={setSelectedId} onMove={movePatient} />
-            <ReadyList patients={patients} rooms={rooms} now={now} selectedId={selectedId} onSelect={setSelectedId} order={order} onReorder={setOrder} />
+            <FloorPlan rooms={rooms} patients={onFloor} now={now} alert={alert} selectedId={selectedId} onSelect={setSelectedId} onMove={movePatient} />
+            <div className="side">
+              <ReadyList patients={shown} rooms={rooms} now={now} selectedId={selectedId} onSelect={setSelectedId} order={order} onReorder={setOrder} />
+              <LeftList patients={leftList} rooms={rooms} onRestore={(id) => setStatus(id, 'waiting')} />
+            </div>
           </div>
 
           <MoveLog moves={moves} patients={[...patients, ...archive]} rooms={rooms} staffName={staffName} />

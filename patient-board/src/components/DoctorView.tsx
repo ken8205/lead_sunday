@@ -3,6 +3,7 @@ import { WAIT_FOR_LABEL, metaLine, statusLabel } from '../types'
 import { elapsedMinutes, formatClock, formatTotal } from '../lib/time'
 import { sortQueue } from '../lib/queue'
 import { alertLevel, sinceOf } from '../lib/alert'
+import { LeftList } from './LeftList'
 import type { AlertConfig } from '../lib/alert'
 
 interface Props {
@@ -11,6 +12,7 @@ interface Props {
   now: number
   alert: AlertConfig
   order: string[]
+  leftList: Patient[] // 귀가 후 일정 시간이 지난 카드
 }
 
 const ROW_CLASS = { none: '', red: ' prow-alert', blink: ' prow-alert prow-blink', fast: ' prow-alert prow-blink-fast', green: ' prow-green-alert' } as const
@@ -32,7 +34,7 @@ function Row({ p, roomName, now, alert }: { p: Patient; roomName: string; now: n
       <div className="prow-time">
         <b className={red ? 'alert' : ''}>{elapsedMinutes(since, now)}분</b>{' '}
         <small>
-          {roomName} · {p.status === 'discharge' ? `${formatClock(since)}부터` : `입실 ${formatClock(p.enteredRoomAt)}`} · 총 {formatTotal(p.createdAt, now)}
+          {roomName} · {formatClock(since)}부터 · 총 {formatTotal(p.createdAt, now)}
         </small>
       </div>
     </li>
@@ -43,7 +45,7 @@ const isDoctorReady = (p: Patient) => p.status === 'ready' && (p.waitFor ?? 'doc
 
 // 원장용 보기: 평면도 대신 목록. 원장 대기 환자를 맨 위에, 그다음 방별로 보여 준다.
 // 실장·간호사 대기 환자는 방별 목록에 상태 이름과 함께 나온다.
-export function DoctorView({ patients, rooms, now, alert, order }: Props) {
+export function DoctorView({ patients, rooms, now, alert, order, leftList }: Props) {
   const roomName = (id: string) => rooms.find((r) => r.id === id)?.name ?? ''
   const active = patients.filter((p) => p.status !== 'left')
   const byEntry = (a: Patient, b: Patient) => a.enteredRoomAt - b.enteredRoomAt
@@ -99,6 +101,8 @@ export function DoctorView({ patients, rooms, now, alert, order }: Props) {
           </ul>
         </section>
       ))}
+
+      {leftList.length > 0 && <LeftList patients={leftList} rooms={rooms} />}
     </div>
   )
 }

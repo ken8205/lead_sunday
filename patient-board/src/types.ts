@@ -38,7 +38,7 @@ export interface Patient {
   procedure: string // 수술/시술명. 미팅은 목적
   category?: Category // 분류 (이전 버전 데이터에는 없을 수 있음)
   waitFor?: WaitFor // status가 ready일 때 기다리는 사람 (없으면 원장)
-  statusAt?: number // 현재 상태가 된 시각 (이동 기록에서 계산, 저장하지 않음)
+  changedAt?: number // 마지막으로 바뀐 시각: 등록·방 이동·상태 변경 중 가장 최근 (이동 기록에서 계산, 저장하지 않음)
   staff: string // 담당자
   roomId: string
   status: PatientStatus

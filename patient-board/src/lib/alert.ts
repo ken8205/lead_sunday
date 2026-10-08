@@ -14,9 +14,9 @@ export type AlertLevel = 'none' | 'red' | 'blink' | 'fast' | 'green'
 export const BLINK_AFTER = 5 // 빨강 시작 후 몇 분 뒤부터 깜박이는가
 export const FAST_AFTER = 10 // 빨강 시작 후 몇 분 뒤부터 빠르게 깜박이는가
 
-// 카드의 큰 숫자로 보여 줄 시간의 기준 시각: 퇴원대기는 "퇴원대기가 된 때", 나머지는 "현재 방에 들어온 때"
+// 카드의 큰 숫자로 보여 줄 시간의 기준 시각: 마지막으로 바뀐 때(등록·방 이동·상태 변경 중 가장 최근)부터 센다.
 export function sinceOf(p: Patient): number {
-  return p.status === 'discharge' ? (p.statusAt ?? p.enteredRoomAt) : p.enteredRoomAt
+  return p.changedAt ?? p.enteredRoomAt
 }
 
 export function alertLevel(p: Patient, now: number, cfg: AlertConfig): AlertLevel {
