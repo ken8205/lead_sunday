@@ -9,6 +9,8 @@ interface Props {
   setAlertMin: (v: number) => void
   dischargeMin: number
   setDischargeMin: (v: number) => void
+  leftMin: number
+  setLeftMin: (v: number) => void
 }
 
 const TONES: { value: NonNullable<Room['tone']>; label: string }[] = [
@@ -17,7 +19,7 @@ const TONES: { value: NonNullable<Room['tone']>; label: string }[] = [
   { value: 'support', label: '지원' },
 ]
 
-export function SettingsPage({ rooms, setRooms, patients, alertMin, setAlertMin, dischargeMin, setDischargeMin }: Props) {
+export function SettingsPage({ rooms, setRooms, patients, alertMin, setAlertMin, dischargeMin, setDischargeMin, leftMin, setLeftMin }: Props) {
   const update = (id: string, patch: Partial<Room>) => setRooms(rooms.map((r) => (r.id === id ? { ...r, ...patch } : r)))
   const num = (v: string, min: number) => Math.max(min, Math.round(Number(v) || 0))
 
@@ -46,6 +48,16 @@ export function SettingsPage({ rooms, setRooms, patients, alertMin, setAlertMin,
           <input type="number" min={1} max={480} value={dischargeMin} onChange={(e) => setDischargeMin(Math.max(1, Number(e.target.value) || 1))} />
           분 이상이면 초록색으로 깜박
         </label>
+      </section>
+
+      <section className="panel">
+        <h2>귀가 카드 정리</h2>
+        <label className="alert-setting">
+          귀가 처리 후
+          <input type="number" min={1} max={240} value={leftMin} onChange={(e) => setLeftMin(Math.max(1, Number(e.target.value) || 1))} />
+          분이 지나면 보드에서 내리고 &quot;귀가&quot; 목록으로 옮김
+        </label>
+        <p className="help">기록은 지워지지 않습니다. 오늘 귀가한 환자는 보드 오른쪽(폰은 원장 보기 아래)의 &quot;귀가&quot; 목록에서 볼 수 있습니다.</p>
       </section>
 
       <section className="panel">
