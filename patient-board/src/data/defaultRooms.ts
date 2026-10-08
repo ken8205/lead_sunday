@@ -11,7 +11,7 @@ const layout: [string, string, number, number, number, number, Tone, boolean?][]
   ['or', 'OR', 160, 30, 420, 170, 'clinic'],
   ['pantry', '탕비실', 590, 30, 340, 170, 'support'],
   // 가운데
-  ['dressing', '탈의실', 160, 210, 205, 120, 'support'],
+  ['dressing', '회복실3', 160, 210, 205, 120, 'support'],
   ['powder', '파우더룸', 375, 210, 205, 120, 'support'],
   ['recov1', '회복실 I', 160, 340, 420, 256, 'clinic'],
   ['treat', '치료실', 590, 210, 340, 196, 'clinic'],
@@ -20,8 +20,8 @@ const layout: [string, string, number, number, number, number, Tone, boolean?][]
   ['desk', '데스크', 160, 611, 420, 110, 'front'],
   // 아랫줄
   ['wait', '대기실', 30, 731, 540, 282, 'front'],
-  ['consult2', '상담실 II / 촬영실', 590, 611, 340, 196, 'clinic'],
-  ['consult1', '상담실 I', 590, 817, 340, 196, 'clinic'],
+  ['consult2', '상담실 II / 촬영실', 590, 611, 340, 150, 'clinic'],
+  ['consult1', '상담실 I', 590, 771, 340, 242, 'clinic'],
 ]
 
 export const defaultRooms: Room[] = layout.map(([id, name, x, y, w, h, tone, decor], i) => ({

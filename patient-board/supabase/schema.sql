@@ -33,7 +33,7 @@ create table if not exists public.patients (
   category text check (category in ('consult', 'surgery', 'treatment', 'followup', 'meeting')),
   staff text not null default '',               -- 담당자
   room_id text not null,
-  status text not null check (status in ('waiting', 'ready', 'in_progress', 'left')),
+  status text not null check (status in ('waiting', 'ready', 'in_progress', 'discharge', 'left')),
   wait_for text check (wait_for in ('doctor', 'manager', 'nurse', 'coordinator')),
   entered_room_at timestamptz not null default now(),
   created_at timestamptz not null default now()
@@ -44,7 +44,7 @@ create table if not exists public.moves (
   patient_id uuid not null references public.patients (id) on delete cascade,
   from_room_id text,
   to_room_id text not null,
-  status text not null check (status in ('waiting', 'ready', 'in_progress', 'left')),
+  status text not null check (status in ('waiting', 'ready', 'in_progress', 'discharge', 'left')),
   wait_for text check (wait_for in ('doctor', 'manager', 'nurse', 'coordinator')),
   at timestamptz not null default now(),
   by_staff uuid default auth.uid() references public.staff (id) on delete set null  -- 누가 옮겼는지

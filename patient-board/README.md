@@ -29,6 +29,7 @@ VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...       # 공개용 키만. secre
 
 - Supabase 준비: `supabase/schema.sql` → `supabase/schema-2.sql` → `supabase/schedule-purge.sql` → `supabase/create-staff.sql` 순서로 SQL Editor에서 실행.
 - 서버 모드에서는 로그인(직원 개인 계정)이 필요하고, 카드·이동 기록·방·"먼저 볼 순서"가 모든 기기에 실시간(15초 안전망 포함) 공유됩니다.
+- 비밀번호: 직원 각자 화면 위 **"비밀번호 변경"**에서 직접 바꿉니다(현재 비밀번호 확인 후, 8자 이상). 잊었을 때는 원장이 Supabase의 Authentication → Users에서 새 비밀번호를 지정합니다.
 - 퇴사 처리: `staff.active = false`로 바꾸면 1분 안에 보드 접근이 막힙니다.
 - 서버 모드에서는 "예시 채우기/모두 비우기"가 숨겨집니다 (실제 데이터를 지우지 않도록).
 - 7일이 지난 카드와 이동 기록은 서버에서 매일 새벽 4시(한국 시간) 자동 삭제됩니다.

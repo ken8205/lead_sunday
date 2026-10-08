@@ -3,6 +3,8 @@ import type { PointerEvent } from 'react'
 import type { Patient, Room } from '../types'
 import { metaLine, statusLabel } from '../types'
 import { elapsedMinutes, formatClock, formatTotal } from '../lib/time'
+import { alertLevel, sinceOf } from '../lib/alert'
+import type { AlertConfig, AlertLevel } from '../lib/alert'
 import { building, canvasFor } from '../data/defaultRooms'
 
 const CARD_W = 168
@@ -14,7 +16,7 @@ interface Props {
   rooms: Room[]
   patients: Patient[]
   now: number
-  alertMin: number
+  alert: AlertConfig
   selectedId: string | null
   onSelect: (id: string | null) => void
   onMove: (patientId: string, roomId: string) => void
@@ -33,15 +35,21 @@ interface DragState {
   overRoomId: string | null
 }
 
-export function isAlert(p: Patient, now: number, alertMin: number): boolean {
-  return (p.status === 'waiting' || p.status === 'ready') && elapsedMinutes(p.enteredRoomAt, now) >= alertMin
+const LEVEL_CLASS: Record<AlertLevel, string> = {
+  none: '',
+  red: ' card-alert',
+  blink: ' card-alert card-blink',
+  fast: ' card-alert card-blink-fast',
+  green: ' card-green-alert',
 }
 
-function CardBody({ p, now, alertMin }: { p: Patient; now: number; alertMin: number }) {
-  const alert = isAlert(p, now, alertMin)
+function CardBody({ p, now, alert }: { p: Patient; now: number; alert: AlertConfig }) {
+  const level = alertLevel(p, now, alert)
+  const red = level === 'red' || level === 'blink' || level === 'fast'
+  const since = sinceOf(p)
   return (
     <>
-      <rect width={CARD_W} height={CARD_H} rx={8} className={`card card-${p.status}${alert ? ' card-alert' : ''}`} />
+      <rect width={CARD_W} height={CARD_H} rx={8} className={`card card-${p.status}${LEVEL_CLASS[level]}`} />
       <text x={10} y={20} className="card-name">
         {p.name} · {statusLabel(p)}
       </text>
@@ -52,11 +60,11 @@ function CardBody({ p, now, alertMin }: { p: Patient; now: number; alertMin: num
         {p.procedure}
         {p.staff ? ` / ${p.staff}` : ''}
       </text>
-      <text x={10} y={70} className={`card-time${alert ? ' card-time-alert' : ''}`}>
-        {p.status === 'left' ? '귀가' : `${elapsedMinutes(p.enteredRoomAt, now)}분`}
+      <text x={10} y={70} className={`card-time${red ? ' card-time-alert' : ''}`}>
+        {p.status === 'left' ? '귀가' : `${elapsedMinutes(since, now)}분`}
         <tspan className="card-clock">
           {' '}
-          · 입실 {formatClock(p.enteredRoomAt)}
+          · {p.status === 'discharge' ? `${formatClock(since)}부터` : `입실 ${formatClock(p.enteredRoomAt)}`}
           {p.status !== 'left' && ` · 총 ${formatTotal(p.createdAt, now)}`}
         </tspan>
       </text>
@@ -64,7 +72,7 @@ function CardBody({ p, now, alertMin }: { p: Patient; now: number; alertMin: num
   )
 }
 
-export function FloorPlan({ rooms, patients, now, alertMin, selectedId, onSelect, onMove }: Props) {
+export function FloorPlan({ rooms, patients, now, alert, selectedId, onSelect, onMove }: Props) {
   const svgRef = useRef<SVGSVGElement>(null)
   const dragRef = useRef<{ id: string; sx: number; sy: number; dx: number; dy: number; moved: boolean } | null>(null)
   const [drag, setDrag] = useState<DragState | null>(null)
@@ -168,12 +176,12 @@ export function FloorPlan({ rooms, patients, now, alertMin, selectedId, onSelect
           onPointerUp={onCardUp}
           onPointerCancel={onCardCancel}
         >
-          <CardBody p={item.p} now={now} alertMin={alertMin} />
+          <CardBody p={item.p} now={now} alert={alert} />
         </g>
       ))}
       {drag && dragged && (
         <g transform={`translate(${drag.x}, ${drag.y})`} className="card-ghost">
-          <CardBody p={dragged} now={now} alertMin={alertMin} />
+          <CardBody p={dragged} now={now} alert={alert} />
         </g>
       )}
     </svg>

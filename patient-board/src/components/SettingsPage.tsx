@@ -7,6 +7,8 @@ interface Props {
   patients: Patient[]
   alertMin: number
   setAlertMin: (v: number) => void
+  dischargeMin: number
+  setDischargeMin: (v: number) => void
 }
 
 const TONES: { value: NonNullable<Room['tone']>; label: string }[] = [
@@ -15,7 +17,7 @@ const TONES: { value: NonNullable<Room['tone']>; label: string }[] = [
   { value: 'support', label: '지원' },
 ]
 
-export function SettingsPage({ rooms, setRooms, patients, alertMin, setAlertMin }: Props) {
+export function SettingsPage({ rooms, setRooms, patients, alertMin, setAlertMin, dischargeMin, setDischargeMin }: Props) {
   const update = (id: string, patch: Partial<Room>) => setRooms(rooms.map((r) => (r.id === id ? { ...r, ...patch } : r)))
   const num = (v: string, min: number) => Math.max(min, Math.round(Number(v) || 0))
 
@@ -30,11 +32,19 @@ export function SettingsPage({ rooms, setRooms, patients, alertMin, setAlertMin 
   return (
     <div className="settings">
       <section className="panel">
-        <h2>대기 강조 기준</h2>
+        <h2>대기 경고 기준</h2>
         <label className="alert-setting">
           대기·호출 대기가
           <input type="number" min={1} max={240} value={alertMin} onChange={(e) => setAlertMin(Math.max(1, Number(e.target.value) || 1))} />
-          분 이상이면 빨간색으로 강조
+          분 이상이면 빨간 테두리
+        </label>
+        <p className="help">
+          그 뒤 5분이 더 지나면(지금 기준 {alertMin + 5}분) 깜박이고, 10분이 더 지나면(지금 기준 {alertMin + 10}분) 더 빠르게 깜박입니다.
+        </p>
+        <label className="alert-setting">
+          퇴원대기가
+          <input type="number" min={1} max={480} value={dischargeMin} onChange={(e) => setDischargeMin(Math.max(1, Number(e.target.value) || 1))} />
+          분 이상이면 초록색으로 깜박
         </label>
       </section>
 
