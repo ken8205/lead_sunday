@@ -3,7 +3,7 @@ import type { Room } from '../types'
 import { defaultRooms } from '../data/defaultRooms'
 
 // 설정 화면에서 바꾼 방 목록을 브라우저에 저장한다. 7단계에서 서버 저장으로 교체 예정.
-const KEY = 'patient-board:rooms:v3'
+const KEY = 'patient-board:rooms:v4'
 
 function load(): Room[] {
   try {

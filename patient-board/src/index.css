@@ -137,3 +137,24 @@ details summary { cursor: pointer; font-size: 13px; color: #475569; margin-top: 
 .banner-error { margin-bottom: 8px; padding: 10px 14px; border-radius: 10px; background: #fee2e2; border: 1px solid #fca5a5; color: #7f1d1d; font-size: 14px; }
 .movelog .by { color: #64748b; }
 .readylist .mins-total { font-weight: 400; font-size: 12px; color: #78716c; }
+/* ── 대기 경고 단계: 빨강(정지) → 깜박(느리게) → 깜박(빠르게). 퇴원대기는 초록 깜박 ── */
+.card-discharge { fill: #cffafe; stroke: #0891b2; }
+.card-alert { animation: none; }
+.card-blink { animation: blink-slow 1.3s ease-in-out infinite; }
+.card-blink-fast { animation: blink-fast 0.45s ease-in-out infinite; }
+@keyframes blink-slow { 50% { stroke-opacity: 0.1; fill: #fecaca; } }
+@keyframes blink-fast { 50% { stroke-opacity: 0.1; fill: #fecaca; } }
+.card-green-alert { stroke: #16a34a; stroke-width: 4; animation: blink-green 1s ease-in-out infinite; }
+@keyframes blink-green { 50% { stroke-opacity: 0.3; fill: #86efac; } }
+.chip-discharge { background: #cffafe; border-color: #0891b2; color: #155e75; }
+.prow-discharge { background: #cffafe; border-color: #0891b2; }
+.prow-alert { animation: none; }
+.prow-blink { animation: blink-row-slow 1.3s ease-in-out infinite; }
+.prow-blink-fast { animation: blink-row-fast 0.45s ease-in-out infinite; }
+@keyframes blink-row-slow { 50% { border-color: rgba(220, 38, 38, 0.12); background: #fecaca; } }
+@keyframes blink-row-fast { 50% { border-color: rgba(220, 38, 38, 0.12); background: #fecaca; } }
+.prow-green-alert { border-color: #16a34a; border-width: 3px; animation: blink-row-green 1s ease-in-out infinite; }
+@keyframes blink-row-green { 50% { border-color: rgba(22, 163, 74, 0.4); background: #86efac; } }
+@media (prefers-reduced-motion: reduce) {
+  .card-blink, .card-blink-fast, .card-green-alert, .prow-blink, .prow-blink-fast, .prow-green-alert { animation: none; }
+}

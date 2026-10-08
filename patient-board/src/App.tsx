@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { FloorPlan } from './components/FloorPlan'
 import { AddPatientDialog } from './components/AddPatientDialog'
 import { MoveLog } from './components/MoveLog'
@@ -15,6 +15,7 @@ import { useStaffList } from './hooks/useStaffList'
 import { isCloud } from './lib/supabase'
 import { ROLE_LABEL } from './types'
 import { useNow } from './hooks/useNow'
+import { withStatusAt } from './lib/statusAt'
 import type { Category, Patient, PatientStatus, WaitFor } from './types'
 
 type View = 'board' | 'doctor' | 'settings'
@@ -25,19 +26,21 @@ const STATUS_OPTIONS: { label: string; status: PatientStatus; waitFor?: WaitFor 
   { label: '실장 대기', status: 'ready', waitFor: 'manager' },
   { label: '간호사 대기', status: 'ready', waitFor: 'nurse' },
   { label: '코디 대기', status: 'ready', waitFor: 'coordinator' },
+  { label: '퇴원대기', status: 'discharge' },
   { label: '진행 중', status: 'in_progress' },
   { label: '귀가', status: 'left' },
 ]
 const ALERT_KEY = 'patient-board:alertMin'
+const DISCHARGE_KEY = 'patient-board:dischargeMin'
 
-function loadAlertMin(): number {
+function loadNumber(key: string, fallback: number): number {
   try {
-    const v = Number(localStorage.getItem(ALERT_KEY))
+    const v = Number(localStorage.getItem(key))
     if (v >= 1) return v
   } catch {
     // 저장소 접근 불가 시 기본값
   }
-  return 10 // 대기 강조 기준 (분)
+  return fallback
 }
 
 // 화면 확인용 가상 환자 (실제 환자 아님)
@@ -71,12 +74,14 @@ function samplePatients(): Patient[] {
     mk(1, '홍길동', '1968-03-14', 'treatment', '안면거상 시술', '유빈', 'treat', 'ready', 8, 'doctor'),
     mk(2, '김가나', '1975-11-02', 'consult', '상안검', '도은', 'wait', 'waiting', 3),
     mk(3, '이다라', '1982-07-21', 'surgery', '하안검', '정실장', 'or', 'in_progress', 25),
-    mk(4, '박마바', '1990-01-30', 'treatment', '실리프팅', '유빈', 'wait', 'waiting', 12),
-    mk(5, '정사아', '1979-05-09', 'consult', '미니거상', '도은', 'consult1', 'ready', 14, 'manager'),
+    mk(4, '박마바', '1990-01-30', 'treatment', '실리프팅', '유빈', 'wait', 'waiting', 11),
+    mk(5, '정사아', '1979-05-09', 'consult', '미니거상', '도은', 'consult1', 'ready', 16, 'manager'),
     mk(6, '오자차', '1985-12-25', 'followup', '눈밑지방재배치', '유빈', 'desk', 'left', 40),
     mk(7, '최카타', '1972-08-17', 'followup', '안면거상 경과', '도은', 'recov2', 'ready', 6, 'nurse'),
-    mk(8, '강파하', '1988-02-03', 'treatment', '스킨부스터', '유빈', 'treat', 'ready', 11, 'doctor'),
+    mk(8, '강파하', '1988-02-03', 'treatment', '스킨부스터', '유빈', 'treat', 'ready', 22, 'doctor'),
     mk(9, '송타퓨', '1993-09-09', 'consult', '코 성형 상담', '도은', 'consult2', 'ready', 4, 'coordinator'),
+    mk(11, '조차카', '1969-06-30', 'surgery', '안면거상', '정실장', 'recov1', 'discharge', 35),
+    mk(12, '배타파', '1983-10-12', 'treatment', '실리프팅', '유빈', 'recov1', 'discharge', 12),
     mk(10, '김업체', '', 'meeting', '장비 도입 미팅', '정실장', 'consult1', 'in_progress', 15),
   ]
 }
@@ -97,18 +102,29 @@ function Board({ user, onSignOut, onChangePassword }: BoardProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [adding, setAdding] = useState(false)
   const [changingPw, setChangingPw] = useState(false)
-  const [alertMin, setAlertMinState] = useState(loadAlertMin)
+  const [alertMin, setAlertMinState] = useState(() => loadNumber(ALERT_KEY, 10)) // 대기 강조 기준(분)
+  const [dischargeMin, setDischargeMinState] = useState(() => loadNumber(DISCHARGE_KEY, 30)) // 퇴원대기 강조 기준(분)
   // 폰처럼 좁은 화면에서는 원장 보기로 시작한다.
   const [view, setView] = useState<View>(() => (window.matchMedia('(max-width: 700px)').matches ? 'doctor' : 'board'))
 
-  const setAlertMin = (v: number) => {
-    setAlertMinState(v)
+  const saveNumber = (key: string, v: number) => {
     try {
-      localStorage.setItem(ALERT_KEY, String(v))
+      localStorage.setItem(key, String(v))
     } catch {
       // 무시
     }
   }
+  const setAlertMin = (v: number) => {
+    setAlertMinState(v)
+    saveNumber(ALERT_KEY, v)
+  }
+  const setDischargeMin = (v: number) => {
+    setDischargeMinState(v)
+    saveNumber(DISCHARGE_KEY, v)
+  }
+  const alert = { redMin: alertMin, dischargeMin }
+  // 화면에 보여 줄 환자: 현재 상태가 된 시각(statusAt)을 이동 기록에서 계산해 붙인다.
+  const shown = useMemo(() => withStatusAt(patients, moves), [patients, moves])
 
   const selected = patients.find((p) => p.id === selectedId)
   // 새 카드는 데스크에서 시작한다. 데스크가 없으면 카드를 놓을 수 있는 첫 번째 방.
@@ -182,9 +198,9 @@ function Board({ user, onSignOut, onChangePassword }: BoardProps) {
       {error && <div className="banner-error">{error}</div>}
       {(!boardReady || !roomsReady) && <p className="empty-all">서버에서 불러오는 중…</p>}
 
-      {boardReady && roomsReady && view === 'doctor' && <DoctorView patients={patients} rooms={rooms} now={now} alertMin={alertMin} order={order} />}
+      {boardReady && roomsReady && view === 'doctor' && <DoctorView patients={shown} rooms={rooms} now={now} alert={alert} order={order} />}
 
-      {boardReady && roomsReady && view === 'settings' && <SettingsPage rooms={rooms} setRooms={setRooms} patients={patients} alertMin={alertMin} setAlertMin={setAlertMin} />}
+      {boardReady && roomsReady && view === 'settings' && <SettingsPage rooms={rooms} setRooms={setRooms} patients={patients} alertMin={alertMin} setAlertMin={setAlertMin} dischargeMin={dischargeMin} setDischargeMin={setDischargeMin} />}
 
       {boardReady && roomsReady && view === 'board' && (
         <>
@@ -225,7 +241,7 @@ function Board({ user, onSignOut, onChangePassword }: BoardProps) {
           </div>
 
           <div className="layout">
-            <FloorPlan rooms={rooms} patients={patients} now={now} alertMin={alertMin} selectedId={selectedId} onSelect={setSelectedId} onMove={movePatient} />
+            <FloorPlan rooms={rooms} patients={shown} now={now} alert={alert} selectedId={selectedId} onSelect={setSelectedId} onMove={movePatient} />
             <ReadyList patients={patients} rooms={rooms} now={now} selectedId={selectedId} onSelect={setSelectedId} order={order} onReorder={setOrder} />
           </div>
 

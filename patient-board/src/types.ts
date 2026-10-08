@@ -1,5 +1,5 @@
 // 병원 내부 전용 보드. 환자 식별정보(이름, 생년월일, 수술명)는 정확히 표시해야 하므로 원문 그대로 저장한다.
-export type PatientStatus = 'waiting' | 'ready' | 'in_progress' | 'left'
+export type PatientStatus = 'waiting' | 'ready' | 'in_progress' | 'discharge' | 'left'
 
 // 방문 분류
 export type Category = 'consult' | 'surgery' | 'treatment' | 'followup' | 'meeting'
@@ -38,6 +38,7 @@ export interface Patient {
   procedure: string // 수술/시술명. 미팅은 목적
   category?: Category // 분류 (이전 버전 데이터에는 없을 수 있음)
   waitFor?: WaitFor // status가 ready일 때 기다리는 사람 (없으면 원장)
+  statusAt?: number // 현재 상태가 된 시각 (이동 기록에서 계산, 저장하지 않음)
   staff: string // 담당자
   roomId: string
   status: PatientStatus
@@ -49,6 +50,7 @@ export const STATUS_LABEL: Record<PatientStatus, string> = {
   waiting: '대기',
   ready: '준비 완료',
   in_progress: '진행 중',
+  discharge: '퇴원대기',
   left: '귀가',
 }
 
