@@ -34,7 +34,7 @@ function Row({ p, roomName, now, alert }: { p: Patient; roomName: string; now: n
       <div className="prow-time">
         <b className={red ? 'alert' : ''}>{elapsedMinutes(since, now)}분</b>{' '}
         <small>
-          {roomName} · {p.status === 'discharge' ? `${formatClock(since)}부터` : `입실 ${formatClock(p.enteredRoomAt)}`} · 총 {formatTotal(p.createdAt, now)}
+          {roomName} · {p.status === 'discharge' || p.status === 'ready' ? `${formatClock(since)}부터` : `입실 ${formatClock(p.enteredRoomAt)}`} · 총 {formatTotal(p.createdAt, now)}
         </small>
       </div>
     </li>

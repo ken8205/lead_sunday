@@ -85,6 +85,7 @@ function samplePatients(): Patient[] {
     mk(9, '송타퓨', '1993-09-09', 'consult', '코 성형 상담', '도은', 'consult2', 'ready', 4, 'coordinator'),
     mk(11, '조차카', '1969-06-30', 'surgery', '안면거상', '정실장', 'recov1', 'discharge', 35),
     mk(12, '배타파', '1983-10-12', 'treatment', '실리프팅', '유빈', 'recov1', 'discharge', 12),
+    mk(14, 'UTSUNOMIYA ERI (우츠노미야 에리)', '1992-07-10', 'consult', '실리프팅', '원장', 'consult1', 'ready', 5, 'doctor'),
     mk(13, '문차타', '1977-04-18', 'consult', '상안검 상담', '도은', 'desk', 'left', 3),
     mk(10, '김업체', '', 'meeting', '장비 도입 미팅', '정실장', 'consult1', 'in_progress', 15),
   ]
@@ -255,7 +256,7 @@ function Board({ user, onSignOut, onChangePassword }: BoardProps) {
           <div className="layout">
             <FloorPlan rooms={rooms} patients={onFloor} now={now} alert={alert} selectedId={selectedId} onSelect={setSelectedId} onMove={movePatient} />
             <div className="side">
-              <ReadyList patients={patients} rooms={rooms} now={now} selectedId={selectedId} onSelect={setSelectedId} order={order} onReorder={setOrder} />
+              <ReadyList patients={shown} rooms={rooms} now={now} selectedId={selectedId} onSelect={setSelectedId} order={order} onReorder={setOrder} />
               <LeftList patients={leftList} rooms={rooms} onRestore={(id) => setStatus(id, 'waiting')} />
             </div>
           </div>

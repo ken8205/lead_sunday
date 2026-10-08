@@ -5,6 +5,7 @@ import { metaLine, statusLabel } from '../types'
 import { elapsedMinutes, formatClock, formatTotal } from '../lib/time'
 import { alertLevel, sinceOf } from '../lib/alert'
 import type { AlertConfig, AlertLevel } from '../lib/alert'
+import { fitText, textWidth, wrapName } from '../lib/textFit'
 import { building, canvasFor } from '../data/defaultRooms'
 
 const CARD_W = 168
@@ -43,28 +44,60 @@ const LEVEL_CLASS: Record<AlertLevel, string> = {
   green: ' card-green-alert',
 }
 
+const INNER_W = 148 // 카드 안쪽 글자 폭
+
+// 한 줄 글자: 넘치면 글자 크기를 줄이고, 그래도 넘치면 가로로 눌러서 카드 안에 맞춘다.
+function FitLine({ y, className, text, fontSize, bold = false }: { y: number; className: string; text: string; fontSize: number; bold?: boolean }) {
+  const f = fitText(text, fontSize, INNER_W, 8.5, bold)
+  return (
+    <text x={10} y={y} className={className} style={{ fontSize: f.fontSize }} textLength={f.textLength} lengthAdjust={f.textLength ? 'spacingAndGlyphs' : undefined}>
+      {text}
+    </text>
+  )
+}
+
 function CardBody({ p, now, alert }: { p: Patient; now: number; alert: AlertConfig }) {
   const level = alertLevel(p, now, alert)
   const red = level === 'red' || level === 'blink' || level === 'fast'
   const since = sinceOf(p)
+  const label = statusLabel(p)
+  const meta = metaLine(p)
+  const procedure = `${p.procedure}${p.staff ? ` / ${p.staff}` : ''}`
+  // 이름이 짧으면 "이름 · 상태" 한 줄. 길면 이름을 따로 (최대 2줄) 쓰고 상태는 다음 줄로 내린다.
+  const compact = textWidth(`${p.name} · ${label}`, 14, true) <= INNER_W
+  const wrapped = compact ? null : wrapName(p.name, p.name.length > 24 ? 12 : 14, INNER_W)
+  const nameRows = wrapped ? wrapped.lines.length : 0
+  const ys = compact ? [20, 37, 52, 70] : nameRows === 2 ? [15, 28, 41, 53, 70] : [17, 33, 50, 70]
+  const timeY = ys[ys.length - 1]
   return (
     <>
-      <rect width={CARD_W} height={CARD_H} rx={8} className={`card card-${p.status}${LEVEL_CLASS[level]}`} />
-      <text x={10} y={20} className="card-name">
-        {p.name} · {statusLabel(p)}
-      </text>
-      <text x={10} y={37} className="card-sub">
-        {metaLine(p)}
-      </text>
-      <text x={10} y={52} className="card-sub">
-        {p.procedure}
-        {p.staff ? ` / ${p.staff}` : ''}
-      </text>
-      <text x={10} y={70} className={`card-time${red ? ' card-time-alert' : ''}`}>
+      <rect width={CARD_W} height={CARD_H} rx={8} className={`card card-${p.status}${LEVEL_CLASS[level]}`}>
+        <title>{`${p.name} · ${label}`}</title>
+      </rect>
+      {compact ? (
+        <>
+          <text x={10} y={ys[0]} className="card-name">
+            {p.name} · {label}
+          </text>
+          <FitLine y={ys[1]} className="card-sub" text={meta} fontSize={11} />
+          <FitLine y={ys[2]} className="card-sub" text={procedure} fontSize={11} />
+        </>
+      ) : (
+        <>
+          {wrapped!.lines.map((line, i) => (
+            <text key={i} x={10} y={ys[i]} className="card-name" style={{ fontSize: wrapped!.fontSize }}>
+              {line}
+            </text>
+          ))}
+          <FitLine y={ys[nameRows]} className="card-sub" text={[label, meta].filter(Boolean).join(' · ')} fontSize={10.5} />
+          <FitLine y={ys[nameRows + 1]} className="card-sub" text={procedure} fontSize={10.5} />
+        </>
+      )}
+      <text x={10} y={timeY} className={`card-time${red ? ' card-time-alert' : ''}`}>
         {p.status === 'left' ? '귀가' : `${elapsedMinutes(since, now)}분`}
         <tspan className="card-clock">
           {' '}
-          · {p.status === 'discharge' ? `${formatClock(since)}부터` : `입실 ${formatClock(p.enteredRoomAt)}`}
+          · {p.status === 'discharge' || p.status === 'ready' ? `${formatClock(since)}부터` : `입실 ${formatClock(p.enteredRoomAt)}`}
           {p.status !== 'left' && ` · 총 ${formatTotal(p.createdAt, now)}`}
         </tspan>
       </text>

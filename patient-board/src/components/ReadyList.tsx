@@ -3,6 +3,7 @@ import type { PointerEvent } from 'react'
 import type { Patient, Room, WaitFor } from '../types'
 import { WAIT_FOR_LABEL } from '../types'
 import { elapsedMinutes, formatTotal } from '../lib/time'
+import { sinceOf } from '../lib/alert'
 import { sortQueue } from '../lib/queue'
 
 interface Props {
@@ -105,7 +106,7 @@ export function ReadyList({ patients, rooms, now, selectedId, onSelect, order, o
                     <button className={selectedId === p.id ? 'selected' : ''} onClick={() => onSelect(selectedId === p.id ? null : p.id)}>
                       <strong>{p.name}</strong>
                       <span className="mins">
-                        {elapsedMinutes(p.enteredRoomAt, now)}분<span className="mins-total">/{formatTotal(p.createdAt, now)}</span>
+                        {elapsedMinutes(sinceOf(p), now)}분<span className="mins-total">/{formatTotal(p.createdAt, now)}</span>
                       </span>
                       <span className="sub">
                         {rooms.find((r) => r.id === p.roomId)?.name} · {p.procedure}
