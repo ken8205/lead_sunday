@@ -169,3 +169,38 @@ details summary { cursor: pointer; font-size: 13px; color: #475569; margin-top: 
 .leftlist-undo { min-height: 28px; padding: 0 8px; border: 1px solid #bbf7d0; border-radius: 6px; background: #fff; color: #166534; font-size: 12px; cursor: pointer; }
 .leftlist .empty { margin: 2px 0 8px; color: #94a3b8; font-size: 12px; }
 @media (max-width: 900px) { .side { position: static; order: -1; } }
+/* ── 상담 대장 · 통계 ── */
+.ledger, .stats { max-width: 1100px; margin: 0 auto; display: grid; gap: 16px; }
+.dialog-wide { max-width: 640px; max-height: 92vh; overflow-y: auto; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px 12px; }
+.month-nav, .period { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; }
+.month-nav input, .period input, .panel-head > input { min-height: 40px; padding: 0 10px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 8px; }
+.month-nav .help { margin: 0; }
+.table-wrap { overflow-x: auto; }
+table.data { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.data th { text-align: left; font-size: 12px; font-weight: 600; color: #64748b; padding: 6px 8px; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
+table.data td { padding: 6px 8px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; white-space: nowrap; }
+table.data .num { text-align: right; font-variant-numeric: tabular-nums; }
+table.data .sub { color: #64748b; }
+.row-actions { display: flex; gap: 4px; justify-content: flex-end; }
+select.stage { min-height: 36px; padding: 0 6px; font-size: 14px; border-radius: 8px; border: 1px solid #cbd5e1; }
+select.stage-booked { background: #eff6ff; border-color: #93c5fd; }
+select.stage-visited { background: #fef3c7; border-color: #fcd34d; }
+select.stage-paid { background: #dcfce7; border-color: #86efac; font-weight: 700; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 10px; }
+.tile { border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px; }
+.tile-label { font-size: 12px; color: #64748b; }
+.tile-value { font-size: 22px; font-weight: 700; color: #111827; font-variant-numeric: tabular-nums; }
+.tile-sub { font-size: 12px; color: #475569; }
+.panel-head .tabs button { min-height: 36px; padding: 0 12px; font-size: 13px; }
+.panel-head { flex-wrap: wrap; margin-bottom: 8px; }
+.bar-cell { position: relative; min-width: 110px; }
+.bar { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); height: 14px; max-width: calc(100% - 44px); border-radius: 0 4px 4px 0; background: #93c5fd; }
+.bar-num { position: relative; }
+.cost-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.cost-grid label { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: #475569; }
+.cost-grid input { min-height: 40px; padding: 0 10px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 8px; text-align: right; }
+.ledger, .stats { grid-template-columns: minmax(0, 1fr); }
+.tabs { max-width: 100%; overflow-x: auto; }
+.tabs button { white-space: nowrap; }
+@media (max-width: 700px) { .tabs button { padding: 0 12px; } .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
