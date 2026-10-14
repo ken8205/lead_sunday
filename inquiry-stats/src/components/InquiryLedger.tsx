@@ -77,8 +77,9 @@ export function InquiryLedger({ api, staffSuggestions, canDelete }: Props) {
                         value={i.stage}
                         onChange={(e) => {
                           const stage = e.target.value as Stage
-                          api.update(i.id, { stage, ...(stage === 'paid' ? {} : { amount: null }) })
-                          if (stage === 'paid' && i.amount == null) setEditing({ ...i, stage }) // 결제면 금액을 바로 입력
+                          const paidDate = stage === 'paid' ? (i.paidDate ?? localDate()) : null
+                          api.update(i.id, { stage, paidDate, ...(stage === 'paid' ? {} : { amount: null }) })
+                          if (stage === 'paid' && i.amount == null) setEditing({ ...i, stage, paidDate }) // 결제면 금액을 바로 입력
                         }}
                       >
                         {STAGES.map((s) => (

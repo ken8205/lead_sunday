@@ -19,6 +19,7 @@ export interface Inquiry {
   interest: string // 관심 시술
   stage: Stage // 지금까지 도달한 가장 마지막 단계
   amount: number | null // 결제 금액 (만원)
+  paidDate: string | null // 결제일 YYYY-MM-DD (엑셀 매출 장부와 맞춰 볼 때 사용)
   note: string // 이니셜·짧은 메모
   staff: string
   createdAt: number

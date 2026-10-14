@@ -9,6 +9,7 @@ import type { StaffUser } from './hooks/useAuth'
 import { useStaffList } from './hooks/useStaffList'
 import { isCloud } from './lib/supabase'
 import { ROLE_LABEL } from './types'
+import { buildHash, useHashRoute } from './hooks/useHashRoute'
 
 type View = 'ledger' | 'stats'
 
@@ -23,7 +24,8 @@ function Main({ user, onSignOut, onChangePassword }: MainProps) {
   const staffList = useStaffList(isCloud)
   const staffSuggestions = isCloud ? staffList.filter((x) => x.active).map((x) => x.name) : undefined
   const isLead = !user || user.role === 'doctor' || user.role === 'manager' // 원장·실장: 통계, 광고비, 대장 삭제
-  const [view, setView] = useState<View>('ledger')
+  const { route, go } = useHashRoute()
+  const view: View = route.path[0] === 'stats' && isLead ? 'stats' : 'ledger'
   const [changingPw, setChangingPw] = useState(false)
 
   return (
@@ -40,7 +42,7 @@ function Main({ user, onSignOut, onChangePassword }: MainProps) {
               ...(isLead ? [['stats', '통계']] : []),
             ] as [View, string][]
           ).map(([v, label]) => (
-            <button key={v} className={view === v ? 'on' : ''} onClick={() => setView(v)}>
+            <button key={v} className={view === v ? 'on' : ''} onClick={() => view !== v && go(buildHash([v]))}>
               {label}
             </button>
           ))}
@@ -62,7 +64,7 @@ function Main({ user, onSignOut, onChangePassword }: MainProps) {
       {inquiries.error && <div className="banner-error">{inquiries.error}</div>}
       {!inquiries.ready && <p className="empty-all">서버에서 불러오는 중…</p>}
       {inquiries.ready && view === 'ledger' && <InquiryLedger api={inquiries} staffSuggestions={staffSuggestions} canDelete={isLead} />}
-      {inquiries.ready && view === 'stats' && isLead && <StatsPage api={inquiries} canEditCost={isLead} />}
+      {inquiries.ready && view === 'stats' && isLead && <StatsPage api={inquiries} canEditCost={isLead} route={route} go={go} />}
 
       {changingPw && onChangePassword && <ChangePasswordDialog onChange={onChangePassword} onClose={() => setChangingPw(false)} />}
     </main>

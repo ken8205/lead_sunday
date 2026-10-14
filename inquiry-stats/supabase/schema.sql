@@ -39,12 +39,16 @@ create table if not exists public.inquiries (
   interest text not null default '',                 -- 관심 시술
   stage text not null default 'inquiry' check (stage in ('inquiry', 'booked', 'visited', 'paid')),
   amount integer check (amount is null or amount >= 0), -- 결제 금액 (만원)
+  paid_date date,                                    -- 결제일 (엑셀 매출 장부와 맞춰 볼 때)
   note text not null default '' check (char_length(note) <= 100), -- 이니셜·짧은 메모
   staff text not null default '',                    -- 담당자
   created_by uuid default auth.uid() references public.staff (id) on delete set null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- 이전 버전에서 만든 표에 결제일 칸 추가
+alter table public.inquiries add column if not exists paid_date date;
 
 create index if not exists inquiries_date_idx on public.inquiries (inquiry_date);
 

@@ -38,6 +38,7 @@ export function InquiryDialog({ initial, staffSuggestions = [], campaignSuggesti
     interest: initial?.interest ?? '',
     stage: initial?.stage ?? 'inquiry',
     amount: initial?.amount ?? null,
+    paidDate: initial?.paidDate ?? null,
     note: initial?.note ?? '',
     staff: initial?.staff ?? '',
   }))
@@ -52,7 +53,7 @@ export function InquiryDialog({ initial, staffSuggestions = [], campaignSuggesti
         onSubmit={(e) => {
           e.preventDefault()
           if (!valid) return
-          onSubmit({ ...f, campaign: f.campaign.trim(), note: f.note.trim(), staff: f.staff.trim(), amount: f.stage === 'paid' ? f.amount : null })
+          onSubmit({ ...f, campaign: f.campaign.trim(), note: f.note.trim(), staff: f.staff.trim(), amount: f.stage === 'paid' ? f.amount : null, paidDate: f.stage === 'paid' ? (f.paidDate ?? localDate()) : null })
         }}
       >
         <h2>{initial ? '문의 수정' : '문의 추가'}</h2>
@@ -84,6 +85,12 @@ export function InquiryDialog({ initial, staffSuggestions = [], campaignSuggesti
               ))}
             </select>
           </label>
+          {f.stage === 'paid' && (
+            <label>
+              결제일
+              <input type="date" value={f.paidDate ?? localDate()} min={f.date} max={localDate()} onChange={(e) => set('paidDate', e.target.value || null)} />
+            </label>
+          )}
           {f.stage === 'paid' && (
             <label>
               결제 금액 (만원)

@@ -23,6 +23,7 @@ interface InquiryRow {
   interest: string
   stage: Stage
   amount: number | null
+  paid_date: string | null
   note: string
   staff: string
   created_at: string
@@ -38,6 +39,7 @@ const toInquiry = (r: InquiryRow): Inquiry => ({
   interest: r.interest,
   stage: r.stage,
   amount: r.amount,
+  paidDate: r.paid_date,
   note: r.note,
   staff: r.staff,
   createdAt: Date.parse(r.created_at),
@@ -46,6 +48,7 @@ const toInquiry = (r: InquiryRow): Inquiry => ({
 function toRow(p: Partial<NewInquiry>) {
   const row: Record<string, unknown> = {}
   if (p.date !== undefined) row.inquiry_date = p.date
+  if (p.paidDate !== undefined) row.paid_date = p.paidDate
   for (const k of ['channel', 'source', 'campaign', 'nationality', 'interest', 'stage', 'amount', 'note', 'staff'] as const) {
     if (p[k] !== undefined) row[k] = p[k]
   }

@@ -69,3 +69,12 @@ select.stage-paid { background: #dcfce7; border-color: #86efac; font-weight: 700
 .cost-grid input { min-height: 40px; padding: 0 10px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 8px; text-align: right; }
 .ledger, .stats { grid-template-columns: minmax(0, 1fr); }
 @media (max-width: 700px) { .tabs button { padding: 0 12px; } .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.btn-active { background: #1e293b; color: #fff; border-color: #1e293b; }
+a.btn { display: inline-flex; align-items: center; text-decoration: none; }
+.tabs-small button { min-height: 36px; padding: 0 12px; font-size: 13px; }
+a.drill { color: #1d4ed8; text-decoration: none; font-weight: 600; }
+a.drill:hover { text-decoration: underline; }
+.rate-low { color: #94a3b8; }
+.crumbs { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.crumbs h2 { margin: 0; font-size: 20px; }
+.crumbs h2 small { font-size: 13px; font-weight: 400; color: #64748b; margin-right: 4px; }
