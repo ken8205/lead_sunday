@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { isCloud, supabase } from '../lib/supabase'
 import type { AdCost, Inquiry, NewInquiry, Stage } from '../inquiries'
+import { sampleData } from '../lib/sample'
 
 export interface InquiriesApi {
   inquiries: Inquiry[]
@@ -11,6 +12,7 @@ export interface InquiriesApi {
   update: (id: string, patch: Partial<NewInquiry>) => void
   remove: (id: string) => void
   setAdCost: (month: string, source: string, amount: number) => void // 0이면 지운다
+  replaceAll?: (d: { inquiries: Inquiry[]; adCosts: AdCost[] }) => void // 이 브라우저 전용 모드에서만 (예시 채우기·비우기)
 }
 
 interface InquiryRow {
@@ -138,7 +140,7 @@ function loadLocal(): { inquiries: Inquiry[]; adCosts: AdCost[] } {
   } catch {
     // 없거나 깨졌으면 빈 대장
   }
-  return { inquiries: [], adCosts: [] }
+  return sampleData() // 처음 열면 예시로 채워 화면을 바로 볼 수 있게 한다 (시험 모드 전용, 가상 데이터)
 }
 
 function useLocalInquiries(): InquiriesApi {
@@ -164,6 +166,7 @@ function useLocalInquiries(): InquiriesApi {
         ...d,
         adCosts: [...d.adCosts.filter((x) => !(x.month === month && x.source === source)), ...(amount > 0 ? [{ month, source, amount }] : [])],
       })),
+    replaceAll: (d) => setData(d),
   }
 }
 

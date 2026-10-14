@@ -10,27 +10,30 @@ interface Props {
   onClose: () => void
 }
 
-function Pick({ label, value, options, onChange }: { label: string; value: string; options: string[]; onChange: (v: string) => void }) {
+// 드롭다운 대신 눌러서 고르는 버튼 묶음. 같은 버튼을 다시 누르면 선택이 풀린다.
+function Chips({ label, value, options, onChange, required }: { label: string; value: string; options: string[]; onChange: (v: string) => void; required?: boolean }) {
+  const all = value && !options.includes(value) ? [value, ...options] : options // 예전 값이 목록에서 빠졌어도 보이게
   return (
-    <label>
-      {label}
-      <select value={value} onChange={(e) => onChange(e.target.value)}>
-        <option value="">선택</option>
-        {/* 예전에 쓰던 값이 목록에서 빠졌어도 그대로 보이게 */}
-        {value && !options.includes(value) && <option value={value}>{value}</option>}
-        {options.map((o) => (
-          <option key={o} value={o}>
+    <fieldset className="chips">
+      <legend>
+        {label}
+        {required && !value && <span className="need"> · 골라 주세요</span>}
+      </legend>
+      <div className="chip-row">
+        {all.map((o) => (
+          <button type="button" key={o} className={`pick${value === o ? ' on' : ''}`} aria-pressed={value === o} onClick={() => onChange(value === o ? '' : o)}>
             {o}
-          </option>
+          </button>
         ))}
-      </select>
-    </label>
+      </div>
+    </fieldset>
   )
 }
 
 export function InquiryDialog({ initial, staffSuggestions = [], campaignSuggestions, onSubmit, onClose }: Props) {
+  const today = localDate()
   const [f, setF] = useState<NewInquiry>(() => ({
-    date: initial?.date ?? localDate(),
+    date: initial?.date ?? today,
     channel: initial?.channel ?? '',
     source: initial?.source ?? '',
     campaign: initial?.campaign ?? '',
@@ -42,82 +45,98 @@ export function InquiryDialog({ initial, staffSuggestions = [], campaignSuggesti
     note: initial?.note ?? '',
     staff: initial?.staff ?? '',
   }))
+  const [more, setMore] = useState(() => !!(initial && (initial.campaign || initial.note || initial.staff || initial.date !== today)))
   const set = <K extends keyof NewInquiry>(k: K, v: NewInquiry[K]) => setF((x) => ({ ...x, [k]: v }))
   const valid = f.date !== '' && f.channel !== '' && f.source !== ''
 
   return (
     <div className="overlay" onClick={onClose}>
       <form
-        className="dialog dialog-wide"
+        className="dialog sheet"
         onClick={(e) => e.stopPropagation()}
         onSubmit={(e) => {
           e.preventDefault()
           if (!valid) return
-          onSubmit({ ...f, campaign: f.campaign.trim(), note: f.note.trim(), staff: f.staff.trim(), amount: f.stage === 'paid' ? f.amount : null, paidDate: f.stage === 'paid' ? (f.paidDate ?? localDate()) : null })
+          const paid = f.stage === 'paid'
+          onSubmit({ ...f, campaign: f.campaign.trim(), note: f.note.trim(), staff: f.staff.trim(), amount: paid ? f.amount : null, paidDate: paid ? (f.paidDate ?? today) : null })
         }}
       >
-        <h2>{initial ? '문의 수정' : '문의 추가'}</h2>
-        <div className="form-grid">
-          <label>
-            문의일
-            <input type="date" value={f.date} max={localDate()} onChange={(e) => set('date', e.target.value)} />
-          </label>
-          <Pick label="문의 창구 *" value={f.channel} options={CHANNELS} onChange={(v) => set('channel', v)} />
-          <Pick label="알게 된 경로 *" value={f.source} options={SOURCES} onChange={(v) => set('source', v)} />
-          <label>
-            광고·이벤트 이름 (선택)
-            <input list="campaign-list" value={f.campaign} placeholder="예: 10월 인스타 실리프팅" onChange={(e) => set('campaign', e.target.value)} />
-            <datalist id="campaign-list">
-              {campaignSuggestions.map((s) => (
-                <option key={s} value={s} />
-              ))}
-            </datalist>
-          </label>
-          <Pick label="국적" value={f.nationality} options={NATIONALITIES} onChange={(v) => set('nationality', v)} />
-          <Pick label="관심 시술" value={f.interest} options={INTERESTS} onChange={(v) => set('interest', v)} />
-          <label>
-            단계
-            <select value={f.stage} onChange={(e) => set('stage', e.target.value as Stage)}>
-              {STAGES.map((s) => (
-                <option key={s} value={s}>
-                  {STAGE_LABEL[s]}
-                </option>
-              ))}
-            </select>
-          </label>
-          {f.stage === 'paid' && (
-            <label>
-              결제일
-              <input type="date" value={f.paidDate ?? localDate()} min={f.date} max={localDate()} onChange={(e) => set('paidDate', e.target.value || null)} />
-            </label>
-          )}
-          {f.stage === 'paid' && (
+        <div className="sheet-head">
+          <h2>{initial ? '문의 수정' : '새 문의'}</h2>
+          <span className="help">{f.date === today ? '오늘' : f.date}</span>
+        </div>
+
+        <Chips label="어디로 문의했나요?" value={f.channel} options={CHANNELS} onChange={(v) => set('channel', v)} required />
+        <Chips label="어떻게 알고 왔나요?" value={f.source} options={SOURCES} onChange={(v) => set('source', v)} required />
+        <Chips label="국적" value={f.nationality} options={NATIONALITIES} onChange={(v) => set('nationality', v)} />
+        <Chips label="관심 시술" value={f.interest} options={INTERESTS} onChange={(v) => set('interest', v)} />
+
+        <fieldset className="chips">
+          <legend>단계</legend>
+          <div className="stepper">
+            {STAGES.map((s: Stage) => (
+              <button type="button" key={s} className={`step step-${s}${f.stage === s ? ' on' : ''}`} aria-pressed={f.stage === s} onClick={() => set('stage', s)}>
+                {STAGE_LABEL[s]}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+
+        {f.stage === 'paid' && (
+          <div className="form-grid">
             <label>
               결제 금액 (만원)
-              <input type="number" inputMode="numeric" min={0} value={f.amount ?? ''} onChange={(e) => set('amount', e.target.value === '' ? null : Math.max(0, Math.round(Number(e.target.value))))} />
+              <input id="inq-amount" type="number" inputMode="numeric" min={0} autoFocus value={f.amount ?? ''} onChange={(e) => set('amount', e.target.value === '' ? null : Math.max(0, Math.round(Number(e.target.value))))} />
             </label>
-          )}
-          <label>
-            담당자
-            <input list="inq-staff-list" value={f.staff} onChange={(e) => set('staff', e.target.value)} />
-            <datalist id="inq-staff-list">
-              {staffSuggestions.map((s) => (
-                <option key={s} value={s} />
-              ))}
-            </datalist>
-          </label>
-          <label>
-            메모 (이니셜 정도만)
-            <input maxLength={100} value={f.note} placeholder="예: K.H. / 재문의" onChange={(e) => set('note', e.target.value)} />
-          </label>
-        </div>
-        <p className="help">이름·연락처·생년월일은 적지 마세요. 통계용으로 오래 보관하는 대장입니다.</p>
+            <label>
+              결제일
+              <input id="inq-paid" type="date" value={f.paidDate ?? today} min={f.date} max={today} onChange={(e) => set('paidDate', e.target.value || null)} />
+            </label>
+          </div>
+        )}
+
+        {more ? (
+          <div className="form-grid">
+            <label>
+              문의일
+              <input id="inq-date" type="date" value={f.date} max={today} onChange={(e) => set('date', e.target.value)} />
+            </label>
+            <label>
+              광고·이벤트 이름
+              <input id="inq-campaign" list="campaign-list" value={f.campaign} placeholder="예: 10월 인스타 실리프팅" onChange={(e) => set('campaign', e.target.value)} />
+              <datalist id="campaign-list">
+                {campaignSuggestions.map((s) => (
+                  <option key={s} value={s} />
+                ))}
+              </datalist>
+            </label>
+            <label>
+              담당자
+              <input id="inq-staff" list="inq-staff-list" value={f.staff} onChange={(e) => set('staff', e.target.value)} />
+              <datalist id="inq-staff-list">
+                {staffSuggestions.map((s) => (
+                  <option key={s} value={s} />
+                ))}
+              </datalist>
+            </label>
+            <label>
+              메모 (이니셜 정도만)
+              <input id="inq-note" maxLength={100} value={f.note} placeholder="예: K.H. / 재문의" onChange={(e) => set('note', e.target.value)} />
+            </label>
+            <p className="help wide">이름·연락처·생년월일은 적지 마세요. 통계용으로 오래 보관하는 대장입니다.</p>
+          </div>
+        ) : (
+          <button type="button" className="linkish" onClick={() => setMore(true)}>
+            + 날짜·광고 이름·담당자·메모
+          </button>
+        )}
+
         <div className="dialog-actions">
           <button type="button" className="btn" onClick={onClose}>
             취소
           </button>
-          <button type="submit" className="btn btn-primary" disabled={!valid}>
-            저장
+          <button type="submit" className="btn btn-primary btn-big" disabled={!valid}>
+            {valid ? '저장' : '창구와 경로를 골라 주세요'}
           </button>
         </div>
       </form>

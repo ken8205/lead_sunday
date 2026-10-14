@@ -36,16 +36,65 @@ function Rate({ a, b }: { a: number; b: number }) {
   )
 }
 
+// 문의 → 예약 → 내원 → 결제: 단계마다 얼마나 남는지 막대 길이로 보여 준다.
+function Funnel({ t }: { t: StatRow }) {
+  const steps: [string, number][] = [
+    ['문의', t.total],
+    ['상담 예약', t.booked],
+    ['내원 상담', t.visited],
+    ['결제', t.paid],
+  ]
+  return (
+    <div className="funnel" role="img" aria-label={steps.map(([l, n]) => `${l} ${n}건`).join(', ')}>
+      {steps.map(([label, n], k) => (
+        <div className="f-row" key={label}>
+          <span className="f-label">{label}</span>
+          <span className="f-track">
+            <span className={`f-bar f-bar-${k}`} style={{ width: `${t.total ? Math.max((n / t.total) * 100, n ? 2 : 0) : 0}%` }} />
+          </span>
+          <span className="f-num">
+            <b>{n}</b>건{k > 0 && <small> {pct(n, t.total)}</small>}
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function Tiles({ t, showCost }: { t: StatRow; showCost: boolean }) {
   return (
-    <div className="tiles">
-      <Tile label="문의" value={`${t.total}건`} />
-      <Tile label="상담 예약" value={`${t.booked}건`} sub={`문의의 ${pct(t.booked, t.total)}`} />
-      <Tile label="내원 상담" value={`${t.visited}건`} sub={`문의의 ${pct(t.visited, t.total)}`} />
-      <Tile label="결제" value={`${t.paid}건`} sub={`문의의 ${pct(t.paid, t.total)} · 내원의 ${pct(t.paid, t.visited)}`} />
-      <Tile label="매출" value={won(t.revenue)} sub={t.paid > 0 ? `객단가 ${won(Math.round(t.revenue / t.paid))}` : undefined} />
-      {showCost && t.adCost != null && (
-        <Tile label="광고비" value={won(t.adCost)} sub={t.adCost > 0 ? `매출 ${(t.revenue / t.adCost).toFixed(1)}배${t.paid > 0 ? ` · 결제 1건당 ${won(Math.round(t.adCost / t.paid))}` : ''}` : undefined} />
+    <div className="summary-grid">
+      <Funnel t={t} />
+      <div className="tiles">
+        <Tile label="매출" value={won(t.revenue)} sub={t.paid > 0 ? `객단가 ${won(Math.round(t.revenue / t.paid))}` : undefined} />
+        <Tile label="결제율" value={pct(t.paid, t.total)} sub={`내원 상담 중 결제 ${pct(t.paid, t.visited)}`} />
+        {showCost && t.adCost != null && (
+          <Tile label="광고비" value={won(t.adCost)} sub={t.adCost > 0 ? `매출 ${(t.revenue / t.adCost).toFixed(1)}배${t.paid > 0 ? ` · 결제 1건당 ${won(Math.round(t.adCost / t.paid))}` : ''}` : undefined} />
+        )}
+      </div>
+    </div>
+  )
+}
+
+// 이 기간의 1위: 문의가 가장 많은 경로, 결제가 가장 많은 경로, 매출이 가장 큰 경로
+function Podium({ rows, linkFor }: { rows: StatRow[]; linkFor: (r: StatRow) => string }) {
+  const best = (f: (r: StatRow) => number) => rows.filter((r) => f(r) > 0).sort((a, b) => f(b) - f(a))[0]
+  const items: [string, StatRow | undefined, (r: StatRow) => string][] = [
+    ['문의 1위', best((r) => r.total), (r) => `${r.total}건`],
+    ['결제 1위', best((r) => r.paid), (r) => `${r.paid}건`],
+    ['매출 1위', best((r) => r.revenue), (r) => won(r.revenue)],
+  ]
+  if (!items.some(([, r]) => r)) return null
+  return (
+    <div className="podium">
+      {items.map(([label, r, v]) =>
+        r ? (
+          <a key={label} className="medal" href={linkFor(r)}>
+            <span className="medal-label">{label}</span>
+            <b>{r.label}</b>
+            <span className="medal-value">{v(r)}</span>
+          </a>
+        ) : null,
       )}
     </div>
   )
@@ -195,6 +244,10 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
             <h2>항목별</h2>
             <Segmented value={by} options={GROUP_KEYS.map((k) => [k, GROUP_LABEL[k]])} onChange={(v) => set({ by: v })} />
           </div>
+          {(() => {
+            const rows = groupStats(period, by, api.adCosts, from, to)
+            return <Podium rows={rows} linkFor={(r) => detailHash(by, r.key)} />
+          })()}
           <p className="help">이름을 누르면 그 항목의 주별·월별·연도별 추이와 문의 목록을 볼 수 있습니다.</p>
           {period.length === 0 && by !== 'source' ? (
             <p className="empty-all">이 기간의 문의가 없습니다.</p>
