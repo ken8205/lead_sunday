@@ -1,0 +1,71 @@
+/* 휴대폰의 다크 설정에서도 글씨가 사라지지 않도록 색을 모두 직접 지정한다 */
+:root { color-scheme: light; }
+button, input, select { color: #1f2937; background-color: #fff; font-family: inherit; }
+body { margin: 0; font-family: system-ui, 'Noto Sans KR', sans-serif; background: #f4f5f7; color: #1f2937; }
+main { max-width: 1240px; margin: 0 auto; padding: 16px; }
+h1 { font-size: 20px; margin: 0 0 4px; }
+.note { margin: 0 0 12px; color: #6b7280; font-size: 13px; }
+.topbar { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: flex-end; margin-bottom: 8px; }
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid #cbd5e1; background: #fff; color: #1f2937; font-size: 15px; cursor: pointer; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-primary { background: #2563eb; border-color: #2563eb; color: #fff; font-weight: 700; }
+.btn-danger { background: #fff; color: #b91c1c; border-color: #fca5a5; }
+.overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.45); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 10; }
+.dialog { background: #fff; border-radius: 16px; padding: 20px; width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 12px; }
+.dialog h2 { margin: 0; font-size: 18px; }
+.dialog label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #475569; }
+.dialog input, .dialog select { min-height: 44px; padding: 0 10px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 8px; }
+.dialog-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+.btn-armed { background: #dc2626; border-color: #dc2626; color: #fff; font-weight: 700; }
+.tabs { display: inline-flex; border: 1px solid #cbd5e1; border-radius: 10px; overflow: hidden; background: #fff; }
+.tabs button { min-height: 44px; padding: 0 18px; border: 0; font-size: 15px; cursor: pointer; background: #fff; color: #1f2937; }
+.tabs button.on { background: #1e293b; color: #fff; font-weight: 700; }
+.empty-all { text-align: center; color: #64748b; padding: 32px 0; }
+.btn-small { min-height: 36px; padding: 0 12px; font-size: 13px; }
+.panel { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; color: #1f2937; }
+.panel h2 { margin: 0 0 8px; font-size: 16px; }
+.panel-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.help { margin: 0 0 8px; font-size: 13px; color: #64748b; }
+.login { min-height: 80vh; display: flex; align-items: center; justify-content: center; }
+.login-card { width: 100%; max-width: 380px; background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 14px; color: #1f2937; }
+.login-card h1 { font-size: 20px; margin: 0; }
+.login-card label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #475569; }
+.login-card input { min-height: 48px; padding: 0 12px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 8px; }
+.login-error { margin: 0; color: #b91c1c; font-size: 14px; }
+.banner-error { margin-bottom: 8px; padding: 10px 14px; border-radius: 10px; background: #fee2e2; border: 1px solid #fca5a5; color: #7f1d1d; font-size: 14px; }
+.panel-head .tabs button { min-height: 36px; padding: 0 12px; font-size: 13px; }
+.panel-head { flex-wrap: wrap; margin-bottom: 8px; }
+.tabs { max-width: 100%; overflow-x: auto; }
+.tabs button { white-space: nowrap; }
+/* ── 상담 대장 · 통계 ── */
+.ledger, .stats { max-width: 1100px; margin: 0 auto; display: grid; gap: 16px; }
+.dialog-wide { max-width: 640px; max-height: 92vh; overflow-y: auto; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px 12px; }
+.month-nav, .period { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; }
+.month-nav input, .period input, .panel-head > input { min-height: 40px; padding: 0 10px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 8px; }
+.month-nav .help { margin: 0; }
+.table-wrap { overflow-x: auto; }
+table.data { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.data th { text-align: left; font-size: 12px; font-weight: 600; color: #64748b; padding: 6px 8px; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
+table.data td { padding: 6px 8px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; white-space: nowrap; }
+table.data .num { text-align: right; font-variant-numeric: tabular-nums; }
+table.data .sub { color: #64748b; }
+.row-actions { display: flex; gap: 4px; justify-content: flex-end; }
+select.stage { min-height: 36px; padding: 0 6px; font-size: 14px; border-radius: 8px; border: 1px solid #cbd5e1; }
+select.stage-booked { background: #eff6ff; border-color: #93c5fd; }
+select.stage-visited { background: #fef3c7; border-color: #fcd34d; }
+select.stage-paid { background: #dcfce7; border-color: #86efac; font-weight: 700; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 10px; }
+.tile { border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px; }
+.tile-label { font-size: 12px; color: #64748b; }
+.tile-value { font-size: 22px; font-weight: 700; color: #111827; font-variant-numeric: tabular-nums; }
+.tile-sub { font-size: 12px; color: #475569; }
+.bar-cell { position: relative; min-width: 110px; }
+.bar { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); height: 14px; max-width: calc(100% - 44px); border-radius: 0 4px 4px 0; background: #93c5fd; }
+.bar-num { position: relative; }
+.cost-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.cost-grid label { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: #475569; }
+.cost-grid input { min-height: 40px; padding: 0 10px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 8px; text-align: right; }
+.ledger, .stats { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 700px) { .tabs button { padding: 0 12px; } .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

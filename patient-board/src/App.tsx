@@ -5,9 +5,6 @@ import { MoveLog } from './components/MoveLog'
 import { ReadyList } from './components/ReadyList'
 import { DoctorView } from './components/DoctorView'
 import { SettingsPage } from './components/SettingsPage'
-import { InquiryLedger } from './components/InquiryLedger'
-import { StatsPage } from './components/StatsPage'
-import { useInquiries } from './store/useInquiries'
 import { ConfirmButton } from './components/ConfirmButton'
 import { useBoardStore, useRoomsStore } from './store'
 import { LoginPage } from './components/LoginPage'
@@ -23,7 +20,7 @@ import { useNow } from './hooks/useNow'
 import { withChangedAt } from './lib/changedAt'
 import type { Category, Patient, PatientStatus, WaitFor } from './types'
 
-type View = 'board' | 'doctor' | 'ledger' | 'stats' | 'settings'
+type View = 'board' | 'doctor' | 'settings'
 
 const STATUS_OPTIONS: { label: string; status: PatientStatus; waitFor?: WaitFor }[] = [
   { label: '대기', status: 'waiting' },
@@ -107,8 +104,6 @@ function Board({ user, onSignOut, onChangePassword }: BoardProps) {
   const staffName = (id?: string) => (id ? (staffList.find((x) => x.id === id)?.name ?? '') : '')
   const staffSuggestions = isCloud ? staffList.filter((x) => x.active).map((x) => x.name) : undefined
   const now = useNow(15000)
-  const inquiries = useInquiries()
-  const isLead = !user || user.role === 'doctor' || user.role === 'manager' // 원장·실장: 통계, 광고비, 대장 삭제
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [adding, setAdding] = useState(false)
   const [changingPw, setChangingPw] = useState(false)
@@ -169,8 +164,6 @@ function Board({ user, onSignOut, onChangePassword }: BoardProps) {
             [
               ['board', '보드'],
               ['doctor', '원장 보기'],
-              ['ledger', '상담 대장'],
-              ...(isLead ? [['stats', '통계']] : []),
               ['settings', '설정'],
             ] as [View, string][]
           ).map(([v, label]) => (
@@ -219,11 +212,6 @@ function Board({ user, onSignOut, onChangePassword }: BoardProps) {
       {(!boardReady || !roomsReady) && <p className="empty-all">서버에서 불러오는 중…</p>}
 
       {boardReady && roomsReady && view === 'doctor' && <DoctorView patients={shown} rooms={rooms} now={now} alert={alert} order={order} leftList={leftList} />}
-
-      {(view === 'ledger' || view === 'stats') && inquiries.error && <div className="banner-error">{inquiries.error}</div>}
-      {(view === 'ledger' || view === 'stats') && !inquiries.ready && <p className="empty-all">서버에서 불러오는 중…</p>}
-      {inquiries.ready && view === 'ledger' && <InquiryLedger api={inquiries} staffSuggestions={staffSuggestions} canDelete={isLead} />}
-      {inquiries.ready && view === 'stats' && isLead && <StatsPage api={inquiries} canEditCost={isLead} />}
 
       {boardReady && roomsReady && view === 'settings' && <SettingsPage rooms={rooms} setRooms={setRooms} patients={patients} alertMin={alertMin} setAlertMin={setAlertMin} dischargeMin={dischargeMin} setDischargeMin={setDischargeMin} leftMin={leftMin} setLeftMin={setLeftMin} />}
 
