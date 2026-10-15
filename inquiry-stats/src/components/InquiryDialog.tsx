@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Inquiry, NewInquiry, Stage } from '../inquiries'
 import type { OptionKind, OptionLists } from '../inquiries'
-import { STAGES, STAGE_LABEL, localDate } from '../inquiries'
+import { DEPOSIT_RATE, STAGES, STAGE_LABEL, localDate, paymentFieldsFor } from '../inquiries'
 
 interface Props {
   initial?: Inquiry // 있으면 수정
@@ -73,6 +73,8 @@ function Chips({ label, value, options, onChange, required, onAdd }: { label: st
   )
 }
 
+const numOrNull = (v: string) => (v === '' ? null : Math.max(0, Math.round(Number(v))))
+
 export function InquiryDialog({ initial, staffSuggestions = [], campaignSuggestions, options, onAddOption, onSubmit, onClose }: Props) {
   const today = localDate()
   const [f, setF] = useState<NewInquiry>(() => ({
@@ -84,13 +86,31 @@ export function InquiryDialog({ initial, staffSuggestions = [], campaignSuggesti
     interest: initial?.interest ?? '',
     stage: initial?.stage ?? 'inquiry',
     amount: initial?.amount ?? null,
+    depositAmount: initial?.depositAmount ?? null,
+    depositDate: initial?.depositDate ?? null,
     paidDate: initial?.paidDate ?? null,
+    canceledDate: initial?.canceledDate ?? null,
+    refundAmount: initial?.refundAmount ?? null,
     note: initial?.note ?? '',
     staff: initial?.staff ?? '',
   }))
+  const [depositTouched, setDepositTouched] = useState(initial?.depositAmount != null)
   const [more, setMore] = useState(() => !!(initial && (initial.campaign || initial.note || initial.staff || initial.date !== today)))
   const set = <K extends keyof NewInquiry>(k: K, v: NewInquiry[K]) => setF((x) => ({ ...x, [k]: v }))
-  const valid = f.date !== '' && f.channel !== '' && f.source !== ''
+  const money = f.stage === 'reserved' || f.stage === 'paid' || f.stage === 'canceled'
+  const split = f.stage !== 'paid' || f.depositAmount != null // 예약금을 먼저 받았는지 (결제 완료일 때만 고를 수 있음)
+  const tenPct = (total: number | null) => (total ? Math.round(total * DEPOSIT_RATE) : null)
+  const valid = f.date !== '' && f.channel !== '' && f.source !== '' && (!money || (f.amount ?? 0) > 0)
+
+  const setStage = (stage: Stage) =>
+    setF((x) => {
+      const keepDeposit = stage === 'reserved' || stage === 'canceled' || (stage === 'paid' && x.depositAmount != null)
+      return { ...x, stage, depositAmount: keepDeposit ? (x.depositAmount ?? tenPct(x.amount)) : x.depositAmount }
+    })
+  const setTotal = (total: number | null) =>
+    setF((x) => ({ ...x, amount: total, depositAmount: !depositTouched && (x.stage !== 'paid' || x.depositAmount != null) ? tenPct(total) : x.depositAmount }))
+  const balance = Math.max(0, (f.amount ?? 0) - (f.depositAmount ?? 0))
+  const refundMode = f.refundAmount == null || f.refundAmount === (f.depositAmount ?? 0) ? 'full' : f.refundAmount === 0 ? 'none' : 'part'
 
   return (
     <div className="overlay" onClick={onClose}>
@@ -100,8 +120,16 @@ export function InquiryDialog({ initial, staffSuggestions = [], campaignSuggesti
         onSubmit={(e) => {
           e.preventDefault()
           if (!valid) return
-          const paid = f.stage === 'paid'
-          onSubmit({ ...f, campaign: f.campaign.trim(), note: f.note.trim(), staff: f.staff.trim(), amount: paid ? f.amount : null, paidDate: paid ? (f.paidDate ?? today) : null })
+          const dep = money && split ? f.depositAmount : null
+          const filled = {
+            ...f,
+            depositAmount: dep,
+            depositDate: dep ? (f.depositDate ?? today) : null,
+            paidDate: f.paidDate ?? today,
+            canceledDate: f.canceledDate ?? today,
+            refundAmount: f.refundAmount ?? dep ?? 0,
+          }
+          onSubmit({ ...filled, ...paymentFieldsFor(f.stage, filled), campaign: f.campaign.trim(), note: f.note.trim(), staff: f.staff.trim() })
         }}
       >
         <div className="sheet-head">
@@ -117,24 +145,89 @@ export function InquiryDialog({ initial, staffSuggestions = [], campaignSuggesti
         <fieldset className="chips">
           <legend>단계</legend>
           <div className="stepper">
-            {STAGES.map((s: Stage) => (
-              <button type="button" key={s} className={`step step-${s}${f.stage === s ? ' on' : ''}`} aria-pressed={f.stage === s} onClick={() => set('stage', s)}>
+            {[...STAGES, 'canceled' as Stage].map((s) => (
+              <button type="button" key={s} className={`step step-${s}${f.stage === s ? ' on' : ''}`} aria-pressed={f.stage === s} onClick={() => setStage(s)}>
                 {STAGE_LABEL[s]}
               </button>
             ))}
           </div>
         </fieldset>
 
-        {f.stage === 'paid' && (
-          <div className="form-grid">
-            <label>
-              결제 금액 (만원)
-              <input id="inq-amount" type="number" inputMode="numeric" min={0} autoFocus value={f.amount ?? ''} onChange={(e) => set('amount', e.target.value === '' ? null : Math.max(0, Math.round(Number(e.target.value))))} />
-            </label>
-            <label>
-              결제일
-              <input id="inq-paid" type="date" value={f.paidDate ?? today} min={f.date} max={today} onChange={(e) => set('paidDate', e.target.value || null)} />
-            </label>
+        {money && (
+          <div className="pay-box">
+            {f.stage === 'paid' && (
+              <div className="stepper">
+                <button type="button" className={`pick${!split ? ' on' : ''}`} onClick={() => setF((x) => ({ ...x, depositAmount: null, depositDate: null }))}>
+                  당일 전액 결제
+                </button>
+                <button type="button" className={`pick${split ? ' on' : ''}`} onClick={() => setF((x) => ({ ...x, depositAmount: x.depositAmount ?? tenPct(x.amount) }))}>
+                  예약금 + 잔금
+                </button>
+              </div>
+            )}
+            <div className="form-grid">
+              <label>
+                총액 (만원)
+                <input id="inq-amount" type="number" inputMode="numeric" min={0} autoFocus value={f.amount ?? ''} onChange={(e) => setTotal(numOrNull(e.target.value))} />
+              </label>
+              {split && (
+                <>
+                  <label>
+                    예약금 (만원) <small>기본 10%</small>
+                    <input
+                      id="inq-deposit"
+                      type="number"
+                      inputMode="numeric"
+                      min={0}
+                      value={f.depositAmount ?? ''}
+                      onChange={(e) => {
+                        setDepositTouched(true)
+                        set('depositAmount', numOrNull(e.target.value))
+                      }}
+                    />
+                  </label>
+                  <label>
+                    예약금 받은 날
+                    <input id="inq-deposit-date" type="date" value={f.depositDate ?? today} min={f.date} max={today} onChange={(e) => set('depositDate', e.target.value || null)} />
+                  </label>
+                </>
+              )}
+              {f.stage === 'paid' && (
+                <label>
+                  {split ? `잔금 ${balance.toLocaleString('ko-KR')}만원 받은 날` : '결제일'}
+                  <input id="inq-paid" type="date" value={f.paidDate ?? today} min={f.depositDate ?? f.date} max={today} onChange={(e) => set('paidDate', e.target.value || null)} />
+                </label>
+              )}
+              {f.stage === 'canceled' && (
+                <label>
+                  취소한 날
+                  <input id="inq-cancel-date" type="date" value={f.canceledDate ?? today} min={f.depositDate ?? f.date} max={today} onChange={(e) => set('canceledDate', e.target.value || null)} />
+                </label>
+              )}
+            </div>
+            {f.stage === 'reserved' && <p className="help pay-note">잔금 {balance.toLocaleString('ko-KR')}만원은 수술 당일 받으면 카드의 "잔금 받기"를 누르세요.</p>}
+            {f.stage === 'canceled' && (
+              <div className="refund">
+                <span className="help">예약금 {(f.depositAmount ?? 0).toLocaleString('ko-KR')}만원 환불</span>
+                <div className="stepper">
+                  <button type="button" className={`pick${refundMode === 'full' ? ' on' : ''}`} onClick={() => set('refundAmount', f.depositAmount ?? 0)}>
+                    전액 환불
+                  </button>
+                  <button type="button" className={`pick${refundMode === 'part' ? ' on' : ''}`} onClick={() => set('refundAmount', Math.round((f.depositAmount ?? 0) / 2))}>
+                    일부 환불
+                  </button>
+                  <button type="button" className={`pick${refundMode === 'none' ? ' on' : ''}`} onClick={() => set('refundAmount', 0)}>
+                    환불 없음
+                  </button>
+                </div>
+                {refundMode === 'part' && (
+                  <label className="refund-amount">
+                    환불액 (만원)
+                    <input id="inq-refund" type="number" inputMode="numeric" min={0} max={f.depositAmount ?? undefined} value={f.refundAmount ?? ''} onChange={(e) => set('refundAmount', numOrNull(e.target.value))} />
+                  </label>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -179,7 +272,7 @@ export function InquiryDialog({ initial, staffSuggestions = [], campaignSuggesti
             취소
           </button>
           <button type="submit" className="btn btn-primary btn-big" disabled={!valid}>
-            {valid ? '저장' : '채널과 경로를 골라 주세요'}
+            {valid ? '저장' : money && !(f.amount ?? 0) ? '총액을 입력해 주세요' : '채널과 경로를 골라 주세요'}
           </button>
         </div>
       </form>

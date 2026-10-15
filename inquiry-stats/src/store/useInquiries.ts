@@ -28,7 +28,11 @@ interface InquiryRow {
   interest: string
   stage: Stage
   amount: number | null
+  deposit_amount: number | null
+  deposit_date: string | null
   paid_date: string | null
+  canceled_date: string | null
+  refund_amount: number | null
   note: string
   staff: string
   created_at: string
@@ -44,7 +48,11 @@ const toInquiry = (r: InquiryRow): Inquiry => ({
   interest: r.interest,
   stage: r.stage,
   amount: r.amount,
+  depositAmount: r.deposit_amount ?? null,
+  depositDate: r.deposit_date ?? null,
   paidDate: r.paid_date,
+  canceledDate: r.canceled_date ?? null,
+  refundAmount: r.refund_amount ?? null,
   note: r.note,
   staff: r.staff,
   createdAt: Date.parse(r.created_at),
@@ -54,6 +62,10 @@ function toRow(p: Partial<NewInquiry>) {
   const row: Record<string, unknown> = {}
   if (p.date !== undefined) row.inquiry_date = p.date
   if (p.paidDate !== undefined) row.paid_date = p.paidDate
+  if (p.depositAmount !== undefined) row.deposit_amount = p.depositAmount
+  if (p.depositDate !== undefined) row.deposit_date = p.depositDate
+  if (p.canceledDate !== undefined) row.canceled_date = p.canceledDate
+  if (p.refundAmount !== undefined) row.refund_amount = p.refundAmount
   for (const k of ['channel', 'source', 'campaign', 'nationality', 'interest', 'stage', 'amount', 'note', 'staff'] as const) {
     if (p[k] !== undefined) row[k] = p[k]
   }
@@ -192,7 +204,8 @@ function migrateLocal(d: LocalData): LocalData {
 function loadLocal(): LocalData {
   try {
     const v = JSON.parse(localStorage.getItem(LOCAL_KEY) ?? '')
-    if (Array.isArray(v.inquiries) && Array.isArray(v.adCosts)) return migrateLocal({ ...v, options: { ...DEFAULT_OPTIONS, ...v.options } })
+    if (Array.isArray(v.inquiries) && Array.isArray(v.adCosts))
+      return migrateLocal({ ...v, inquiries: v.inquiries.map((i: Inquiry) => Object.assign({ depositAmount: null, depositDate: null, canceledDate: null, refundAmount: null }, i)), options: { ...DEFAULT_OPTIONS, ...v.options } })
   } catch {
     // 없거나 깨졌으면 빈 대장
   }

@@ -20,8 +20,10 @@ export interface StatRow {
   total: number // 문의
   booked: number // 상담 예약 이상
   visited: number // 내원 상담 이상
-  paid: number // 결제
-  revenue: number // 결제 금액 합 (만원)
+  reserved: number // 수술 예약 이상 (취소 포함)
+  paid: number // 결제 완료
+  canceled: number // 수술 예약 후 취소
+  revenue: number // 결제 완료 총액 합 (만원)
   adCost: number | null // 광고비 (만원). 알 수 없으면 null (경로가 아닌 항목, 주 단위)
   partial?: boolean // 기간 경계에 걸려 일부만 포함된 주
 }
@@ -39,10 +41,33 @@ function summarize(key: string, label: string, list: Inquiry[], adCost: number |
     total: list.length,
     booked: list.filter((i) => reached(i, 'booked')).length,
     visited: list.filter((i) => reached(i, 'visited')).length,
+    reserved: list.filter((i) => reached(i, 'reserved')).length,
     paid: list.filter((i) => reached(i, 'paid')).length,
+    canceled: list.filter((i) => i.stage === 'canceled').length,
     revenue: list.reduce((s, i) => s + (i.stage === 'paid' ? (i.amount ?? 0) : 0), 0),
     adCost,
   }
+}
+
+// 받은 날 기준으로 실제 들어온 돈 (만원). 예약금은 예약금 받은 날, 잔금·전액은 완불한 날, 환불은 취소한 날(빼기).
+// 문의일과 상관없이 날짜만 본다 (엑셀 매출 장부와 같은 기준).
+export interface Cash {
+  deposits: number
+  balances: number
+  refunds: number
+  net: number
+}
+export function cashIn(list: Inquiry[], fromDay: string, toDay: string): Cash {
+  const inRange = (d: string | null) => !!d && d >= fromDay && d <= toDay
+  let deposits = 0
+  let balances = 0
+  let refunds = 0
+  for (const i of list) {
+    if (i.depositAmount && inRange(i.depositDate)) deposits += i.depositAmount
+    if (i.stage === 'paid' && inRange(i.paidDate)) balances += Math.max(0, (i.amount ?? 0) - (i.depositAmount ?? 0))
+    if (i.stage === 'canceled' && i.refundAmount && inRange(i.canceledDate)) refunds += i.refundAmount
+  }
+  return { deposits, balances, refunds, net: deposits + balances - refunds }
 }
 
 const sumCost = (costs: AdCost[], pred: (c: AdCost) => boolean) => costs.filter(pred).reduce((s, c) => s + c.amount, 0)

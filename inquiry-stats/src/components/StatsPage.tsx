@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
 import type { InquiriesApi } from '../store/useInquiries'
-import { STAGE_LABEL, localDate } from '../inquiries'
+import { STAGE_LABEL, balanceDue, localDate } from '../inquiries'
 import type { Gran, GroupKey, Scope, StatRow } from '../lib/stats'
-import { GRAN_LABEL, GROUP_LABEL, SMALL_N, addMonths, groupStats, groupValue, inPeriod, pct, totalRow, trendStats, won } from '../lib/stats'
+import type { Cash } from '../lib/stats'
+import { GRAN_LABEL, GROUP_LABEL, SMALL_N, addMonths, cashIn, lastDayOfMonth, groupStats, groupValue, inPeriod, pct, totalRow, trendStats, won } from '../lib/stats'
 import type { Route } from '../hooks/useHashRoute'
 import { buildHash } from '../hooks/useHashRoute'
 
@@ -44,10 +45,11 @@ function Funnel({ t }: { t: StatRow }) {
     ['문의', t.total],
     ['상담 예약', t.booked],
     ['내원 상담', t.visited],
-    ['결제', t.paid],
+    ['수술 예약', t.reserved],
+    ['결제 완료', t.paid],
   ]
   return (
-    <div className="funnel" role="img" aria-label={steps.map(([l, n]) => `${l} ${n}건`).join(', ')}>
+    <div className="funnel" role="img" aria-label={steps.map(([l, n]) => `${l} ${n}건`).join(', ') + `, 취소 ${t.canceled}건`}>
       {steps.map(([label, n], k) => (
         <div className="f-row" key={label}>
           <span className="f-label">{label}</span>
@@ -59,18 +61,32 @@ function Funnel({ t }: { t: StatRow }) {
           </span>
         </div>
       ))}
+      <p className="f-note">
+        수술 예약 후 취소 <b>{t.canceled}</b>건 · 각 단계는 그 단계까지 간 건수입니다(수술 예약에는 이후 결제 완료·취소 건, 당일 전액 결제 건도 포함). 결제 완료는 완불한 건만 셉니다.
+      </p>
     </div>
   )
 }
 
-function Tiles({ t, showCost, paidOn }: { t: StatRow; showCost: boolean; paidOn?: { count: number; amount: number } }) {
+interface Money {
+  cash: Cash // 받은 날 기준으로 이 기간에 들어온 돈
+  due: { count: number; amount: number } // 지금 수술 예약 상태인 건의 남은 잔금
+}
+
+function Tiles({ t, showCost, money, dayMode }: { t: StatRow; showCost: boolean; money: Money; dayMode: boolean }) {
+  const c = money.cash
   return (
     <div className="summary-grid">
       <Funnel t={t} />
       <div className="tiles">
-        <Tile label="매출" value={won(t.revenue)} sub={t.paid > 0 ? `객단가 ${won(Math.round(t.revenue / t.paid))}` : undefined} />
-        {paidOn && <Tile label="이날 결제 (결제일 기준)" value={`${paidOn.count}건`} sub={paidOn.count ? won(paidOn.amount) : '예전 문의의 결제 포함'} />}
-        <Tile label="결제율" value={pct(t.paid, t.total)} sub={`내원 상담 중 결제 ${pct(t.paid, t.visited)}`} />
+        <Tile label="문의 → 결제" value={pct(t.paid, t.total)} sub={`상담 → 결제 ${pct(t.paid, t.visited)} (${t.paid}/${t.visited}건)`} />
+        <Tile label="결제 완료 매출" value={won(t.revenue)} sub={t.paid > 0 ? `${t.paid}건 · 객단가 ${won(Math.round(t.revenue / t.paid))}` : '이 기간 문의 중 완불한 건의 총액'} />
+        <Tile
+          label={dayMode ? '이날 받은 금액' : '이 기간 받은 금액'}
+          value={won(c.net)}
+          sub={`예약금 ${won(c.deposits)} · 잔금·전액 ${won(c.balances)}${c.refunds ? ` · 환불 −${won(c.refunds)}` : ''}`}
+        />
+        <Tile label="남은 잔금 (지금 수술 예약)" value={won(money.due.amount)} sub={`${money.due.count}건 · 수술 당일 받을 돈`} />
         {showCost && t.adCost != null && (
           <Tile label="광고비" value={won(t.adCost)} sub={t.adCost > 0 ? `매출 ${(t.revenue / t.adCost).toFixed(1)}배${t.paid > 0 ? ` · 결제 1건당 ${won(Math.round(t.adCost / t.paid))}` : ''}` : undefined} />
         )}
@@ -114,8 +130,10 @@ function StatTable({ rows, first, showCost, linkFor }: { rows: StatRow[]; first:
             <th className="num">문의</th>
             <th className="num">예약</th>
             <th className="num">내원</th>
-            <th className="num">결제</th>
-            <th className="num">결제율</th>
+            <th className="num">수술 예약</th>
+            <th className="num">결제 완료</th>
+            <th className="num">취소</th>
+            <th className="num">문의 → 결제</th>
             <th className="num">매출</th>
             <th className="num">객단가</th>
             {showCost && (
@@ -146,7 +164,9 @@ function StatTable({ rows, first, showCost, linkFor }: { rows: StatRow[]; first:
               </td>
               <td className="num">{r.booked}</td>
               <td className="num">{r.visited}</td>
+              <td className="num">{r.reserved}</td>
               <td className="num">{r.paid}</td>
+              <td className="num">{r.canceled || ''}</td>
               <td className="num">
                 <Rate a={r.paid} b={r.total} />
               </td>
@@ -203,13 +223,13 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
   const costs = day ? [] : api.adCosts // 광고비는 월 단위라 하루 통계에는 쓰지 않는다
   const showCost = !day && canEditCost && api.adCosts.length > 0
   const total = totalRow(list, costs, from, to, scope)
-  // 하루를 볼 때: 그날 결제한 건 (문의는 예전에 했어도 결제일이 그날인 것)
-  const paidOn = day
-    ? (() => {
-        const xs = api.inquiries.filter((i) => i.stage === 'paid' && i.paidDate === day && (!scope || groupValue(i, scope.by) === scope.value))
-        return { count: xs.length, amount: xs.reduce((s, i) => s + (i.amount ?? 0), 0) }
-      })()
-    : undefined
+  // 돈: 받은 날 기준 (문의일과 상관없이), 남은 잔금은 지금 기준
+  const inScope = scope ? api.inquiries.filter((i) => groupValue(i, scope.by) === scope.value) : api.inquiries
+  const reservedNow = inScope.filter((i) => i.stage === 'reserved')
+  const money = {
+    cash: day ? cashIn(inScope, day, day) : cashIn(inScope, `${from}-01`, lastDayOfMonth(to)),
+    due: { count: reservedNow.length, amount: reservedNow.reduce((s, i) => s + balanceDue(i), 0) },
+  }
   const trend = trendStats(list, api.adCosts, from, to, gran, scope)
   const year = thisMonth.slice(0, 4)
   const lastYear = String(Number(year) - 1)
@@ -256,11 +276,13 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
           ))}
         </div>
         {day && <h2 className="day-title">{day === today ? '오늘' : day === yesterday ? '어제' : ''} {dayTitle(day)}</h2>}
-        <Tiles t={total} showCost={showCost} paidOn={paidOn} />
+        <Tiles t={total} showCost={showCost} money={money} dayMode={!!day} />
         <details className="fine">
           <summary>숫자 읽는 법</summary>
           <ul>
-            <li>문의한 날짜로 묶습니다. 이번 달 문의가 다음 달에 결제되면 이번 달 성과로 들어가서, 최근 기간 결제율은 나중에 올라갈 수 있습니다.</li>
+            <li>깔때기·매출·항목별 표는 문의한 날짜로 묶습니다. 이번 달 문의가 다음 달에 결제되면 이번 달 성과로 들어가서, 최근 기간 결제율은 나중에 올라갈 수 있습니다.</li>
+            <li>"받은 금액"만 받은 날 기준입니다(예약금은 받은 날, 잔금은 수술 날, 환불은 취소한 날). 엑셀 매출 장부와 맞춰 볼 숫자입니다.</li>
+            <li>문의 → 결제 = 결제 완료 ÷ 문의, 상담 → 결제 = 결제 완료 ÷ 내원 상담.</li>
             <li>흐린 비율은 건수가 {SMALL_N}건 미만이라 우연에 크게 흔들리는 값입니다. 마우스를 올리면 건수가 보입니다.</li>
           </ul>
         </details>

@@ -39,12 +39,47 @@ export function sampleData(): { inquiries: Inquiry[]; adCosts: AdCost[] } {
       // 소개·재방문은 결제까지 잘 이어지고, 광고성 경로는 덜 이어진다 (화면 확인용 가정)
       const warm = source === '소개' || source === '구환' ? 0.25 : channel === '해외에이전시' ? 0.1 : 0
       const r = rnd() - warm
-      const stage: Stage = r < 0.25 ? 'paid' : r < 0.4 ? 'visited' : r < 0.6 ? 'booked' : 'inquiry'
       const big = ['미니거상', '안면거상', '처진눈성형', '눈밑지방재배치', '눈성형', '코성형', '안면윤곽', '지방이식'].includes(interest)
-      const amount = stage === 'paid' ? Math.round((big ? 400 + rnd() * 900 : 40 + rnd() * 260) / 10) * 10 : null
+      const date = `${m}-${day}`
+      const plus = (d: string, n: number) => localDate(new Date(new Date(`${d}T00:00:00`).getTime() + n * 86400000))
+      let stage: Stage = r < 0.3 ? 'visited' : r < 0.5 ? 'booked' : r < 0.75 ? 'inquiry' : 'visited'
+      let amount: number | null = null
+      let depositAmount: number | null = null
+      let depositDate: string | null = null
+      let paidDate: string | null = null
+      let canceledDate: string | null = null
+      let refundAmount: number | null = null
+      if (r < 0.25) {
+        amount = Math.round((big ? 400 + rnd() * 900 : 40 + rnd() * 260) / 10) * 10
+        const consult = plus(date, Math.floor(rnd() * 5))
+        if (!big) {
+          stage = 'paid' // 시술: 당일 상담·당일 전액
+          paidDate = consult
+        } else {
+          depositAmount = Math.round(amount * 0.1)
+          depositDate = consult
+          const surgery = plus(consult, 7 + Math.floor(rnd() * 30))
+          const c = rnd()
+          if (c < 0.18) {
+            stage = 'canceled'
+            canceledDate = plus(consult, 3)
+            refundAmount = c < 0.09 ? depositAmount : Math.round(depositAmount / 2)
+          } else if (surgery <= today) {
+            stage = 'paid'
+            paidDate = surgery
+          } else stage = 'reserved'
+        }
+        if ((paidDate ?? '') > today || (depositDate ?? '') > today || (canceledDate ?? '') > today) {
+          // 아직 오지 않은 날짜면 그 전 단계로
+          stage = 'visited'
+          amount = depositAmount = null
+          depositDate = paidDate = canceledDate = null
+          refundAmount = null
+        }
+      }
       inquiries.push({
         id: `sample-${m}-${k}`,
-        date: `${m}-${day}`,
+        date,
         channel,
         source,
         campaign: source === '인스타' && rnd() < 0.4 ? `${Number(m.slice(5))}월 인스타 실리프팅` : '',
@@ -52,7 +87,11 @@ export function sampleData(): { inquiries: Inquiry[]; adCosts: AdCost[] } {
         interest,
         stage,
         amount,
-        paidDate: stage === 'paid' ? `${m}-${day}` : null,
+        depositAmount,
+        depositDate,
+        paidDate,
+        canceledDate,
+        refundAmount,
         note: '예시',
         staff: pick([['유빈', 50], ['도은', 35], ['정실장', 15]]),
         createdAt: k,

@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Inquiry, Stage } from '../inquiries'
-import { STAGES, STAGE_LABEL, localDate } from '../inquiries'
+import { STAGES, STAGE_LABEL, balanceDue, localDate, paymentFieldsFor } from '../inquiries'
 import type { InquiriesApi } from '../store/useInquiries'
-import { addMonths, won } from '../lib/stats'
+import { addMonths, cashIn, lastDayOfMonth, won } from '../lib/stats'
 import { sampleData } from '../lib/sample'
 import { InquiryDialog } from './InquiryDialog'
 import { ConfirmButton } from './ConfirmButton'
@@ -27,6 +27,7 @@ export function InquiryLedger({ api, staffSuggestions, canDelete, canEditOptions
 
   const todayCount = api.inquiries.filter((i) => i.date === today).length
   const monthPaid = rows.filter((i) => i.stage === 'paid')
+  const monthCash = cashIn(api.inquiries, `${month}-01`, lastDayOfMonth(month)) // 받은 날 기준
 
   useEffect(() => {
     if (!cheer) return
@@ -35,17 +36,22 @@ export function InquiryLedger({ api, staffSuggestions, canDelete, canEditOptions
   }, [cheer])
 
   // 결제로 바뀌면 축하 한 번
-  const celebrate = (paidCount: number) => setCheer(`결제 기록 완료! 이번 달 ${paidCount}번째 결제예요`)
 
   const setStage = (i: Inquiry, stage: Stage) => {
     if (stage === i.stage) return
-    const paidDate = stage === 'paid' ? (i.paidDate ?? today) : null
-    api.update(i.id, { stage, paidDate, ...(stage === 'paid' ? {} : { amount: null }) })
-    if (stage === 'paid') {
-      if (i.amount == null) setEditing({ ...i, stage, paidDate }) // 금액을 바로 입력
-      celebrate(monthPaid.length + 1)
+    if (stage === 'paid' && i.stage === 'reserved' && i.amount) {
+      // 수술 당일 잔금: 오늘 날짜로 완불
+      api.update(i.id, { stage: 'paid', paidDate: today })
+      setCheer(`잔금 ${won(balanceDue(i))} 받음 · 결제 완료!`)
+      return
     }
+    if (stage === 'reserved' || stage === 'paid' || stage === 'canceled') {
+      setEditing({ ...i, stage }) // 금액(총액·예약금·환불)을 입력하는 창을 띄운다
+      return
+    }
+    api.update(i.id, { stage, ...paymentFieldsFor(stage, i) }) // 앞 단계로 되돌리면 돈 기록은 지운다
   }
+
 
   return (
     <div className="ledger">
@@ -83,8 +89,7 @@ export function InquiryLedger({ api, staffSuggestions, canDelete, canEditOptions
             ▶
           </button>
           <span className="month-sum">
-            문의 <b>{rows.length}</b> · 결제 <b>{monthPaid.length}</b>
-            {monthPaid.length > 0 && <> · {won(monthPaid.reduce((s, i) => s + (i.amount ?? 0), 0))}</>}
+            문의 <b>{rows.length}</b> · 결제 완료 <b>{monthPaid.length}</b> · 이달 받은 금액 <b>{won(monthCash.net)}</b>
           </span>
         </div>
 
@@ -106,16 +111,37 @@ export function InquiryLedger({ api, staffSuggestions, canDelete, canEditOptions
                     </span>
                   </span>
                   {i.stage === 'paid' && i.amount != null && <span className="icard-amount">{won(i.amount)}</span>}
+                  {i.stage === 'canceled' && <span className="icard-amount icard-amount-canceled">환불 {won(i.refundAmount ?? 0)}</span>}
                 </div>
+                {i.stage === 'reserved' && i.amount != null && (
+                  <p className="icard-money">
+                    총액 {won(i.amount)} · 예약금 {won(i.depositAmount ?? 0)} 받음{i.depositDate && ` (${Number(i.depositDate.slice(5, 7))}/${Number(i.depositDate.slice(8))})`} · <b>잔금 {won(balanceDue(i))}</b>
+                  </p>
+                )}
+                {i.stage === 'canceled' && i.amount != null && (
+                  <p className="icard-money">
+                    총액 {won(i.amount)} · 예약금 {won(i.depositAmount ?? 0)} · 취소{i.canceledDate && ` ${Number(i.canceledDate.slice(5, 7))}/${Number(i.canceledDate.slice(8))}`}
+                  </p>
+                )}
                 <div className="icard-bottom">
                   <div className="stepper stepper-small" role="group" aria-label="단계">
-                    {STAGES.map((s) => (
+                    {(i.stage === 'canceled' ? [...STAGES, 'canceled' as Stage] : STAGES).map((s) => (
                       <button key={s} className={`step step-${s}${i.stage === s ? ' on' : ''}${STAGES.indexOf(s) < STAGES.indexOf(i.stage) ? ' done' : ''}`} aria-pressed={i.stage === s} onClick={() => setStage(i, s)}>
                         {STAGE_LABEL[s]}
                       </button>
                     ))}
                   </div>
                   <span className="icard-meta">
+                    {i.stage === 'reserved' && (
+                      <>
+                        <button className="btn btn-small btn-pay" onClick={() => setStage(i, 'paid')}>
+                          잔금 {won(balanceDue(i))} 받기
+                        </button>
+                        <button className="btn btn-small" onClick={() => setStage(i, 'canceled')}>
+                          예약 취소
+                        </button>
+                      </>
+                    )}
                     {i.note && <span className="sub">{i.note}</span>}
                     {i.staff && <span className="sub">{i.staff}</span>}
                     <button className="btn btn-small" onClick={() => setEditing(i)}>
@@ -150,12 +176,15 @@ export function InquiryLedger({ api, staffSuggestions, canDelete, canEditOptions
           onAddOption={canEditOptions ? (kind, name) => api.setOptions(kind, [...api.options[kind], name]) : undefined}
           onClose={() => setEditing(null)}
           onSubmit={(v) => {
-            const wasPaid = editing !== 'new' && api.inquiries.find((x) => x.id === editing.id)?.stage === 'paid'
+            const before = editing === 'new' ? undefined : api.inquiries.find((x) => x.id === editing.id)
             if (editing === 'new') {
               api.add(v)
               setMonth(v.date.slice(0, 7))
             } else api.update(editing.id, v)
-            if (v.stage === 'paid' && !wasPaid) celebrate(api.inquiries.filter((x) => x.date.startsWith(v.date.slice(0, 7)) && x.stage === 'paid').length + 1)
+            if (v.stage !== before?.stage) {
+              if (v.stage === 'paid') setCheer(`결제 완료! ${won(v.amount ?? 0)}`)
+              if (v.stage === 'reserved') setCheer(`수술 예약 완료! 예약금 ${won(v.depositAmount ?? 0)} 받음`)
+            }
             setEditing(null)
           }}
         />

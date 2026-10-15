@@ -37,9 +37,13 @@ create table if not exists public.inquiries (
   campaign text not null default '',                 -- 광고·이벤트 이름 (선택)
   nationality text not null default '',              -- 국적
   interest text not null default '',                 -- 관심 시술
-  stage text not null default 'inquiry' check (stage in ('inquiry', 'booked', 'visited', 'paid')),
-  amount integer check (amount is null or amount >= 0), -- 결제 금액 (만원)
-  paid_date date,                                    -- 결제일 (엑셀 매출 장부와 맞춰 볼 때)
+  stage text not null default 'inquiry' check (stage in ('inquiry', 'booked', 'visited', 'reserved', 'paid', 'canceled')),
+  amount integer check (amount is null or amount >= 0), -- 수술·시술 총액 (만원)
+  deposit_amount integer check (deposit_amount is null or deposit_amount >= 0), -- 예약금 (만원)
+  deposit_date date,                                 -- 예약금 받은 날
+  paid_date date,                                    -- 완불한 날 (잔금 또는 전액)
+  canceled_date date,                                -- 수술 예약 취소한 날
+  refund_amount integer check (refund_amount is null or refund_amount >= 0), -- 환불액 (만원)
   note text not null default '' check (char_length(note) <= 100), -- 이니셜·짧은 메모
   staff text not null default '',                    -- 담당자
   created_by uuid default auth.uid() references public.staff (id) on delete set null,
@@ -47,8 +51,15 @@ create table if not exists public.inquiries (
   updated_at timestamptz not null default now()
 );
 
--- 이전 버전에서 만든 표에 결제일 칸 추가
+-- 이전 버전에서 만든 표에 칸 추가
 alter table public.inquiries add column if not exists paid_date date;
+alter table public.inquiries add column if not exists deposit_amount integer check (deposit_amount is null or deposit_amount >= 0);
+alter table public.inquiries add column if not exists deposit_date date;
+alter table public.inquiries add column if not exists canceled_date date;
+alter table public.inquiries add column if not exists refund_amount integer check (refund_amount is null or refund_amount >= 0);
+-- 단계에 '수술 예약', '취소' 추가
+alter table public.inquiries drop constraint if exists inquiries_stage_check;
+alter table public.inquiries add constraint inquiries_stage_check check (stage in ('inquiry', 'booked', 'visited', 'reserved', 'paid', 'canceled'));
 
 create index if not exists inquiries_date_idx on public.inquiries (inquiry_date);
 
