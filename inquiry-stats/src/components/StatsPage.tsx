@@ -292,7 +292,7 @@ function CostPanel({ api }: { api: EntriesApi }) {
         ))}
       </div>
       <h3>수수료율 (%)</h3>
-      <p className="help">시술 후 수수료를 내는 경로만 적으세요 (예: 메이비 30, 미뷰 40).</p>
+      <p className="help">시술 후 수수료를 내는 경로만 적으세요 (기본: 메이비 30, 미뷰 40, 해외에이전시 30).</p>
       <div className="cost-grid">
         {api.options.source.map((s) => (
           <label key={`rate-${s}-${api.rates[s] ?? 0}`}>

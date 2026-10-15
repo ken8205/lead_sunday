@@ -165,7 +165,7 @@ interface LocalData {
 function loadLocal(): LocalData {
   try {
     const v = JSON.parse(localStorage.getItem(LOCAL_KEY) ?? '')
-    if (Array.isArray(v.entries) && Array.isArray(v.adCosts)) return { ...v, options: { ...DEFAULT_OPTIONS, ...v.options }, rates: v.rates ?? DEFAULT_RATES }
+    if (Array.isArray(v.entries) && Array.isArray(v.adCosts)) return { ...v, options: { ...DEFAULT_OPTIONS, ...v.options }, rates: { 해외에이전시: 30, ...(v.rates ?? DEFAULT_RATES) } } // 해외에이전시 기본 30%가 생기기 전에 저장한 경우도 채운다
   } catch {
     // 없거나 깨졌으면 예시로 시작
   }

@@ -28,9 +28,9 @@ export interface Entry {
 }
 export type NewEntry = Omit<Entry, 'id' | 'createdAt'>
 
-// 경로별 수수료율 (%): 그 경로로 온 환자의 시술 총액에 곱해 마케팅비에 넣는다 (예: 메이비 30, 미뷰 40)
+// 경로별 수수료율 (%): 그 경로로 온 환자의 시술 총액에 곱해 마케팅비에 넣는다
 export type Rates = Record<string, number>
-export const DEFAULT_RATES: Rates = { 메이비: 30, 미뷰: 40 }
+export const DEFAULT_RATES: Rates = { 메이비: 30, 미뷰: 40, 해외에이전시: 30 }
 
 export interface AdCost {
   month: string // YYYY-MM

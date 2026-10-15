@@ -55,12 +55,12 @@ create table if not exists public.ad_costs (
   primary key (month, source)
 );
 
--- 경로별 수수료율 (%): 그 경로 환자의 시술 총액 × 수수료율 = 마케팅비 (예: 메이비 30, 미뷰 40)
+-- 경로별 수수료율 (%): 그 경로 환자의 시술 총액 × 수수료율 = 마케팅비 (기본: 메이비 30, 미뷰 40, 해외에이전시 30)
 create table if not exists public.commission_rates (
   source text primary key,
   rate numeric not null check (rate > 0 and rate <= 100)
 );
-insert into public.commission_rates (source, rate) values ('메이비', 30), ('미뷰', 40) on conflict (source) do nothing;
+insert into public.commission_rates (source, rate) values ('메이비', 30), ('미뷰', 40), ('해외에이전시', 30) on conflict (source) do nothing;
 
 -- 입력 화면 선택지 (문의 채널, 유입 경로, 국적, 관심 시술). 순서 그대로 화면에 나온다.
 -- 한 번도 저장하지 않은 종류는 앱의 기본 목록을 쓴다.
