@@ -52,5 +52,24 @@ VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...   # 공개용 키만. secret/se
 
 ## 배포 (Vercel)
 
-동선 보드와 같은 방식으로 **Vercel 프로젝트를 하나 더** 만듭니다. Root Directory는 `inquiry-stats`, Framework는 Vite, 환경 변수는 위 두 개입니다.
-배포 주소를 열었을 때 로그인 화면이 나오는지 꼭 확인하세요 (환경 변수가 없으면 로그인 없는 시험 모드로 열립니다).
+동선 보드와 같은 방식으로 **Vercel 프로젝트를 하나 더** 만듭니다.
+
+1. Supabase(동선 보드와 같은 서울 리전 프로젝트) → SQL Editor에서 `supabase/schema.sql` 전체를 붙여 넣고 실행합니다. 여러 번 실행해도 안전합니다.
+2. Vercel → Add New → Project → 이 저장소(`lead_sunday`) Import.
+3. **Root Directory**: `inquiry-stats`, **Framework Preset**: Vite (빌드 `npm run build`, 출력 `dist`).
+4. **Environment Variables** (Production, Preview, Development 모두): 동선 보드와 같은 값
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_PUBLISHABLE_KEY` (공개용 키만. secret/service_role 키는 절대 넣지 않음)
+5. Deploy. Production은 `main` 브랜치를 따라갑니다.
+6. 배포 주소를 열어 **로그인 화면이 나오는지** 확인합니다. 환경 변수가 빠지면 로그인 없는 시험 모드(예시 데이터)로 열리니, 그 상태로 실제 기록을 넣지 마세요.
+
+환경 변수를 바꾸면 **Redeploy**해야 반영됩니다.
+
+## 휴대폰·PC에 앱처럼 설치 (PWA)
+
+배포 주소(HTTPS)를 연 뒤:
+- **아이폰(사파리)**: 공유 버튼 → "홈 화면에 추가"
+- **안드로이드(크롬)**: 메뉴(⋮) → "앱 설치" 또는 "홈 화면에 추가"
+- **PC(크롬·엣지)**: 주소창 오른쪽 설치 아이콘
+
+설치하면 주소창 없이 앱처럼 열립니다. 새 버전을 배포하면 다음에 열 때 바로 바뀝니다.
