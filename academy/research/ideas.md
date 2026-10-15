@@ -12,3 +12,5 @@
 | IDEA-006 | 2026-10-06 | 당기면 중안면·jowl이 바뀌는 관찰 vs 구획 보존 모델, descent vs deflation 구분 검사 | 학습자 임상 관찰(논문 2 리뷰 중) | 문헌 1차 확인(부분 지지), 직접 연구 못 찾음 | research/ideas/IDEA-006-traction-reverses-aging-descent-vs-deflation.md |
 | IDEA-007 | 2026-10-06 | 주입이 잘 되는/막히는 방향 vs 구획 경계 지도 | 학습자 임상 감각(논문 2 토론) | 문헌 1차 확인, 저항 직접 연구 못 찾음 | research/ideas/IDEA-007-injection-resistance-map-vs-compartment-boundaries.md |
 | IDEA-008 | 2026-10-08 | 보톡스 후 눈꺼풀이 처져 보이는 환자(눈꺼풀 피부 처짐·약한 눈 뜨는 힘·이마 보상)를 시술 전에 가려낼 수 있나 | 학습자 임상 경험(논문 3 리뷰 중) | 문헌 1차 확인, 직접 예측 연구 못 찾음(제한적 검색) | research/ideas/IDEA-008-botox-ptosis-risk-stratification.md |
+| IDEA-009 | 2026-10-15 | 안면거상 팔자(NLF) 교정 핵심과 신경 손상 없는 SMAS 절개 | 학습자 임상 질문(논문 4 토론 중) | 문헌 1차 확인(Mendelson 1992 등), 직접 비교 못 찾음 | research/ideas/IDEA-009-facelift-nlf-correction-and-smas-incision-safety.md |
+| IDEA-010 | 2026-10-15 | SMAS flap이 mastoid·DTF까지 안 닿을 때 원인과 해결 | 학습자 임상 문제 | 문헌 1차 확인(Öreroğlu 2026 sling 방식 1편) | research/ideas/IDEA-010-smas-flap-reach-mastoid-deep-temporal-fascia.md |

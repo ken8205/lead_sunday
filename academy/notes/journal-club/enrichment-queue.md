@@ -10,3 +10,9 @@
 | 후보 | Ramesh 2021 ASJ 41(2):143-51 (PMID 31974554) | descent 모델, IDEA-006 | 대기 |
 | 후보 | Hong 2025 JPRAS Open (PMC12828540) | midcheek groove, pulling test 출처 확인 | 대기 |
 | 후보 | Du 2021 Dermatol Surg 47(2):e47-52 (PMID 32852427) | midcheek groove 해부 | 대기 |
+
+## 2026-10-15 추가 (IDEA-009, 010: 안면거상 NLF·SMAS)
+- Mendelson 1992 PRS (PMID 1561253): NLF 교정 SMAS release + zygoma 골막 고정. 이정표 후보
+- Öreroğlu 2026 APS (PMID 42192009): double-sling, DTF·mastoid fascia 고정. 최신 후보(APS 우선순위 저널)
+- Pankratz 2020 JPRAS Open (PMID 33251317): frontal branch caution zone, PMC 전문 있음
+- Casagrande 2024 ASJ (PMID 39133567): Full SMAS 내시경 보조
