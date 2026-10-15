@@ -21,7 +21,7 @@ export function sampleData(): { inquiries: Inquiry[]; adCosts: AdCost[] } {
     const n = Math.round(days * (0.9 + rnd() * 0.5))
     for (let k = 0; k < n; k++) {
       const day = String(1 + Math.floor(rnd() * days)).padStart(2, '0')
-      const nationality = pick([['한국', 55], ['일본', 25], ['미국·캐나다', 8], ['호주·뉴질랜드', 4], ['대만·홍콩', 5], ['기타', 3]])
+      const nationality = pick([['한국', 55], ['일본', 25], ['미국', 6], ['캐나다', 2], ['호주', 3], ['뉴질랜드', 1], ['대만', 3], ['홍콩', 2], ['기타', 3]])
       const foreign = nationality !== '한국'
       const source = foreign
         ? pick([['인스타', 30], ['구글검색', 20], ['유튜브', 15], ['스레드', 10], ['소개', 15], ['AI', 10]])

@@ -159,10 +159,22 @@ interface LocalData {
   options: OptionLists
 }
 
+// 예전 기본 국적 목록을 그대로 쓰고 있으면 새 기본 목록으로 바꾸고, 예시 데이터의 국적 이름도 맞춘다.
+const OLD_NATIONALITIES = ['한국', '일본', '중국', '대만·홍콩', '미국·캐나다', '호주·뉴질랜드', '영국·유럽', '동남아', '기타']
+const RENAMED: Record<string, string> = { '미국·캐나다': '미국', '호주·뉴질랜드': '호주', '대만·홍콩': '대만', '영국·유럽': '영국' }
+function migrateLocal(d: LocalData): LocalData {
+  if (d.options.nationality.join() !== OLD_NATIONALITIES.join()) return d
+  return {
+    ...d,
+    options: { ...d.options, nationality: DEFAULT_OPTIONS.nationality },
+    inquiries: d.inquiries.map((i) => (i.id.startsWith('sample-') && RENAMED[i.nationality] ? { ...i, nationality: RENAMED[i.nationality] } : i)),
+  }
+}
+
 function loadLocal(): LocalData {
   try {
     const v = JSON.parse(localStorage.getItem(LOCAL_KEY) ?? '')
-    if (Array.isArray(v.inquiries) && Array.isArray(v.adCosts)) return { ...v, options: { ...DEFAULT_OPTIONS, ...v.options } }
+    if (Array.isArray(v.inquiries) && Array.isArray(v.adCosts)) return migrateLocal({ ...v, options: { ...DEFAULT_OPTIONS, ...v.options } })
   } catch {
     // 없거나 깨졌으면 빈 대장
   }
