@@ -22,6 +22,10 @@ export function InquiryLedger({ api, staffSuggestions, canDelete }: Props) {
   const [editing, setEditing] = useState<Inquiry | 'new' | null>(null)
   const [cheer, setCheer] = useState<string | null>(null)
   const rows = api.inquiries.filter((i) => i.date.startsWith(month))
+  const recent = useMemo(() => {
+    const since = new Date(Date.now() - 90 * 86400000)
+    return api.inquiries.filter((i) => i.date >= localDate(since))
+  }, [api.inquiries])
   const campaigns = useMemo(() => [...new Set(api.inquiries.map((i) => i.campaign).filter(Boolean))], [api.inquiries])
 
   const todayCount = api.inquiries.filter((i) => i.date === today).length
@@ -145,6 +149,7 @@ export function InquiryLedger({ api, staffSuggestions, canDelete }: Props) {
           initial={editing === 'new' ? undefined : editing}
           staffSuggestions={staffSuggestions}
           campaignSuggestions={campaigns}
+          recent={recent}
           onClose={() => setEditing(null)}
           onSubmit={(v) => {
             const wasPaid = editing !== 'new' && api.inquiries.find((x) => x.id === editing.id)?.stage === 'paid'

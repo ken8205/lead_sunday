@@ -233,9 +233,13 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
           ))}
         </div>
         <Tiles t={total} showCost={showCost} />
-        <p className="help">
-          문의일 기준으로 묶습니다. 이번 달 문의가 다음 달에 결제되면 이번 달 성과로 들어가므로, 최근 기간의 결제율은 나중에 올라갈 수 있습니다. 흐린 비율은 건수가 {SMALL_N}건 미만이라 우연에 크게 흔들리는 값입니다 (마우스를 올리면 건수 표시).
-        </p>
+        <details className="fine">
+          <summary>숫자 읽는 법</summary>
+          <ul>
+            <li>문의한 날짜로 묶습니다. 이번 달 문의가 다음 달에 결제되면 이번 달 성과로 들어가서, 최근 기간 결제율은 나중에 올라갈 수 있습니다.</li>
+            <li>흐린 비율은 건수가 {SMALL_N}건 미만이라 우연에 크게 흔들리는 값입니다. 마우스를 올리면 건수가 보입니다.</li>
+          </ul>
+        </details>
       </section>
 
       {!scope && (
@@ -248,7 +252,7 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
             const rows = groupStats(period, by, api.adCosts, from, to)
             return <Podium rows={rows} linkFor={(r) => detailHash(by, r.key)} />
           })()}
-          <p className="help">이름을 누르면 그 항목의 주별·월별·연도별 추이와 문의 목록을 볼 수 있습니다.</p>
+          <p className="help">이름을 누르면 상세 페이지로 갑니다.</p>
           {period.length === 0 && by !== 'source' ? (
             <p className="empty-all">이 기간의 문의가 없습니다.</p>
           ) : (
@@ -262,11 +266,7 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
           <h2>추이</h2>
           <Segmented value={gran} options={(['week', 'month', 'year'] as Gran[]).map((g) => [g, GRAN_LABEL[g]])} onChange={(v) => set({ gran: v })} />
         </div>
-        <p className="help">
-          {gran === 'week' && '주는 월요일에 시작합니다 (날짜는 그 주의 월요일). 기간 앞뒤에 걸친 주는 기간 안의 문의만 셉니다. 광고비는 월 단위라 주별에는 나오지 않습니다.'}
-          {gran === 'month' && '기간을 늘리면(예: 최근 12개월) 계절에 따른 변화를 볼 수 있습니다.'}
-          {gran === 'year' && '여러 해를 비교하려면 기간을 여러 해로 잡으세요. 기간이 해의 일부만 포함하면 "(일부)"로 표시합니다.'}
-        </p>
+        {gran === 'week' && <p className="help">주는 월요일 시작. 광고비는 월 단위라 주별에는 없습니다.</p>}
         <StatTable rows={trend} first={GRAN_LABEL[gran].replace('별', '')} showCost={showCost && gran !== 'week' && (!scope || scope.by === 'source')} />
       </section>
 
@@ -340,7 +340,7 @@ function AdCostPanel({ api }: { api: InquiriesApi }) {
         <h2>광고비 입력</h2>
         <input type="month" aria-label="광고비 달" value={costMonth} onChange={(e) => e.target.value && setCostMonth(e.target.value)} />
       </div>
-      <p className="help">달마다 경로별로 쓴 광고·마케팅 비용(만원)을 적으면, 결제 1건당 광고비와 광고비 대비 매출이 나옵니다. 원장·실장만 보고 입력할 수 있습니다.</p>
+      <p className="help">경로별로 그달 쓴 비용(만원)을 적으세요. 원장·실장만 봅니다.</p>
       <div className="cost-grid">
         {SOURCES.filter((s) => s !== '모름').map((s) => (
           <label key={`${costMonth}-${s}-${costOf(s)}`}>

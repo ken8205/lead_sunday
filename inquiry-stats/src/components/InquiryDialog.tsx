@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { Inquiry, NewInquiry, Stage } from '../inquiries'
 import { CHANNELS, INTERESTS, NATIONALITIES, SOURCES, STAGES, STAGE_LABEL, localDate } from '../inquiries'
 
@@ -6,13 +6,21 @@ interface Props {
   initial?: Inquiry // 있으면 수정
   staffSuggestions?: string[]
   campaignSuggestions: string[]
+  recent: Inquiry[] // 최근 문의 (자주 쓰는 버튼을 앞에 보이기 위해)
   onSubmit: (i: NewInquiry) => void
   onClose: () => void
 }
 
 // 드롭다운 대신 눌러서 고르는 버튼 묶음. 같은 버튼을 다시 누르면 선택이 풀린다.
-function Chips({ label, value, options, onChange, required }: { label: string; value: string; options: string[]; onChange: (v: string) => void; required?: boolean }) {
+// 최근 많이 쓴 것 limit개만 먼저 보이고, 나머지는 "더보기"로 펼친다.
+function Chips({ label, value, options, onChange, required, counts, limit }: { label: string; value: string; options: string[]; onChange: (v: string) => void; required?: boolean; counts: Map<string, number>; limit: number }) {
+  const [open, setOpen] = useState(false)
   const all = value && !options.includes(value) ? [value, ...options] : options // 예전 값이 목록에서 빠졌어도 보이게
+  const ranked = [...all].sort((a, b) => (counts.get(b) ?? 0) - (counts.get(a) ?? 0)) // 같은 횟수면 원래 순서 유지
+  const top = ranked.slice(0, limit)
+  if (value && !top.includes(value)) top.push(value) // 고른 것은 항상 보이게
+  const shown = open ? ranked : top
+  const hidden = ranked.length - top.length
   return (
     <fieldset className="chips">
       <legend>
@@ -20,18 +28,33 @@ function Chips({ label, value, options, onChange, required }: { label: string; v
         {required && !value && <span className="need"> · 골라 주세요</span>}
       </legend>
       <div className="chip-row">
-        {all.map((o) => (
+        {shown.map((o) => (
           <button type="button" key={o} className={`pick${value === o ? ' on' : ''}`} aria-pressed={value === o} onClick={() => onChange(value === o ? '' : o)}>
             {o}
           </button>
         ))}
+        {hidden > 0 && (
+          <button type="button" className="pick pick-more" aria-expanded={open} onClick={() => setOpen(!open)}>
+            {open ? '접기' : `+${hidden}개 더`}
+          </button>
+        )}
       </div>
     </fieldset>
   )
 }
 
-export function InquiryDialog({ initial, staffSuggestions = [], campaignSuggestions, onSubmit, onClose }: Props) {
+// 최근 90일 동안 항목별로 몇 번 골랐는지
+function useCounts(recent: Inquiry[], key: 'channel' | 'source' | 'nationality' | 'interest') {
+  return useMemo(() => {
+    const m = new Map<string, number>()
+    for (const i of recent) if (i[key]) m.set(i[key], (m.get(i[key]) ?? 0) + 1)
+    return m
+  }, [recent, key])
+}
+
+export function InquiryDialog({ initial, staffSuggestions = [], campaignSuggestions, recent, onSubmit, onClose }: Props) {
   const today = localDate()
+  const counts = { channel: useCounts(recent, 'channel'), source: useCounts(recent, 'source'), nationality: useCounts(recent, 'nationality'), interest: useCounts(recent, 'interest') }
   const [f, setF] = useState<NewInquiry>(() => ({
     date: initial?.date ?? today,
     channel: initial?.channel ?? '',
@@ -66,10 +89,10 @@ export function InquiryDialog({ initial, staffSuggestions = [], campaignSuggesti
           <span className="help">{f.date === today ? '오늘' : f.date}</span>
         </div>
 
-        <Chips label="어디로 문의했나요?" value={f.channel} options={CHANNELS} onChange={(v) => set('channel', v)} required />
-        <Chips label="어떻게 알고 왔나요?" value={f.source} options={SOURCES} onChange={(v) => set('source', v)} required />
-        <Chips label="국적" value={f.nationality} options={NATIONALITIES} onChange={(v) => set('nationality', v)} />
-        <Chips label="관심 시술" value={f.interest} options={INTERESTS} onChange={(v) => set('interest', v)} />
+        <Chips label="어디로 문의했나요?" value={f.channel} options={CHANNELS} onChange={(v) => set('channel', v)} counts={counts.channel} limit={6} required />
+        <Chips label="어떻게 알고 왔나요?" value={f.source} options={SOURCES} onChange={(v) => set('source', v)} counts={counts.source} limit={6} required />
+        <Chips label="국적" value={f.nationality} options={NATIONALITIES} onChange={(v) => set('nationality', v)} counts={counts.nationality} limit={4} />
+        <Chips label="관심 시술" value={f.interest} options={INTERESTS} onChange={(v) => set('interest', v)} counts={counts.interest} limit={6} />
 
         <fieldset className="chips">
           <legend>단계</legend>

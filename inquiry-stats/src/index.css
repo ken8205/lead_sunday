@@ -164,3 +164,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
   .today-card { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .f-bar, .add-big, .pick { transition: none; } }
+.fine { font-size: 13px; color: #64748b; }
+.fine summary { margin: 0; font-size: 13px; color: #64748b; }
+.fine ul { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 4px; }
+.pick-more { border-style: dashed; color: #2563eb; }
