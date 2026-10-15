@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Inquiry, NewInquiry, Stage } from '../inquiries'
-import type { OptionLists } from '../inquiries'
+import type { OptionKind, OptionLists } from '../inquiries'
 import { STAGES, STAGE_LABEL, localDate } from '../inquiries'
 
 interface Props {
@@ -8,13 +8,24 @@ interface Props {
   staffSuggestions?: string[]
   campaignSuggestions: string[]
   options: OptionLists
+  onAddOption?: (kind: OptionKind, name: string) => void // 원장·실장만: 입력하다가 목록에 바로 추가
   onSubmit: (i: NewInquiry) => void
   onClose: () => void
 }
 
 // 드롭다운 대신 눌러서 고르는 버튼 묶음. 같은 버튼을 다시 누르면 선택이 풀린다. 순서는 "항목 관리"에서 정한 순서.
-function Chips({ label, value, options, onChange, required }: { label: string; value: string; options: string[]; onChange: (v: string) => void; required?: boolean }) {
+function Chips({ label, value, options, onChange, required, onAdd }: { label: string; value: string; options: string[]; onChange: (v: string) => void; required?: boolean; onAdd?: (name: string) => void }) {
+  const [adding, setAdding] = useState(false)
+  const [draft, setDraft] = useState('')
   const all = value && !options.includes(value) ? [...options, value] : options // 목록에서 지운 예전 값도 수정할 때 보이게
+  const name = draft.trim()
+  const commit = () => {
+    if (!name || !onAdd) return
+    if (!options.includes(name)) onAdd(name) // 목록 맨 끝에 추가
+    onChange(name) // 추가한 것을 바로 선택
+    setDraft('')
+    setAdding(false)
+  }
   return (
     <fieldset className="chips">
       <legend>
@@ -27,12 +38,42 @@ function Chips({ label, value, options, onChange, required }: { label: string; v
             {o}
           </button>
         ))}
+        {onAdd && !adding && (
+          <button type="button" className="pick pick-more" onClick={() => setAdding(true)}>
+            + 직접 추가
+          </button>
+        )}
       </div>
+      {adding && (
+        <div className="chip-add">
+          <input
+            autoFocus
+            value={draft}
+            maxLength={20}
+            placeholder={`새 ${label} 이름`}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault() // 문의 저장이 아니라 항목 추가
+                if (e.nativeEvent.isComposing) return // 한글 조합 중 Enter는 무시 (마지막 글자가 빠지는 것 방지)
+                commit()
+              }
+              if (e.key === 'Escape') setAdding(false)
+            }}
+          />
+          <button type="button" className="btn btn-primary" onClick={commit}>
+            추가
+          </button>
+          <button type="button" className="btn" onClick={() => setAdding(false)}>
+            취소
+          </button>
+        </div>
+      )}
     </fieldset>
   )
 }
 
-export function InquiryDialog({ initial, staffSuggestions = [], campaignSuggestions, options, onSubmit, onClose }: Props) {
+export function InquiryDialog({ initial, staffSuggestions = [], campaignSuggestions, options, onAddOption, onSubmit, onClose }: Props) {
   const today = localDate()
   const [f, setF] = useState<NewInquiry>(() => ({
     date: initial?.date ?? today,
@@ -68,10 +109,10 @@ export function InquiryDialog({ initial, staffSuggestions = [], campaignSuggesti
           <span className="help">{f.date === today ? '오늘' : f.date}</span>
         </div>
 
-        <Chips label="문의 채널" value={f.channel} options={options.channel} onChange={(v) => set('channel', v)} required />
-        <Chips label="유입 경로" value={f.source} options={options.source} onChange={(v) => set('source', v)} required />
-        <Chips label="국적" value={f.nationality} options={options.nationality} onChange={(v) => set('nationality', v)} />
-        <Chips label="관심 시술" value={f.interest} options={options.interest} onChange={(v) => set('interest', v)} />
+        <Chips label="문의 채널" value={f.channel} options={options.channel} onChange={(v) => set('channel', v)} onAdd={onAddOption && ((n) => onAddOption('channel', n))} required />
+        <Chips label="유입 경로" value={f.source} options={options.source} onChange={(v) => set('source', v)} onAdd={onAddOption && ((n) => onAddOption('source', n))} required />
+        <Chips label="국적" value={f.nationality} options={options.nationality} onChange={(v) => set('nationality', v)} onAdd={onAddOption && ((n) => onAddOption('nationality', n))} />
+        <Chips label="관심 시술" value={f.interest} options={options.interest} onChange={(v) => set('interest', v)} onAdd={onAddOption && ((n) => onAddOption('interest', n))} />
 
         <fieldset className="chips">
           <legend>단계</legend>

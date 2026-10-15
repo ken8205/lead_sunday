@@ -64,7 +64,7 @@ function Main({ user, onSignOut, onChangePassword }: MainProps) {
 
       {inquiries.error && <div className="banner-error">{inquiries.error}</div>}
       {!inquiries.ready && <p className="empty-all">서버에서 불러오는 중…</p>}
-      {inquiries.ready && view === 'ledger' && <InquiryLedger api={inquiries} staffSuggestions={staffSuggestions} canDelete={isLead} />}
+      {inquiries.ready && view === 'ledger' && <InquiryLedger api={inquiries} staffSuggestions={staffSuggestions} canDelete={isLead} canEditOptions={isLead} />}
       {inquiries.ready && view === 'stats' && <StatsPage api={inquiries} canEditCost={isLead} route={route} go={go} />}
       {inquiries.ready && view === 'options' && <OptionsPage api={inquiries} />}
 

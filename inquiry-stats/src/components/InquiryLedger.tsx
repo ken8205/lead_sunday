@@ -11,12 +11,13 @@ interface Props {
   api: InquiriesApi
   staffSuggestions?: string[]
   canDelete: boolean
+  canEditOptions: boolean
 }
 
 const weekday = (d: string) => '일월화수목금토'[new Date(`${d}T00:00:00`).getDay()]
 
 // 상담 대장: 카카오톡·LINE·전화·플랫폼 등 어디로 들어온 문의든 한 장씩 적고, 진행되면 단계를 눌러 올린다.
-export function InquiryLedger({ api, staffSuggestions, canDelete }: Props) {
+export function InquiryLedger({ api, staffSuggestions, canDelete, canEditOptions }: Props) {
   const today = localDate()
   const [month, setMonth] = useState(() => today.slice(0, 7))
   const [editing, setEditing] = useState<Inquiry | 'new' | null>(null)
@@ -146,6 +147,7 @@ export function InquiryLedger({ api, staffSuggestions, canDelete }: Props) {
           staffSuggestions={staffSuggestions}
           campaignSuggestions={campaigns}
           options={api.options}
+          onAddOption={canEditOptions ? (kind, name) => api.setOptions(kind, [...api.options[kind], name]) : undefined}
           onClose={() => setEditing(null)}
           onSubmit={(v) => {
             const wasPaid = editing !== 'new' && api.inquiries.find((x) => x.id === editing.id)?.stage === 'paid'

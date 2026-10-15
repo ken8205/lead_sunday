@@ -20,10 +20,13 @@ export function OptionsPage({ api }: { api: InquiriesApi }) {
   }
   const name = draft.trim()
   const dup = items.includes(name)
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const add = () => {
-    if (!name || dup) return
+    if (!name) return setMsg({ ok: false, text: '이름을 먼저 입력하세요.' })
+    if (dup) return setMsg({ ok: false, text: `"${name}"은(는) 이미 있습니다.` })
     save([...items, name])
     setDraft('')
+    setMsg({ ok: true, text: `"${name}"을(를) 맨 아래에 추가했습니다. ▲ 버튼으로 위치를 옮길 수 있습니다.` })
   }
 
   return (
@@ -33,13 +36,34 @@ export function OptionsPage({ api }: { api: InquiriesApi }) {
           <h2>항목 관리</h2>
           <div className="tabs tabs-small" role="tablist">
             {OPTION_KINDS.map((k) => (
-              <button key={k} className={kind === k ? 'on' : ''} onClick={() => setKind(k)}>
+              <button key={k} className={kind === k ? 'on' : ''} onClick={() => {
+                  setKind(k)
+                  setDraft('')
+                  setMsg(null)
+                }}>
                 {OPTION_LABEL[k]}
               </button>
             ))}
           </div>
         </div>
-        <p className="help">위에서부터 이 순서대로 "새 문의" 화면에 나옵니다. 지워도 이미 기록된 문의와 통계는 그대로 남습니다.</p>
+        <p className="help">새 이름을 쓰고 "+ 추가"를 누르세요. 아래 목록의 순서대로 "새 문의" 화면에 나옵니다. 지워도 이미 기록된 문의와 통계는 그대로 남습니다.</p>
+
+        <form
+          className="opt-add"
+          onSubmit={(e) => {
+            e.preventDefault()
+            add()
+          }}
+        >
+          <input id={`opt-new-${kind}`} value={draft} maxLength={20} placeholder={`새 ${OPTION_LABEL[kind]} 이름`} onChange={(e) => {
+              setDraft(e.target.value)
+              setMsg(null)
+            }} />
+          <button type="submit" className="btn btn-primary">
+            + 추가
+          </button>
+        </form>
+        {msg && <p className={`help ${msg.ok ? 'ok' : 'need'}`}>{msg.text}</p>}
 
         <ol className="opt-list">
           {items.map((o, k) => (
@@ -58,19 +82,6 @@ export function OptionsPage({ api }: { api: InquiriesApi }) {
           ))}
         </ol>
 
-        <form
-          className="opt-add"
-          onSubmit={(e) => {
-            e.preventDefault()
-            add()
-          }}
-        >
-          <input id={`opt-new-${kind}`} value={draft} maxLength={20} placeholder={`새 ${OPTION_LABEL[kind]} 이름`} onChange={(e) => setDraft(e.target.value)} />
-          <button type="submit" className="btn btn-primary" disabled={!name || dup}>
-            추가
-          </button>
-        </form>
-        {dup && <p className="help need">이미 있는 이름입니다.</p>}
       </section>
     </div>
   )

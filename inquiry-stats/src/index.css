@@ -179,3 +179,8 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .opt-add input { flex: 1; min-width: 0; min-height: 44px; padding: 0 12px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 8px; }
 .help.need { color: #b45309; }
 @media (max-width: 480px) { .opt-used { display: none; } }
+.chip-add { display: flex; gap: 6px; margin-top: 6px; }
+.chip-add input { flex: 1; min-width: 0; min-height: 44px; padding: 0 12px; font-size: 16px; border: 1px solid #93c5fd; border-radius: 8px; }
+.opt-add { margin-bottom: 4px; }
+.opt-add + .help, .opt-add + .opt-list { margin-top: 8px; }
+.help.ok { color: #15803d; }
