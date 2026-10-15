@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { InquiriesApi } from '../store/useInquiries'
-import { SOURCES, STAGE_LABEL, localDate } from '../inquiries'
+import { STAGE_LABEL, localDate } from '../inquiries'
 import type { Gran, GroupKey, Scope, StatRow } from '../lib/stats'
 import { GRAN_LABEL, GROUP_LABEL, SMALL_N, addMonths, groupStats, groupValue, inPeriod, pct, totalRow, trendStats, won } from '../lib/stats'
 import type { Route } from '../hooks/useHashRoute'
@@ -342,7 +342,7 @@ function AdCostPanel({ api }: { api: InquiriesApi }) {
       </div>
       <p className="help">경로별로 그달 쓴 비용(만원)을 적으세요. 원장·실장만 봅니다.</p>
       <div className="cost-grid">
-        {SOURCES.filter((s) => s !== '모름').map((s) => (
+        {api.options.source.map((s) => (
           <label key={`${costMonth}-${s}-${costOf(s)}`}>
             {s}
             <input

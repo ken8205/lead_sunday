@@ -1,17 +1,20 @@
 import { useCallback, useEffect, useState } from 'react'
 import { isCloud, supabase } from '../lib/supabase'
-import type { AdCost, Inquiry, NewInquiry, Stage } from '../inquiries'
+import type { AdCost, Inquiry, NewInquiry, OptionKind, OptionLists, Stage } from '../inquiries'
+import { DEFAULT_OPTIONS, OPTION_KINDS } from '../inquiries'
 import { sampleData } from '../lib/sample'
 
 export interface InquiriesApi {
   inquiries: Inquiry[]
   adCosts: AdCost[]
+  options: OptionLists // 입력 화면 선택지
   ready: boolean
   error: string | null
   add: (i: NewInquiry) => void
   update: (id: string, patch: Partial<NewInquiry>) => void
   remove: (id: string) => void
   setAdCost: (month: string, source: string, amount: number) => void // 0이면 지운다
+  setOptions: (kind: OptionKind, items: string[]) => void
   replaceAll?: (d: { inquiries: Inquiry[]; adCosts: AdCost[] }) => void // 이 브라우저 전용 모드에서만 (예시 채우기·비우기)
 }
 
@@ -57,6 +60,13 @@ function toRow(p: Partial<NewInquiry>) {
   return row
 }
 
+// 서버에 저장된 목록만 덮어쓰고, 아직 저장한 적 없는 종류는 기본 목록을 쓴다.
+function mergeOptions(rows: { kind: OptionKind; items: string[] }[]): OptionLists {
+  const o = { ...DEFAULT_OPTIONS }
+  for (const r of rows) if (OPTION_KINDS.includes(r.kind) && Array.isArray(r.items)) o[r.kind] = r.items
+  return o
+}
+
 const byNewest = (a: Inquiry, b: Inquiry) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt
 
 // ───────── 서버 모드 ─────────
@@ -64,11 +74,12 @@ function useCloudInquiries(): InquiriesApi {
   const sb = supabase!
   const [inquiries, setInquiries] = useState<Inquiry[]>([])
   const [adCosts, setAdCosts] = useState<AdCost[]>([])
+  const [options, setOptionsState] = useState<OptionLists>(DEFAULT_OPTIONS)
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
-    const [q, c] = await Promise.all([sb.from('inquiries').select('*'), sb.from('ad_costs').select('*')])
+    const [q, c, o] = await Promise.all([sb.from('inquiries').select('*'), sb.from('ad_costs').select('*'), sb.from('option_lists').select('kind, items')])
     if (q.error) {
       setError('상담 대장을 불러오지 못했습니다. (서버에 schema-4-inquiries.sql을 실행했는지 확인)')
       return
@@ -76,6 +87,7 @@ function useCloudInquiries(): InquiriesApi {
     setError(null)
     setInquiries((q.data as InquiryRow[]).map(toInquiry).sort(byNewest))
     if (!c.error) setAdCosts(c.data as AdCost[]) // 원장·실장이 아니면 광고비는 읽을 수 없다
+    if (!o.error) setOptionsState(mergeOptions(o.data as { kind: OptionKind; items: string[] }[]))
     setReady(true)
   }, [sb])
 
@@ -84,6 +96,7 @@ function useCloudInquiries(): InquiriesApi {
     const ch = sb
       .channel('inquiries-sync')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'inquiries' }, load)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'option_lists' }, load)
       .subscribe()
     const t = setInterval(load, 60000)
     return () => {
@@ -100,8 +113,15 @@ function useCloudInquiries(): InquiriesApi {
   return {
     inquiries,
     adCosts,
+    options,
     ready,
     error,
+    setOptions: (kind, items) => {
+      setOptionsState((o) => ({ ...o, [kind]: items }))
+      sb.from('option_lists')
+        .upsert({ kind, items })
+        .then(({ error: e }) => report(e, '항목 저장'))
+    },
     add: (i) => {
       sb.from('inquiries').insert(toRow(i)).then(({ error: e }) => report(e, '저장'))
     },
@@ -131,16 +151,22 @@ function useCloudInquiries(): InquiriesApi {
 }
 
 // ───────── 이 브라우저 전용 모드 ─────────
-const LOCAL_KEY = 'patient-board:inquiries'
+const LOCAL_KEY = 'inquiry-stats:v2' // 예시 데이터의 채널·경로 이름이 바뀌어 새 키로 시작한다
 
-function loadLocal(): { inquiries: Inquiry[]; adCosts: AdCost[] } {
+interface LocalData {
+  inquiries: Inquiry[]
+  adCosts: AdCost[]
+  options: OptionLists
+}
+
+function loadLocal(): LocalData {
   try {
     const v = JSON.parse(localStorage.getItem(LOCAL_KEY) ?? '')
-    if (Array.isArray(v.inquiries) && Array.isArray(v.adCosts)) return v
+    if (Array.isArray(v.inquiries) && Array.isArray(v.adCosts)) return { ...v, options: { ...DEFAULT_OPTIONS, ...v.options } }
   } catch {
     // 없거나 깨졌으면 빈 대장
   }
-  return sampleData() // 처음 열면 예시로 채워 화면을 바로 볼 수 있게 한다 (시험 모드 전용, 가상 데이터)
+  return { ...sampleData(), options: DEFAULT_OPTIONS } // 처음 열면 예시로 채워 화면을 바로 볼 수 있게 한다 (시험 모드 전용, 가상 데이터)
 }
 
 function useLocalInquiries(): InquiriesApi {
@@ -156,6 +182,8 @@ function useLocalInquiries(): InquiriesApi {
   return {
     inquiries: data.inquiries,
     adCosts: data.adCosts,
+    options: data.options,
+    setOptions: (kind, items) => setData((d) => ({ ...d, options: { ...d.options, [kind]: items } })),
     ready: true,
     error: null,
     add: (i) => setData((d) => ({ ...d, inquiries: [{ ...i, id: crypto.randomUUID(), createdAt: Date.now() }, ...d.inquiries].sort(byNewest) })),
@@ -166,7 +194,7 @@ function useLocalInquiries(): InquiriesApi {
         ...d,
         adCosts: [...d.adCosts.filter((x) => !(x.month === month && x.source === source)), ...(amount > 0 ? [{ month, source, amount }] : [])],
       })),
-    replaceAll: (d) => setData(d),
+    replaceAll: (d) => setData((x) => ({ ...x, ...d })),
   }
 }
 

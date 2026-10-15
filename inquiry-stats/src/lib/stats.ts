@@ -3,8 +3,8 @@ import { reached } from '../inquiries'
 
 export type GroupKey = 'source' | 'channel' | 'nationality' | 'interest' | 'campaign'
 export const GROUP_LABEL: Record<GroupKey, string> = {
-  source: '알게 된 경로',
-  channel: '문의 창구',
+  source: '유입 경로',
+  channel: '문의 채널',
   nationality: '국적',
   interest: '관심 시술',
   campaign: '광고·이벤트',

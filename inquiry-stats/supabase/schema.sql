@@ -60,6 +60,13 @@ create table if not exists public.ad_costs (
   primary key (month, source)
 );
 
+-- 입력 화면 선택지 (문의 채널, 유입 경로, 국적, 관심 시술). 순서 그대로 화면에 나온다.
+-- 한 번도 저장하지 않은 종류는 앱의 기본 목록을 쓴다.
+create table if not exists public.option_lists (
+  kind text primary key check (kind in ('channel', 'source', 'nationality', 'interest')),
+  items text[] not null
+);
+
 -- 원장·실장만 (광고비 입력, 통계 화면)
 create or replace function public.is_active_lead()
 returns boolean
@@ -73,6 +80,7 @@ $$;
 
 alter table public.inquiries enable row level security;
 alter table public.ad_costs enable row level security;
+alter table public.option_lists enable row level security;
 
 -- 상담 대장: 활성 직원 누구나 입력·수정 (코디가 입력), 삭제는 원장·실장만
 drop policy if exists "staff can read inquiries" on public.inquiries;
@@ -83,6 +91,14 @@ drop policy if exists "staff can update inquiries" on public.inquiries;
 create policy "staff can update inquiries" on public.inquiries for update to authenticated using (public.is_active_staff()) with check (public.is_active_staff());
 drop policy if exists "lead can delete inquiries" on public.inquiries;
 create policy "lead can delete inquiries" on public.inquiries for delete to authenticated using (public.is_active_lead());
+
+-- 선택지: 직원 누구나 읽고, 바꾸는 것은 원장·실장만
+drop policy if exists "staff can read option_lists" on public.option_lists;
+create policy "staff can read option_lists" on public.option_lists for select to authenticated using (public.is_active_staff());
+drop policy if exists "lead can write option_lists" on public.option_lists;
+create policy "lead can write option_lists" on public.option_lists for insert to authenticated with check (public.is_active_lead());
+drop policy if exists "lead can update option_lists" on public.option_lists;
+create policy "lead can update option_lists" on public.option_lists for update to authenticated using (public.is_active_lead()) with check (public.is_active_lead());
 
 -- 광고비: 원장·실장만 보고 입력
 drop policy if exists "lead can read ad_costs" on public.ad_costs;
@@ -99,5 +115,8 @@ do $$
 begin
   if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'inquiries') then
     alter publication supabase_realtime add table public.inquiries;
+  end if;
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'option_lists') then
+    alter publication supabase_realtime add table public.option_lists;
   end if;
 end $$;

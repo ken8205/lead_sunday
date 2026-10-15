@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { InquiryLedger } from './components/InquiryLedger'
 import { StatsPage } from './components/StatsPage'
+import { OptionsPage } from './components/OptionsPage'
 import { LoginPage } from './components/LoginPage'
 import { ChangePasswordDialog } from './components/ChangePasswordDialog'
 import { useInquiries } from './store/useInquiries'
@@ -11,7 +12,7 @@ import { isCloud } from './lib/supabase'
 import { ROLE_LABEL } from './types'
 import { buildHash, useHashRoute } from './hooks/useHashRoute'
 
-type View = 'ledger' | 'stats'
+type View = 'ledger' | 'stats' | 'options'
 
 interface MainProps {
   user?: StaffUser // 서버 모드에서 로그인한 직원
@@ -25,7 +26,7 @@ function Main({ user, onSignOut, onChangePassword }: MainProps) {
   const staffSuggestions = isCloud ? staffList.filter((x) => x.active).map((x) => x.name) : undefined
   const isLead = !user || user.role === 'doctor' || user.role === 'manager' // 원장·실장: 통계, 광고비, 대장 삭제
   const { route, go } = useHashRoute()
-  const view: View = route.path[0] === 'stats' && isLead ? 'stats' : 'ledger'
+  const view: View = isLead && (route.path[0] === 'stats' || route.path[0] === 'options') ? route.path[0] : 'ledger'
   const [changingPw, setChangingPw] = useState(false)
 
   return (
@@ -39,7 +40,7 @@ function Main({ user, onSignOut, onChangePassword }: MainProps) {
           {(
             [
               ['ledger', '상담 대장'],
-              ...(isLead ? [['stats', '통계']] : []),
+              ...(isLead ? [['stats', '통계'], ['options', '항목 관리']] : []),
             ] as [View, string][]
           ).map(([v, label]) => (
             <button key={v} className={view === v ? 'on' : ''} onClick={() => view !== v && go(buildHash([v]))}>
@@ -64,7 +65,8 @@ function Main({ user, onSignOut, onChangePassword }: MainProps) {
       {inquiries.error && <div className="banner-error">{inquiries.error}</div>}
       {!inquiries.ready && <p className="empty-all">서버에서 불러오는 중…</p>}
       {inquiries.ready && view === 'ledger' && <InquiryLedger api={inquiries} staffSuggestions={staffSuggestions} canDelete={isLead} />}
-      {inquiries.ready && view === 'stats' && isLead && <StatsPage api={inquiries} canEditCost={isLead} route={route} go={go} />}
+      {inquiries.ready && view === 'stats' && <StatsPage api={inquiries} canEditCost={isLead} route={route} go={go} />}
+      {inquiries.ready && view === 'options' && <OptionsPage api={inquiries} />}
 
       {changingPw && onChangePassword && <ChangePasswordDialog onChange={onChangePassword} onClose={() => setChangingPw(false)} />}
     </main>

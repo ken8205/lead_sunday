@@ -32,41 +32,19 @@ export interface AdCost {
   amount: number // 만원
 }
 
-// 선택지. 목록에 없으면 "기타"를 고르고 메모에 적는다.
-// 입력 화면에는 최근 많이 쓴 것 몇 개만 먼저 보이고, 쓴 기록이 없으면 목록 앞쪽부터 보인다.
-export const CHANNELS = ['카카오톡', 'LINE', 'WhatsApp', '인스타 DM', '전화', '강남언니', '바비톡', '해외 에이전시', '홈페이지', '직접 방문', '기타']
-export const SOURCES = [
-  '네이버 검색',
-  '인스타그램',
-  '지인 소개',
-  '강남언니',
-  '해외 에이전시',
-  '유튜브',
-  '네이버 블로그·카페',
-  '기존 환자 재방문',
-  '구글 검색',
-  '바비톡',
-  '틱톡',
-  'X(트위터)',
-  '기타',
-  '모름',
-]
-export const NATIONALITIES = ['한국', '일본', '중국', '대만·홍콩', '미국·캐나다', '호주·뉴질랜드', '영국·유럽', '동남아', '기타']
-export const INTERESTS = [
-  '실리프팅',
-  '미니거상',
-  '안면거상',
-  '목거상·이중턱',
-  '상안검(눈처짐)',
-  '하안검·눈밑지방재배치',
-  '필러',
-  '스킨부스터',
-  '보톡스',
-  '안면윤곽',
-  '코',
-  '쌍꺼풀',
-  '기타',
-]
+// 입력 화면의 선택지. 원장·실장이 "항목 관리"에서 추가·순서 변경·삭제한다.
+// 목록에서 지워도 이미 기록된 문의의 값은 그대로 남는다 (통계에도 그대로 나온다).
+export type OptionKind = 'channel' | 'source' | 'nationality' | 'interest'
+export type OptionLists = Record<OptionKind, string[]>
+export const OPTION_KINDS: OptionKind[] = ['channel', 'source', 'nationality', 'interest']
+export const OPTION_LABEL: Record<OptionKind, string> = { channel: '문의 채널', source: '유입 경로', nationality: '국적', interest: '관심 시술' }
+
+export const DEFAULT_OPTIONS: OptionLists = {
+  channel: ['인콜', '카카오채널', '강남언니', '네이버예약', '미뷰', '메이비', '해외에이전시', '홈페이지', '인스타DM', '기타'],
+  source: ['강남언니', '미뷰', '메이비', '소개', '구환', '인스타', '스레드', '유튜브', '인터넷', '카페', '구글검색', '홈페이지', 'AI', '기타'],
+  nationality: ['한국', '일본', '중국', '대만·홍콩', '미국·캐나다', '호주·뉴질랜드', '영국·유럽', '동남아', '기타'],
+  interest: ['실리프팅', '미니거상', '안면거상', '목거상·이중턱', '상안검(눈처짐)', '하안검·눈밑지방재배치', '필러', '스킨부스터', '보톡스', '안면윤곽', '코', '쌍꺼풀', '기타'],
+}
 
 export function reached(i: Inquiry, s: Stage): boolean {
   return STAGES.indexOf(i.stage) >= STAGES.indexOf(s)

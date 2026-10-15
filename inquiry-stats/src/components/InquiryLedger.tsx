@@ -22,10 +22,6 @@ export function InquiryLedger({ api, staffSuggestions, canDelete }: Props) {
   const [editing, setEditing] = useState<Inquiry | 'new' | null>(null)
   const [cheer, setCheer] = useState<string | null>(null)
   const rows = api.inquiries.filter((i) => i.date.startsWith(month))
-  const recent = useMemo(() => {
-    const since = new Date(Date.now() - 90 * 86400000)
-    return api.inquiries.filter((i) => i.date >= localDate(since))
-  }, [api.inquiries])
   const campaigns = useMemo(() => [...new Set(api.inquiries.map((i) => i.campaign).filter(Boolean))], [api.inquiries])
 
   const todayCount = api.inquiries.filter((i) => i.date === today).length
@@ -57,7 +53,7 @@ export function InquiryLedger({ api, staffSuggestions, canDelete }: Props) {
           <span className="plus">+</span>
           <span>
             <b>새 문의 기록</b>
-            <small>창구, 경로 누르고 저장하면 끝</small>
+            <small>채널, 경로 누르고 저장하면 끝</small>
           </span>
         </button>
         <div className="today-card">
@@ -149,7 +145,7 @@ export function InquiryLedger({ api, staffSuggestions, canDelete }: Props) {
           initial={editing === 'new' ? undefined : editing}
           staffSuggestions={staffSuggestions}
           campaignSuggestions={campaigns}
-          recent={recent}
+          options={api.options}
           onClose={() => setEditing(null)}
           onSubmit={(v) => {
             const wasPaid = editing !== 'new' && api.inquiries.find((x) => x.id === editing.id)?.stage === 'paid'
