@@ -1,13 +1,11 @@
 import { useState } from 'react'
-import type { Entry, Kind, NewEntry, OptionKind, OptionLists } from '../inquiries'
-import { KIND_LABEL, WALK_IN, localDate } from '../inquiries'
+import type { Kind, NewEntry, OptionKind, OptionLists } from '../inquiries'
+import { KIND_LABEL, WALK_IN } from '../inquiries'
 import { Chips } from './Chips'
 
 interface Props {
   kind: Kind
-  date: string // 기록할 날 (보통 오늘)
-  initial?: Entry // 있으면 수정
-  prefill?: Partial<NewEntry> // "→ 상담", "→ 시술"로 열 때 앞 카드의 경로·국적 등
+  date: string // 기록할 날 (오늘)
   options: OptionLists
   onAddOption?: (kind: OptionKind, name: string) => void
   onSubmit: (entries: NewEntry[]) => void // 워크인 상담이면 문의 카드도 같이 넘긴다
@@ -22,20 +20,20 @@ const HELP: Record<Kind, string> = {
   treatment: '수술·시술한 날 한 장. 총액이 그날 매출입니다. 같은 날 여러 시술이면 한 장에 합쳐서, 패키지는 첫 회에만 총액을 적습니다.',
 }
 
-export function EntrySheet({ kind, date, initial, prefill, options, onAddOption, onSubmit, onClose }: Props) {
+export function EntrySheet({ kind, date, options, onAddOption, onSubmit, onClose }: Props) {
   const [f, setF] = useState<NewEntry>(() => ({
-    date: initial?.date ?? date,
+    date,
     kind,
-    source: initial?.source ?? prefill?.source ?? '',
-    channel: initial?.channel ?? prefill?.channel ?? '',
-    nationality: initial?.nationality ?? prefill?.nationality ?? '한국',
-    interest: initial?.interest ?? prefill?.interest ?? '',
-    amount: initial?.amount ?? null,
-    patientName: initial?.patientName ?? prefill?.patientName ?? '',
-    note: initial?.note ?? '',
+    source: '',
+    channel: '',
+    nationality: '한국',
+    interest: '',
+    amount: null,
+    patientName: '',
+    note: '',
   }))
   const set = <K extends keyof NewEntry>(k: K, v: NewEntry[K]) => setF((x) => ({ ...x, [k]: v }))
-  const walkIn = kind === 'consult' && !initial && f.source === WALK_IN // 워크인은 문의도 1장 같이 센다
+  const walkIn = kind === 'consult' && f.source === WALK_IN // 워크인은 문의도 1장 같이 센다
   const valid = f.source !== '' && (kind !== 'treatment' || (f.amount ?? 0) > 0)
   const add = (k: OptionKind) => onAddOption && ((n: string) => onAddOption(k, n))
 
@@ -59,9 +57,9 @@ export function EntrySheet({ kind, date, initial, prefill, options, onAddOption,
       >
         <div className="sheet-head">
           <h2>
-            <span className={`kind-badge kind-${kind}`}>{KIND_LABEL[kind]}</span> {initial ? '수정' : '기록'}
+            <span className={`kind-badge kind-${kind}`}>{KIND_LABEL[kind]}</span> 기록
           </h2>
-          <input id="entry-date" type="date" className="sheet-date" value={f.date} max={localDate()} onChange={(e) => e.target.value && set('date', e.target.value)} />
+          <span className="help">오늘</span>
         </div>
         <p className="help">{HELP[kind]}</p>
 

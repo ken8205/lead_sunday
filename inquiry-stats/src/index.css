@@ -264,3 +264,4 @@ fieldset.who input[aria-invalid=true] { border-color: #f59e0b; }
 .f-bar-0 { background: #0f766e; }
 .f-bar-2 { background: #2563eb; }
 .f-bar-4 { background: #7c3aed; }
+.day-head { margin: 0 0 12px; font-size: 19px; text-align: center; }
