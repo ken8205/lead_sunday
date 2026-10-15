@@ -1,16 +1,16 @@
 import { useState } from 'react'
 import type { OptionKind } from '../inquiries'
 import { OPTION_KINDS, OPTION_LABEL } from '../inquiries'
-import type { InquiriesApi } from '../store/useInquiries'
+import type { EntriesApi } from '../store/useEntries'
 import { ConfirmButton } from './ConfirmButton'
 
-// 입력 화면 선택지 관리 (전 직원). 여기서 정한 순서대로 "새 문의" 화면에 버튼이 나온다.
-export function OptionsPage({ api }: { api: InquiriesApi }) {
+// 입력 화면 선택지 관리 (전 직원). 여기서 정한 순서대로 기록 화면에 버튼이 나온다.
+export function OptionsPage({ api }: { api: EntriesApi }) {
   const [kind, setKind] = useState<OptionKind>('channel')
   const [draft, setDraft] = useState('')
   const items = api.options[kind]
   const used = new Map<string, number>()
-  for (const i of api.inquiries) used.set(i[kind], (used.get(i[kind]) ?? 0) + 1)
+  for (const e of api.entries) used.set(e[kind], (used.get(e[kind]) ?? 0) + 1)
 
   const save = (next: string[]) => api.setOptions(kind, next)
   const move = (k: number, d: -1 | 1) => {
@@ -46,7 +46,7 @@ export function OptionsPage({ api }: { api: InquiriesApi }) {
             ))}
           </div>
         </div>
-        <p className="help">새 이름을 쓰고 "+ 추가"를 누르세요. 아래 목록의 순서대로 "새 문의" 화면에 나옵니다. 지워도 이미 기록된 문의와 통계는 그대로 남습니다.</p>
+        <p className="help">새 이름을 쓰고 "+ 추가"를 누르세요. 아래 목록의 순서대로 기록 화면에 나옵니다. 지워도 이미 기록된 문의와 통계는 그대로 남습니다.</p>
 
         <form
           className="opt-add"

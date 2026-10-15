@@ -1,17 +1,17 @@
 import { useState } from 'react'
-import { InquiryLedger } from './components/InquiryLedger'
+import { TodayPage } from './components/TodayPage'
 import { StatsPage } from './components/StatsPage'
 import { OptionsPage } from './components/OptionsPage'
 import { LoginPage } from './components/LoginPage'
 import { ChangePasswordDialog } from './components/ChangePasswordDialog'
-import { useInquiries } from './store/useInquiries'
+import { useEntries } from './store/useEntries'
 import { useAuth } from './hooks/useAuth'
 import type { StaffUser } from './hooks/useAuth'
 import { isCloud } from './lib/supabase'
 import { ROLE_LABEL } from './types'
 import { buildHash, useHashRoute } from './hooks/useHashRoute'
 
-type View = 'ledger' | 'stats' | 'options'
+type View = 'today' | 'stats' | 'options'
 
 interface MainProps {
   user?: StaffUser // 서버 모드에서 로그인한 직원
@@ -20,10 +20,10 @@ interface MainProps {
 }
 
 function Main({ user, onSignOut, onChangePassword }: MainProps) {
-  const inquiries = useInquiries()
-  const isLead = !user || user.role === 'doctor' || user.role === 'manager' // 원장·실장: 통계, 광고비, 대장 삭제 (항목 관리는 전 직원)
+  const api = useEntries()
+  const isLead = !user || user.role === 'doctor' || user.role === 'manager' // 원장·실장: 통계, 광고비 (기록·항목 관리는 전 직원)
   const { route, go } = useHashRoute()
-  const view: View = route.path[0] === 'options' ? 'options' : route.path[0] === 'stats' && isLead ? 'stats' : 'ledger'
+  const view: View = route.path[0] === 'options' ? 'options' : route.path[0] === 'stats' && isLead ? 'stats' : 'today'
   const [changingPw, setChangingPw] = useState(false)
 
   return (
@@ -36,7 +36,7 @@ function Main({ user, onSignOut, onChangePassword }: MainProps) {
         <div className="tabs" role="tablist">
           {(
             [
-              ['ledger', '상담 대장'],
+              ['today', '오늘 기록'],
               ...(isLead ? [['stats', '통계']] : []),
               ['options', '항목 관리'],
             ] as [View, string][]
@@ -60,11 +60,11 @@ function Main({ user, onSignOut, onChangePassword }: MainProps) {
         )}
       </header>
 
-      {inquiries.error && <div className="banner-error">{inquiries.error}</div>}
-      {!inquiries.ready && <p className="empty-all">서버에서 불러오는 중…</p>}
-      {inquiries.ready && view === 'ledger' && <InquiryLedger api={inquiries} canDelete={isLead} canEditOptions />}
-      {inquiries.ready && view === 'stats' && <StatsPage api={inquiries} canEditCost={isLead} route={route} go={go} />}
-      {inquiries.ready && view === 'options' && <OptionsPage api={inquiries} />}
+      {api.error && <div className="banner-error">{api.error}</div>}
+      {!api.ready && <p className="empty-all">서버에서 불러오는 중…</p>}
+      {api.ready && view === 'today' && <TodayPage api={api} />}
+      {api.ready && view === 'stats' && <StatsPage api={api} canEditCost={isLead} route={route} go={go} />}
+      {api.ready && view === 'options' && <OptionsPage api={api} />}
 
       {changingPw && onChangePassword && <ChangePasswordDialog onChange={onChangePassword} onClose={() => setChangingPw(false)} />}
     </main>

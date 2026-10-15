@@ -1,14 +1,14 @@
 import { useMemo, useState } from 'react'
-import type { InquiriesApi } from '../store/useInquiries'
-import { STAGE_LABEL, localDate } from '../inquiries'
+import type { EntriesApi } from '../store/useEntries'
+import type { Entry } from '../inquiries'
+import { KIND_LABEL, localDate } from '../inquiries'
 import type { Gran, GroupKey, Scope, StatRow } from '../lib/stats'
-import type { Activity } from '../lib/stats'
-import { GRAN_LABEL, GROUP_LABEL, SMALL_N, addMonths, activityIn, lastDayOfMonth, groupStats, groupValue, inPeriod, pct, totalRow, trendStats, won } from '../lib/stats'
+import { GRAN_LABEL, GROUP_LABEL, SMALL_N, addMonths, groupStats, groupValue, inPeriod, pct, totalRow, trendStats, won } from '../lib/stats'
 import type { Route } from '../hooks/useHashRoute'
 import { buildHash } from '../hooks/useHashRoute'
 
 interface Props {
-  api: InquiriesApi
+  api: EntriesApi
   canEditCost: boolean
   route: Route // path: ['stats'] 또는 ['stats', 항목, 값]
   go: (hash: string, replace?: boolean) => void
@@ -39,78 +39,52 @@ function Rate({ a, b }: { a: number; b: number }) {
   )
 }
 
-// 문의 → 예약 → 내원 → 결제: 단계마다 얼마나 남는지 막대 길이로 보여 준다.
+// 문의 → 상담 → 시술: 같은 기간의 카드 수를 막대로. 비율은 같은 기간 건수끼리 나눈 것 (같은 사람끼리 이은 숫자가 아님)
 function Funnel({ t }: { t: StatRow }) {
-  const steps: [string, number][] = [
-    ['문의', t.total],
-    ['상담 예약', t.booked],
-    ['내원 상담', t.visited],
-    ['수술 예약', t.reserved],
-    ['결제 완료', t.paid],
+  const steps: [string, number, string][] = [
+    ['문의', t.inquiry, ''],
+    ['상담', t.consult, pct(t.consult, t.inquiry)],
+    ['시술', t.treatment, pct(t.treatment, t.consult)],
   ]
+  const max = Math.max(1, t.inquiry, t.consult, t.treatment)
   return (
-    <div className="funnel" role="img" aria-label={steps.map(([l, n]) => `${l} ${n}건`).join(', ') + `, 취소 ${t.canceled}건`}>
-      {steps.map(([label, n], k) => (
+    <div className="funnel" role="img" aria-label={steps.map(([l, n]) => `${l} ${n}건`).join(', ')}>
+      {steps.map(([label, n, rate], k) => (
         <div className="f-row" key={label}>
           <span className="f-label">{label}</span>
           <span className="f-track">
-            <span className={`f-bar f-bar-${k}`} style={{ width: `${t.total ? Math.max((n / t.total) * 100, n ? 2 : 0) : 0}%` }} />
+            <span className={`f-bar f-bar-${k * 2}`} style={{ width: `${Math.max((n / max) * 100, n ? 2 : 0)}%` }} />
           </span>
           <span className="f-num">
-            <b>{n}</b>건{k > 0 && <small> {pct(n, t.total)}</small>}
+            <b>{n}</b>건{rate && <small> {k === 1 ? '문의의' : '상담의'} {rate}</small>}
           </span>
         </div>
       ))}
-      <p className="f-note">
-        수술 예약 후 취소 <b>{t.canceled}</b>건 · 각 단계는 그 단계까지 간 건수입니다(수술 예약에는 이후 결제 완료·취소 건, 당일 전액 결제 건도 포함). 결제 완료는 완불한 건만 셉니다.
-      </p>
     </div>
   )
 }
 
-function Tiles({ t, showCost, act: a, dayMode }: { t: StatRow; showCost: boolean; act: Activity; dayMode: boolean }) {
+function Tiles({ t, showCost, dayMode }: { t: StatRow; showCost: boolean; dayMode: boolean }) {
   return (
-    <>
-    <div className="activity" aria-label={dayMode ? '이날 한 일' : '이 기간 한 일'}>
-      <span className="activity-title">{dayMode ? '이날 한 일' : '이 기간 한 일'}</span>
-      {(
-        [
-          ['문의', a.inquiry],
-          ['상담 예약', a.booked],
-          ['내원 상담', a.visited],
-          ['수술 예약', a.reserved],
-          ['결제 완료', a.paid],
-          ['취소', a.canceled],
-        ] as [string, number][]
-      ).map(([l, n]) => (
-        <span key={l} className="act">
-          {l} <b>{n}</b>
-        </span>
-      ))}
-      <span className="act act-money" title="결제 완료한 날 기준. 예전에 문의한 환자도 이 기간에 완불했으면 들어갑니다. 예약금만 받은 건과 취소는 빠집니다.">
-        {dayMode ? '이날' : '이 기간'} 완불 매출 <b>{won(a.paidAmount)}</b>
-      </span>
-    </div>
     <div className="summary-grid">
       <Funnel t={t} />
       <div className="tiles">
-        <Tile label="문의 → 결제" value={pct(t.paid, t.total)} sub={`상담 → 결제 ${pct(t.paid, t.visited)} (${t.paid}/${t.visited}건)`} />
-        <Tile label="경로 성과 매출 (문의일 기준)" value={won(t.revenue)} sub={t.paid > 0 ? `이 기간 문의 중 완불 ${t.paid}건 · 객단가 ${won(Math.round(t.revenue / t.paid))}` : '이 기간 문의 중 완불한 건의 총액'} />
+        <Tile label={dayMode ? '이날 매출' : '매출'} value={won(t.revenue)} sub={t.treatment > 0 ? `시술 ${t.treatment}건 · 객단가 ${won(Math.round(t.revenue / t.treatment))}` : '시술 총액 합'} />
+        <Tile label="상담 → 시술" value={pct(t.treatment, t.consult)} sub={`문의 → 상담 ${pct(t.consult, t.inquiry)}`} />
         {showCost && t.adCost != null && (
-          <Tile label="광고비" value={won(t.adCost)} sub={t.adCost > 0 ? `매출 ${(t.revenue / t.adCost).toFixed(1)}배${t.paid > 0 ? ` · 결제 1건당 ${won(Math.round(t.adCost / t.paid))}` : ''}` : undefined} />
+          <Tile label="광고비" value={won(t.adCost)} sub={t.adCost > 0 ? `매출 ${(t.revenue / t.adCost).toFixed(1)}배${t.treatment > 0 ? ` · 시술 1건당 ${won(Math.round(t.adCost / t.treatment))}` : ''}` : undefined} />
         )}
       </div>
     </div>
-    </>
   )
 }
 
-// 이 기간의 1위: 문의가 가장 많은 경로, 결제가 가장 많은 경로, 매출이 가장 큰 경로
+// 이 기간의 1위
 function Podium({ rows, linkFor }: { rows: StatRow[]; linkFor: (r: StatRow) => string }) {
   const best = (f: (r: StatRow) => number) => rows.filter((r) => f(r) > 0).sort((a, b) => f(b) - f(a))[0]
   const items: [string, StatRow | undefined, (r: StatRow) => string][] = [
-    ['문의 1위', best((r) => r.total), (r) => `${r.total}건`],
-    ['결제 1위', best((r) => r.paid), (r) => `${r.paid}건`],
+    ['문의 1위', best((r) => r.inquiry), (r) => `${r.inquiry}건`],
+    ['시술 1위', best((r) => r.treatment), (r) => `${r.treatment}건`],
     ['매출 1위', best((r) => r.revenue), (r) => won(r.revenue)],
   ]
   if (!items.some(([, r]) => r)) return null
@@ -130,7 +104,7 @@ function Podium({ rows, linkFor }: { rows: StatRow[]; linkFor: (r: StatRow) => s
 }
 
 function StatTable({ rows, first, showCost, linkFor }: { rows: StatRow[]; first: string; showCost: boolean; linkFor?: (r: StatRow) => string }) {
-  const maxTotal = Math.max(1, ...rows.map((r) => r.total))
+  const maxRev = Math.max(1, ...rows.map((r) => r.revenue))
   return (
     <div className="table-wrap">
       <table className="data">
@@ -138,18 +112,16 @@ function StatTable({ rows, first, showCost, linkFor }: { rows: StatRow[]; first:
           <tr>
             <th>{first}</th>
             <th className="num">문의</th>
-            <th className="num">예약</th>
-            <th className="num">내원</th>
-            <th className="num">수술 예약</th>
-            <th className="num">결제 완료</th>
-            <th className="num">취소</th>
-            <th className="num">문의 → 결제</th>
+            <th className="num">상담</th>
+            <th className="num">시술</th>
+            <th className="num">문의 → 상담</th>
+            <th className="num">상담 → 시술</th>
             <th className="num">매출</th>
             <th className="num">객단가</th>
             {showCost && (
               <>
                 <th className="num">광고비</th>
-                <th className="num">결제 1건당 광고비</th>
+                <th className="num">시술 1건당 광고비</th>
                 <th className="num">광고비 대비 매출</th>
               </>
             )}
@@ -168,24 +140,24 @@ function StatTable({ rows, first, showCost, linkFor }: { rows: StatRow[]; first:
                 )}
                 {r.partial && <small className="sub"> (일부)</small>}
               </td>
-              <td className="num bar-cell" title={`${r.label}: 문의 ${r.total}건`}>
-                <span className="bar" style={{ width: `${(r.total / maxTotal) * 100}%` }} />
-                <span className="bar-num">{r.total}</span>
-              </td>
-              <td className="num">{r.booked}</td>
-              <td className="num">{r.visited}</td>
-              <td className="num">{r.reserved}</td>
-              <td className="num">{r.paid}</td>
-              <td className="num">{r.canceled || ''}</td>
+              <td className="num">{r.inquiry}</td>
+              <td className="num">{r.consult}</td>
+              <td className="num">{r.treatment}</td>
               <td className="num">
-                <Rate a={r.paid} b={r.total} />
+                <Rate a={r.consult} b={r.inquiry} />
               </td>
-              <td className="num">{r.revenue ? won(r.revenue) : '–'}</td>
-              <td className="num">{r.paid > 0 && r.revenue ? won(Math.round(r.revenue / r.paid)) : '–'}</td>
+              <td className="num">
+                <Rate a={r.treatment} b={r.consult} />
+              </td>
+              <td className="num bar-cell" title={`${r.label}: 매출 ${won(r.revenue)}`}>
+                <span className="bar" style={{ width: `${(r.revenue / maxRev) * 100}%` }} />
+                <span className="bar-num">{r.revenue ? won(r.revenue) : '–'}</span>
+              </td>
+              <td className="num">{r.treatment > 0 && r.revenue ? won(Math.round(r.revenue / r.treatment)) : '–'}</td>
               {showCost && (
                 <>
                   <td className="num">{r.adCost ? won(r.adCost) : '–'}</td>
-                  <td className="num">{r.adCost && r.paid > 0 ? won(Math.round(r.adCost / r.paid)) : '–'}</td>
+                  <td className="num">{r.adCost && r.treatment > 0 ? won(Math.round(r.adCost / r.treatment)) : '–'}</td>
                   <td className="num">{r.adCost ? `${(r.revenue / r.adCost).toFixed(1)}배` : '–'}</td>
                 </>
               )}
@@ -228,14 +200,11 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
   const overviewHash = buildHash(['stats'], query)
   const detailHash = (b: GroupKey, v: string) => buildHash(['stats', b, v], query)
 
-  const period = api.inquiries.filter((i) => (day ? i.date === day : inPeriod(i.date, from, to)))
+  const period = api.entries.filter((e) => (day ? e.date === day : inPeriod(e.date, from, to)))
   const list = scope ? period.filter((i) => groupValue(i, scope.by) === scope.value) : period
   const costs = day ? [] : api.adCosts // 광고비는 월 단위라 하루 통계에는 쓰지 않는다
   const showCost = !day && canEditCost && api.adCosts.length > 0
   const total = totalRow(list, costs, from, to, scope)
-  // 한 일: 단계가 실제로 일어난 날 기준 (문의일과 상관없이)
-  const inScope = scope ? api.inquiries.filter((i) => groupValue(i, scope.by) === scope.value) : api.inquiries
-  const act = day ? activityIn(inScope, day, day) : activityIn(inScope, `${from}-01`, lastDayOfMonth(to))
   const trend = trendStats(list, api.adCosts, from, to, gran, scope)
   const year = thisMonth.slice(0, 4)
   const lastYear = String(Number(year) - 1)
@@ -282,14 +251,14 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
           ))}
         </div>
         {day && <h2 className="day-title">{day === today ? '오늘' : day === yesterday ? '어제' : ''} {dayTitle(day)}</h2>}
-        <Tiles t={total} showCost={showCost} act={act} dayMode={!!day} />
+        <Tiles t={total} showCost={showCost} dayMode={!!day} />
         <details className="fine">
           <summary>숫자 읽는 법</summary>
           <ul>
-            <li>깔때기·경로 성과 매출·항목별 표는 문의한 날짜로 묶습니다(경로별 마케팅 효과용). 매출은 결제 완료(완불)한 건의 총액만 넣고, 예약금만 받은 건과 취소는 넣지 않습니다. 이번 달 문의가 다음 달에 결제되면 이번 달 성과로 들어가서, 최근 기간 결제율은 나중에 올라갈 수 있습니다.</li>
-            <li>"완불 매출"은 결제 완료한 날 기준입니다. 그날 실제로 완불된 금액을 볼 때 씁니다.</li>
-            <li>"한 일"은 그 단계가 실제로 일어난 날 기준입니다. 예: 지난주 문의한 환자가 오늘 내원하면 오늘의 내원 상담 1건.</li>
-            <li>문의 → 결제 = 결제 완료 ÷ 문의, 상담 → 결제 = 결제 완료 ÷ 내원 상담.</li>
+            <li>모든 숫자는 그 일이 일어난 날 기준입니다. 문의는 처음 연락 온 날, 상담은 상담한 날, 시술은 시술한 날.</li>
+            <li>매출은 시술 카드의 총액 합입니다(발생주의). 예약금은 매출이 아니고, 수술 예약 후 취소는 시술 카드가 생기지 않으니 매출에 들어가지 않습니다.</li>
+            <li>문의 → 상담 = 상담 ÷ 문의, 상담 → 시술 = 시술 ÷ 상담. 같은 기간의 건수끼리 나눈 값이라 같은 사람을 이어서 센 숫자는 아닙니다. 9월 문의 → 10월 수술처럼 시차가 있어 주 단위로는 흔들리고, 월 단위 이상이면 대체로 맞습니다.</li>
+            <li>문의 채널은 문의 카드에만 있어서, 채널별 표에는 문의 건수만 나옵니다.</li>
             <li>흐린 비율은 건수가 {SMALL_N}건 미만이라 우연에 크게 흔들리는 값입니다. 마우스를 올리면 건수가 보입니다.</li>
           </ul>
         </details>
@@ -307,7 +276,7 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
           })()}
           <p className="help">이름을 누르면 상세 페이지로 갑니다.</p>
           {period.length === 0 && (by !== 'source' || day) ? (
-            <p className="empty-all">{day ? '이날 들어온 문의가 없습니다.' : '이 기간의 문의가 없습니다.'}</p>
+            <p className="empty-all">{day ? '이날 기록이 없습니다.' : '이 기간 기록이 없습니다.'}</p>
           ) : (
             <StatTable rows={groupStats(period, by, costs, from, to)} first={GROUP_LABEL[by]} showCost={by === 'source' && showCost} linkFor={(r) => detailHash(by, r.key)} />
           )}
@@ -332,8 +301,8 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
   )
 }
 
-// 상세 페이지 아래쪽: 다른 항목으로 나눠 보기 + 문의 목록
-function DetailBreakdown({ list, scope, detailHash, from, to }: { list: StatsPageList; scope: Scope; detailHash: (b: GroupKey, v: string) => string; from: string; to: string }) {
+// 상세 페이지 아래쪽: 다른 항목으로 나눠 보기 + 카드 목록
+function DetailBreakdown({ list, scope, detailHash, from, to }: { list: Entry[]; scope: Scope; detailHash: (b: GroupKey, v: string) => string; from: string; to: string }) {
   const others = GROUP_KEYS.filter((k) => k !== scope.by)
   const [by, setBy] = useState<GroupKey>(scope.by === 'interest' ? 'source' : 'interest')
   const rows = useMemo(() => groupStats(list, by, [], from, to), [list, by, from, to])
@@ -344,36 +313,36 @@ function DetailBreakdown({ list, scope, detailHash, from, to }: { list: StatsPag
           <h2>나눠 보기</h2>
           <Segmented value={by} options={others.map((k) => [k, GROUP_LABEL[k]])} onChange={setBy} />
         </div>
-        {rows.length === 0 ? <p className="empty-all">이 기간의 문의가 없습니다.</p> : <StatTable rows={rows} first={GROUP_LABEL[by]} showCost={false} linkFor={(r) => detailHash(by, r.key)} />}
+        {rows.length === 0 ? <p className="empty-all">이 기간 기록이 없습니다.</p> : <StatTable rows={rows} first={GROUP_LABEL[by]} showCost={false} linkFor={(r) => detailHash(by, r.key)} />}
       </section>
       <section className="panel">
-        <h2>문의 목록 ({list.length}건)</h2>
+        <h2>카드 목록 ({list.length}장)</h2>
         {list.length === 0 ? (
-          <p className="empty-all">이 기간의 문의가 없습니다.</p>
+          <p className="empty-all">이 기간 기록이 없습니다.</p>
         ) : (
           <div className="table-wrap">
             <table className="data">
               <thead>
                 <tr>
-                  <th>문의일</th>
+                  <th>날짜</th>
+                  <th>종류</th>
                   {others.map((k) => (
                     <th key={k}>{GROUP_LABEL[k]}</th>
                   ))}
-                  <th>단계</th>
-                  <th className="num">금액</th>
-                  <th>메모</th>
+                  <th className="num">총액</th>
+                  <th>이름·메모</th>
                 </tr>
               </thead>
               <tbody>
-                {list.map((i) => (
-                  <tr key={i.id}>
-                    <td className="num">{i.date}</td>
+                {list.slice(0, 300).map((e) => (
+                  <tr key={e.id}>
+                    <td className="num">{e.date}</td>
+                    <td>{KIND_LABEL[e.kind]}</td>
                     {others.map((k) => (
-                      <td key={k}>{i[k]}</td>
+                      <td key={k}>{e[k]}</td>
                     ))}
-                    <td>{STAGE_LABEL[i.stage]}</td>
-                    <td className="num">{i.amount != null ? i.amount.toLocaleString('ko-KR') : ''}</td>
-                    <td>{i.note}</td>
+                    <td className="num">{e.amount != null ? e.amount.toLocaleString('ko-KR') : ''}</td>
+                    <td>{[e.patientName, e.note].filter(Boolean).join(' · ')}</td>
                   </tr>
                 ))}
               </tbody>
@@ -384,9 +353,8 @@ function DetailBreakdown({ list, scope, detailHash, from, to }: { list: StatsPag
     </>
   )
 }
-type StatsPageList = InquiriesApi['inquiries']
 
-function AdCostPanel({ api }: { api: InquiriesApi }) {
+function AdCostPanel({ api }: { api: EntriesApi }) {
   const [costMonth, setCostMonth] = useState(() => localDate().slice(0, 7))
   const costOf = (s: string) => api.adCosts.find((c) => c.month === costMonth && c.source === s)?.amount ?? 0
   return (

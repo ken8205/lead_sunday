@@ -144,11 +144,6 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .f-label { font-size: 13px; color: #475569; }
 .f-track { height: 26px; background: #f1f5f9; border-radius: 0 6px 6px 0; overflow: hidden; }
 .f-bar { display: block; height: 100%; border-radius: 0 6px 6px 0; transition: width 0.5s ease; }
-.f-bar-0 { background: #dbeafe; }
-.f-bar-1 { background: #bfdbfe; }
-.f-bar-2 { background: #93c5fd; }
-.f-bar-3 { background: #3b82f6; }
-.f-bar-4 { background: #1d4ed8; }
 .f-num { font-size: 13px; color: #475569; font-variant-numeric: tabular-nums; }
 .f-num b { font-size: 17px; color: #111827; }
 .podium { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
@@ -229,3 +224,43 @@ fieldset.who legend { padding: 0; margin-bottom: 6px; font-size: 13px; font-weig
 fieldset.who input[aria-invalid=true] { border-color: #f59e0b; }
 .icard-who small { font-weight: 400; opacity: 0.8; }
 .act-money { background: #dcfce7; color: #166534; }
+/* ── 하루 기록장 ── */
+.today { max-width: 900px; margin: 0 auto; display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+.day-nav { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.day-nav h2 { margin: 0; font-size: 19px; flex: 1; text-align: center; }
+.counters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.counter { display: grid; justify-items: center; gap: 2px; padding: 14px 8px; border-radius: 16px; border: 2px solid transparent; cursor: pointer; color: #fff; transition: transform 0.1s ease; }
+.counter:active { transform: scale(0.97); }
+.counter-label { font-size: 15px; font-weight: 700; opacity: 0.95; }
+.counter b { font-size: 38px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.counter-add { font-size: 13px; padding: 4px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.22); }
+.counter-inquiry { background: #0f766e; }
+.counter-consult { background: #2563eb; }
+.counter-treatment { background: #7c3aed; }
+.day-revenue { margin: 12px 0 0; text-align: center; font-size: 15px; color: #475569; }
+.day-revenue b { font-size: 22px; color: #111827; font-variant-numeric: tabular-nums; }
+.day-revenue small { color: #94a3b8; }
+.kind-badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; color: #fff; flex: none; }
+.kind-inquiry { background: #0f766e; }
+.kind-consult { background: #2563eb; }
+.kind-treatment { background: #7c3aed; }
+.ecard { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; }
+.ecard-treatment { background: #faf5ff; border-color: #ddd6fe; }
+.ecard-main { flex: 1 1 180px; min-width: 0; display: grid; }
+.ecard-main b { font-size: 16px; }
+.ecard-main .sub { font-size: 13px; color: #64748b; }
+.ecard-who { margin-right: 6px; padding: 0 8px; border-radius: 6px; background: #1e293b; color: #fff; font-size: 13px; }
+.ecard-amount { font-weight: 700; color: #6d28d9; font-variant-numeric: tabular-nums; }
+.ecard-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.btn-next { font-weight: 700; }
+.btn-next-consult { color: #1d4ed8; border-color: #93c5fd; }
+.btn-next-treatment { color: #6d28d9; border-color: #c4b5fd; }
+.sheet-date { min-height: 40px; padding: 0 10px; font-size: 15px; border: 1px solid #cbd5e1; border-radius: 8px; }
+.sheet h2 { display: flex; align-items: center; gap: 8px; }
+.amount-field { display: flex; flex-direction: column; gap: 4px; font-size: 14px; font-weight: 600; color: #334155; max-width: 260px; }
+.amount-field input { min-height: 48px; padding: 0 12px; font-size: 20px; border: 2px solid #c4b5fd; border-radius: 10px; }
+.dialog label small { color: #94a3b8; font-weight: 400; }
+@media (max-width: 480px) { .counter b { font-size: 30px; } .counter-add { font-size: 11px; padding: 3px 6px; } }
+.f-bar-0 { background: #0f766e; }
+.f-bar-2 { background: #2563eb; }
+.f-bar-4 { background: #7c3aed; }

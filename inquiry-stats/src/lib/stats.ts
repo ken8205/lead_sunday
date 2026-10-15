@@ -1,12 +1,11 @@
-import type { AdCost, Inquiry } from '../inquiries'
-import { reached } from '../inquiries'
+import type { AdCost, Entry } from '../inquiries'
 
 export type GroupKey = 'source' | 'channel' | 'nationality' | 'interest'
 export const GROUP_LABEL: Record<GroupKey, string> = {
   source: '유입 경로',
   channel: '문의 채널',
   nationality: '국적',
-  interest: '관심 시술',
+  interest: '시술',
 }
 export const EMPTY_GROUP = '(비어 있음)'
 
@@ -16,15 +15,12 @@ export const GRAN_LABEL: Record<Gran, string> = { week: '주별', month: '월별
 export interface StatRow {
   key: string
   label: string
-  total: number // 문의
-  booked: number // 상담 예약 이상
-  visited: number // 내원 상담 이상
-  reserved: number // 수술 예약 이상 (취소 포함)
-  paid: number // 결제 완료
-  canceled: number // 수술 예약 후 취소
-  revenue: number // 결제 완료 총액 합 (만원)
+  inquiry: number // 문의 카드 수
+  consult: number // 상담 카드 수
+  treatment: number // 시술 카드 수
+  revenue: number // 시술 총액 합 (만원)
   adCost: number | null // 광고비 (만원). 알 수 없으면 null (경로가 아닌 항목, 주 단위)
-  partial?: boolean // 기간 경계에 걸려 일부만 포함된 주
+  partial?: boolean // 기간 경계에 걸려 일부만 포함된 구간
 }
 
 // 기간은 달 단위 (광고비가 월 단위라서). from, to는 YYYY-MM, 둘 다 포함.
@@ -33,48 +29,25 @@ export const inPeriod = (date: string, from: string, to: string) => {
   return m >= from && m <= to
 }
 
-function summarize(key: string, label: string, list: Inquiry[], adCost: number | null): StatRow {
-  return {
-    key,
-    label,
-    total: list.length,
-    booked: list.filter((i) => reached(i, 'booked')).length,
-    visited: list.filter((i) => reached(i, 'visited')).length,
-    reserved: list.filter((i) => reached(i, 'reserved')).length,
-    paid: list.filter((i) => reached(i, 'paid')).length,
-    canceled: list.filter((i) => i.stage === 'canceled').length,
-    revenue: list.reduce((s, i) => s + (i.stage === 'paid' ? (i.amount ?? 0) : 0), 0),
-    adCost,
+function summarize(key: string, label: string, list: Entry[], adCost: number | null): StatRow {
+  let inquiry = 0
+  let consult = 0
+  let treatment = 0
+  let revenue = 0
+  for (const e of list) {
+    if (e.kind === 'inquiry') inquiry++
+    else if (e.kind === 'consult') consult++
+    else {
+      treatment++
+      revenue += e.amount ?? 0
+    }
   }
-}
-
-// 그 기간에 실제로 일어난 일 (단계별 날짜 기준, 문의일과 상관없이)
-export interface Activity {
-  inquiry: number
-  booked: number
-  visited: number
-  reserved: number
-  paid: number
-  canceled: number
-  paidAmount: number // 그 기간에 완불한 건의 총액 (결제 완료한 날 기준)
-}
-export function activityIn(list: Inquiry[], fromDay: string, toDay: string): Activity {
-  const inRange = (d: string | null) => !!d && d >= fromDay && d <= toDay
-  const n = (f: (i: Inquiry) => boolean) => list.filter(f).length
-  return {
-    inquiry: n((i) => inRange(i.date)),
-    booked: n((i) => inRange(i.bookedDate)),
-    visited: n((i) => inRange(i.visitedDate)),
-    reserved: n((i) => inRange(i.reservedDate)),
-    paid: n((i) => i.stage === 'paid' && inRange(i.paidDate)),
-    paidAmount: list.reduce((s, i) => s + (i.stage === 'paid' && inRange(i.paidDate) ? (i.amount ?? 0) : 0), 0),
-    canceled: n((i) => i.stage === 'canceled' && inRange(i.canceledDate)),
-  }
+  return { key, label, inquiry, consult, treatment, revenue, adCost }
 }
 
 const sumCost = (costs: AdCost[], pred: (c: AdCost) => boolean) => costs.filter(pred).reduce((s, c) => s + c.amount, 0)
 
-// 광고비는 "알게 된 경로"별로만 입력하므로, 경로로 좁힌 경우에만 그 경로 광고비를 쓴다.
+// 광고비는 유입 경로별로만 입력하므로, 경로로 좁힌 경우에만 그 경로 광고비를 쓴다.
 export interface Scope {
   by: GroupKey
   value: string
@@ -82,28 +55,29 @@ export interface Scope {
 const costFilter = (scope?: Scope) => (c: AdCost) => !scope || (scope.by === 'source' && c.source === scope.value)
 const hasCost = (scope?: Scope) => !scope || scope.by === 'source'
 
-export function totalRow(list: Inquiry[], costs: AdCost[], from: string, to: string, scope?: Scope): StatRow {
+export function totalRow(list: Entry[], costs: AdCost[], from: string, to: string, scope?: Scope): StatRow {
   const f = costFilter(scope)
   return summarize('total', '합계', list, hasCost(scope) ? sumCost(costs, (c) => f(c) && c.month >= from && c.month <= to) : null)
 }
 
-export const groupValue = (i: Inquiry, by: GroupKey) => i[by] || EMPTY_GROUP
+export const groupValue = (e: Entry, by: GroupKey) => e[by] || EMPTY_GROUP
 
-export function groupStats(list: Inquiry[], by: GroupKey, costs: AdCost[], from: string, to: string): StatRow[] {
-  const groups = new Map<string, Inquiry[]>()
-  for (const i of list) {
-    const k = groupValue(i, by)
+export function groupStats(list: Entry[], by: GroupKey, costs: AdCost[], from: string, to: string): StatRow[] {
+  const groups = new Map<string, Entry[]>()
+  for (const e of list) {
+    if (by === 'channel' && e.kind !== 'inquiry') continue // 문의 채널은 문의 카드에만 있다
+    const k = groupValue(e, by)
     if (!groups.has(k)) groups.set(k, [])
-    groups.get(k)!.push(i)
+    groups.get(k)!.push(e)
   }
   const costBySource = new Map<string, number>()
   if (by === 'source') {
     for (const c of costs) if (c.month >= from && c.month <= to) costBySource.set(c.source, (costBySource.get(c.source) ?? 0) + c.amount)
-    for (const s of costBySource.keys()) if (!groups.has(s)) groups.set(s, []) // 광고비만 쓰고 문의가 0건인 경로도 보여 준다
+    for (const s of costBySource.keys()) if (!groups.has(s)) groups.set(s, []) // 광고비만 쓰고 기록이 0건인 경로도 보여 준다
   }
   return [...groups.entries()]
     .map(([k, l]) => summarize(k, k, l, by === 'source' ? (costBySource.get(k) ?? 0) : null))
-    .sort((a, b) => b.total - a.total || b.revenue - a.revenue)
+    .sort((a, b) => b.revenue - a.revenue || b.inquiry - a.inquiry)
 }
 
 // ───────── 날짜 ─────────
@@ -150,8 +124,8 @@ function buckets(from: string, to: string, gran: Gran): { key: string; partial: 
   return out
 }
 
-export function trendStats(list: Inquiry[], costs: AdCost[], from: string, to: string, gran: Gran, scope?: Scope): StatRow[] {
-  const byBucket = new Map<string, Inquiry[]>()
+export function trendStats(list: Entry[], costs: AdCost[], from: string, to: string, gran: Gran, scope?: Scope): StatRow[] {
+  const byBucket = new Map<string, Entry[]>()
   for (const i of list) {
     const k = bucketOf(i.date, gran)
     if (!byBucket.has(k)) byBucket.set(k, [])

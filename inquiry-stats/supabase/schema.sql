@@ -2,7 +2,7 @@
 -- 환자 동선 보드와 같은 Supabase 프로젝트에 실행하면 직원 계정(staff)을 함께 쓴다.
 -- 새 프로젝트에 실행해도 되며, 그때는 staff 표가 새로 생기므로 직원 프로필을 따로 넣는다.
 -- 원칙: 로그인한 "활성" 직원만 읽고 쓸 수 있다. 로그인하지 않은 요청은 아무것도 볼 수 없다.
--- 원칙: 이름·생년월일은 알 때만 적는다(선택). 연락처는 저장하지 않는다.
+-- 원칙: 문의는 누구인지 적지 않는다. 상담·시술 카드의 이름은 선택. 연락처·생년월일은 저장하지 않는다.
 -- 보드의 7일 자동 삭제(purge_old_data) 대상이 아니다.
 
 -- 직원 프로필 (동선 보드와 공용). 이미 있으면 그대로 둔다.
@@ -29,45 +29,23 @@ drop policy if exists "staff can read staff" on public.staff;
 drop policy if exists "staff can read staff" on public.staff;
 create policy "staff can read staff" on public.staff for select to authenticated using (public.is_active_staff());
 
-create table if not exists public.inquiries (
+-- 하루 기록장: 그날 일어난 일(문의·상담·시술)을 그날 한 장씩. 예전 기록을 찾아 고치지 않는다.
+create table if not exists public.entries (
   id uuid primary key default gen_random_uuid(),
-  inquiry_date date not null default current_date,   -- 문의일 (통계는 이 날짜 기준)
-  patient_name text not null default '' check (char_length(patient_name) <= 40), -- 실명 (모르면 빈 값)
-  birth_date date,                                   -- 생년월일 (모르면 비움)
-  channel text not null default '',                  -- 문의 창구 (카카오톡, LINE, 전화 등)
-  source text not null default '',                   -- 알게 된 경로 (네이버, 인스타, 지인 소개 등)
-  nationality text not null default '',              -- 국적
-  interest text not null default '',                 -- 관심 시술
-  stage text not null default 'inquiry' check (stage in ('inquiry', 'booked', 'visited', 'reserved', 'paid', 'canceled')),
-  booked_date date,                                  -- 상담 예약한 날
-  consult_at text,                                   -- 상담 예정 일시 'YYYY-MM-DDTHH:MM' (한국 시간 그대로)
-  visited_date date,                                 -- 내원 상담한 날
-  surgery_date date,                                 -- 수술 예정일
-  amount integer check (amount is null or amount >= 0), -- 수술·시술 총액 (만원)
-  reserved_date date,                                -- 수술 예약한 날
-  paid_date date,                                    -- 결제 완료(완불)한 날
-  canceled_date date,                                -- 수술 예약 취소한 날
+  entry_date date not null default current_date,     -- 일어난 날
+  kind text not null check (kind in ('inquiry', 'consult', 'treatment')), -- 문의 / 상담 / 시술
+  source text not null,                              -- 유입 경로 (모르면 '모름')
+  channel text not null default '',                  -- 문의 채널 (문의 카드만)
+  nationality text not null default '',
+  interest text not null default '',                 -- 문의·상담: 관심 시술, 시술: 한 시술
+  amount integer check (amount is null or amount >= 0), -- 시술 총액 (만원) = 그날 매출
+  patient_name text not null default '' check (char_length(patient_name) <= 40), -- 상담·시술 카드에 선택
   note text not null default '' check (char_length(note) <= 100), -- 짧은 메모 (연락처 금지)
   created_by uuid default auth.uid() references public.staff (id) on delete set null,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  created_at timestamptz not null default now()
 );
 
--- 이전 버전에서 만든 표에 칸 추가
-alter table public.inquiries add column if not exists paid_date date;
-alter table public.inquiries add column if not exists patient_name text not null default '' check (char_length(patient_name) <= 40);
-alter table public.inquiries add column if not exists birth_date date;
-alter table public.inquiries add column if not exists booked_date date;
-alter table public.inquiries add column if not exists consult_at text;
-alter table public.inquiries add column if not exists visited_date date;
-alter table public.inquiries add column if not exists surgery_date date;
-alter table public.inquiries add column if not exists reserved_date date;
-alter table public.inquiries add column if not exists canceled_date date;
--- 단계에 '수술 예약', '취소' 추가
-alter table public.inquiries drop constraint if exists inquiries_stage_check;
-alter table public.inquiries add constraint inquiries_stage_check check (stage in ('inquiry', 'booked', 'visited', 'reserved', 'paid', 'canceled'));
-
-create index if not exists inquiries_date_idx on public.inquiries (inquiry_date);
+create index if not exists entries_date_idx on public.entries (entry_date);
 
 -- 월별·경로별 광고비 (만원)
 create table if not exists public.ad_costs (
@@ -95,19 +73,19 @@ as $$
   select exists (select 1 from public.staff s where s.id = auth.uid() and s.active and s.role in ('doctor', 'manager'))
 $$;
 
-alter table public.inquiries enable row level security;
+alter table public.entries enable row level security;
 alter table public.ad_costs enable row level security;
 alter table public.option_lists enable row level security;
 
--- 상담 대장: 활성 직원 누구나 입력·수정 (코디가 입력), 삭제는 원장·실장만
-drop policy if exists "staff can read inquiries" on public.inquiries;
-create policy "staff can read inquiries" on public.inquiries for select to authenticated using (public.is_active_staff());
-drop policy if exists "staff can write inquiries" on public.inquiries;
-create policy "staff can write inquiries" on public.inquiries for insert to authenticated with check (public.is_active_staff());
-drop policy if exists "staff can update inquiries" on public.inquiries;
-create policy "staff can update inquiries" on public.inquiries for update to authenticated using (public.is_active_staff()) with check (public.is_active_staff());
-drop policy if exists "lead can delete inquiries" on public.inquiries;
-create policy "lead can delete inquiries" on public.inquiries for delete to authenticated using (public.is_active_lead());
+-- 기록: 활성 직원 누구나 입력·수정·삭제 (잘못 적은 카드를 바로 지울 수 있게)
+drop policy if exists "staff can read entries" on public.entries;
+create policy "staff can read entries" on public.entries for select to authenticated using (public.is_active_staff());
+drop policy if exists "staff can write entries" on public.entries;
+create policy "staff can write entries" on public.entries for insert to authenticated with check (public.is_active_staff());
+drop policy if exists "staff can update entries" on public.entries;
+create policy "staff can update entries" on public.entries for update to authenticated using (public.is_active_staff()) with check (public.is_active_staff());
+drop policy if exists "staff can delete entries" on public.entries;
+create policy "staff can delete entries" on public.entries for delete to authenticated using (public.is_active_staff());
 
 -- 선택지: 직원 누구나 읽고 바꿀 수 있다
 drop policy if exists "staff can read option_lists" on public.option_lists;
@@ -132,8 +110,8 @@ create policy "lead can delete ad_costs" on public.ad_costs for delete to authen
 -- 실시간 반영 (이미 등록돼 있으면 건너뜀)
 do $$
 begin
-  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'inquiries') then
-    alter publication supabase_realtime add table public.inquiries;
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'entries') then
+    alter publication supabase_realtime add table public.entries;
   end if;
   if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'option_lists') then
     alter publication supabase_realtime add table public.option_lists;
