@@ -1,4 +1,4 @@
-// 상담 대장: 문의 한 건 = 한 줄. 내원경로·마케팅 효과 통계용이라 이름·연락처·생년월일은 받지 않는다.
+// 상담 대장: 문의 한 건 = 한 줄. 이름·생년월일은 알 때만 적는다(문의만 한 사람은 보통 모름). 연락처는 받지 않는다.
 
 // 단계 (지금까지 간 가장 마지막 단계 하나만 기록한다)
 //   문의만     문의만 하고 아직 상담 날짜를 잡지 않음
@@ -22,6 +22,8 @@ export const DEPOSIT_RATE = 0.1 // 수술 예약금: 총액의 10%
 export interface Inquiry {
   id: string
   date: string // 문의일 YYYY-MM-DD
+  patientName: string // 실명 (모르면 빈 값)
+  birthDate: string | null // 생년월일 YYYY-MM-DD (모르면 비움)
   channel: string // 문의 창구
   source: string // 알게 된 경로
   campaign: string // 광고·이벤트 이름 (선택)
@@ -38,7 +40,7 @@ export interface Inquiry {
   paidDate: string | null // 완불한 날 (잔금 또는 전액). 엑셀 매출 장부와 맞춰 볼 때 사용
   canceledDate: string | null // 수술 예약을 취소한 날
   refundAmount: number | null // 취소 때 돌려준 금액 (만원)
-  note: string // 이니셜·구분 메모 (예: K.H. 50대 여) — 이름·연락처는 적지 않는다
+  note: string // 짧은 메모 (예: 50대 여, 재문의). 연락처는 적지 않는다
   staff: string
   createdAt: number
 }
@@ -105,6 +107,33 @@ export function stageFieldsFor(stage: Stage, i: StageFields, today: string): Sta
   if (r('visited')) out.visitedDate ??= after ?? today
   if (r('booked')) out.bookedDate ??= out.visitedDate ?? after ?? today
   return out
+}
+
+// 생년월일 입력을 YYYY-MM-DD로 맞춘다. 750314 / 19750314 / 1975.03.14 / 1975-3-14 모두 받는다. 알아볼 수 없으면 null.
+export function normalizeBirth(raw: string): string | null {
+  const t = raw.trim()
+  if (!t) return null
+  let y: number, m: number, d: number
+  const parts = t.split(/[.\-/\s]+/).filter(Boolean)
+  if (parts.length === 3) [y, m, d] = parts.map(Number)
+  else {
+    const digits = t.replace(/\D/g, '')
+    if (digits.length === 8) [y, m, d] = [Number(digits.slice(0, 4)), Number(digits.slice(4, 6)), Number(digits.slice(6))]
+    else if (digits.length === 6) [y, m, d] = [Number(digits.slice(0, 2)), Number(digits.slice(2, 4)), Number(digits.slice(4))]
+    else return null
+  }
+  if (y < 100) y += y > Number(String(new Date().getFullYear()).slice(2)) ? 1900 : 2000 // 두 자리 연도: 올해보다 크면 1900년대
+  const p = (n: number) => String(n).padStart(2, '0')
+  const s = `${y}-${p(m)}-${p(d)}`
+  const dt = new Date(`${s}T00:00:00`)
+  return dt.getFullYear() === y && dt.getMonth() + 1 === m && dt.getDate() === d && y >= 1900 ? s : null
+}
+
+// 검색용: 이름·생년월일(여러 형태)·메모·경로 등을 한 줄로
+export function searchText(i: Inquiry): string {
+  const b = i.birthDate ?? ''
+  const birthForms = b ? [b, b.replace(/-/g, ''), b.slice(2).replace(/-/g, ''), b.replace(/-/g, '.')] : []
+  return [i.patientName, ...birthForms, i.note, i.source, i.channel, i.interest, i.nationality, i.staff, i.campaign].join(' ').toLowerCase()
 }
 
 // 상담 예정 일시를 보기 좋게: '10/15 14:00' 또는 '10/15'

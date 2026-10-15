@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Inquiry, NewInquiry, Stage } from '../inquiries'
 import type { OptionKind, OptionLists } from '../inquiries'
-import { DEPOSIT_RATE, STAGES, STAGE_LABEL, localDate, stageFieldsFor } from '../inquiries'
+import { DEPOSIT_RATE, STAGES, STAGE_LABEL, localDate, normalizeBirth, stageFieldsFor } from '../inquiries'
 
 interface Props {
   initial?: Inquiry // 있으면 수정
@@ -79,6 +79,8 @@ export function InquiryDialog({ initial, staffSuggestions = [], campaignSuggesti
   const today = localDate()
   const [f, setF] = useState<NewInquiry>(() => ({
     date: initial?.date ?? today,
+    patientName: initial?.patientName ?? '',
+    birthDate: initial?.birthDate ?? null,
     channel: initial?.channel ?? '',
     source: initial?.source ?? '',
     campaign: initial?.campaign ?? '',
@@ -98,13 +100,15 @@ export function InquiryDialog({ initial, staffSuggestions = [], campaignSuggesti
     note: initial?.note ?? '',
     staff: initial?.staff ?? '',
   }))
+  const [birthRaw, setBirthRaw] = useState(initial?.birthDate ?? '')
   const [depositTouched, setDepositTouched] = useState(initial?.depositAmount != null)
   const [more, setMore] = useState(() => !!(initial && (initial.campaign || initial.note || initial.staff || initial.date !== today)))
   const set = <K extends keyof NewInquiry>(k: K, v: NewInquiry[K]) => setF((x) => ({ ...x, [k]: v }))
   const money = f.stage === 'reserved' || f.stage === 'paid' || f.stage === 'canceled'
   const split = f.stage !== 'paid' || f.depositAmount != null // 예약금을 먼저 받았는지 (결제 완료일 때만 고를 수 있음)
   const tenPct = (total: number | null) => (total ? Math.round(total * DEPOSIT_RATE) : null)
-  const valid = f.date !== '' && f.channel !== '' && f.source !== '' && (!money || (f.amount ?? 0) > 0)
+  const birthBad = birthRaw.trim() !== '' && !normalizeBirth(birthRaw)
+  const valid = f.date !== '' && f.channel !== '' && f.source !== '' && (!money || (f.amount ?? 0) > 0) && !birthBad
 
   const setStage = (stage: Stage) =>
     setF((x) => {
@@ -133,7 +137,7 @@ export function InquiryDialog({ initial, staffSuggestions = [], campaignSuggesti
             canceledDate: f.canceledDate ?? today,
             refundAmount: f.refundAmount ?? dep ?? 0,
           }
-          onSubmit({ ...filled, ...stageFieldsFor(f.stage, filled, today), campaign: f.campaign.trim(), note: f.note.trim(), staff: f.staff.trim() })
+          onSubmit({ ...filled, ...stageFieldsFor(f.stage, filled, today), patientName: f.patientName.trim(), birthDate: normalizeBirth(birthRaw), campaign: f.campaign.trim(), note: f.note.trim(), staff: f.staff.trim() })
         }}
       >
         <div className="sheet-head">
@@ -141,10 +145,30 @@ export function InquiryDialog({ initial, staffSuggestions = [], campaignSuggesti
           <span className="help">{f.date === today ? '오늘' : f.date}</span>
         </div>
 
-        <label className="who">
-          이니셜·구분 <small>(선택 · 나중에 이 카드를 찾을 때 씁니다)</small>
-          <input id="inq-note" maxLength={100} value={f.note} placeholder="예: K.H. 50대 여" onChange={(e) => set('note', e.target.value)} />
-        </label>
+        <fieldset className="who">
+          <legend>
+            환자 <small>(알 때만 · 모르면 비워 두세요)</small>
+          </legend>
+          <div className="who-row">
+            <input id="inq-name" maxLength={40} value={f.patientName} placeholder="이름" autoComplete="off" onChange={(e) => set('patientName', e.target.value)} />
+            <input
+              id="inq-birth"
+              inputMode="numeric"
+              maxLength={10}
+              value={birthRaw}
+              placeholder="생년월일 750314"
+              autoComplete="off"
+              aria-invalid={birthBad}
+              onChange={(e) => setBirthRaw(e.target.value)}
+              onBlur={() => {
+                const b = normalizeBirth(birthRaw)
+                if (b) setBirthRaw(b)
+              }}
+            />
+          </div>
+          {birthBad && <span className="help need">생년월일을 알아볼 수 없습니다. 예: 750314, 19750314, 1975-03-14</span>}
+          <input id="inq-note" maxLength={100} value={f.note} placeholder="메모 (선택) 예: 50대 여, 재문의" onChange={(e) => set('note', e.target.value)} />
+        </fieldset>
 
         <Chips label="문의 채널" value={f.channel} options={options.channel} onChange={(v) => set('channel', v)} onAdd={onAddOption && ((n) => onAddOption('channel', n))} required />
         <Chips label="유입 경로" value={f.source} options={options.source} onChange={(v) => set('source', v)} onAdd={onAddOption && ((n) => onAddOption('source', n))} required />
@@ -326,7 +350,7 @@ export function InquiryDialog({ initial, staffSuggestions = [], campaignSuggesti
             취소
           </button>
           <button type="submit" className="btn btn-primary btn-big" disabled={!valid}>
-            {valid ? '저장' : money && !(f.amount ?? 0) ? '총액을 입력해 주세요' : '채널과 경로를 골라 주세요'}
+            {valid ? '저장' : birthBad ? '생년월일을 확인해 주세요' : money && !(f.amount ?? 0) ? '총액을 입력해 주세요' : '채널과 경로를 골라 주세요'}
           </button>
         </div>
       </form>

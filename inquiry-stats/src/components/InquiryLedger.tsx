@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Inquiry, Stage } from '../inquiries'
-import { STAGES, STAGE_LABEL, balanceDue, localDate, shortAt, stageFieldsFor } from '../inquiries'
+import { STAGES, STAGE_LABEL, balanceDue, localDate, searchText, shortAt, stageFieldsFor } from '../inquiries'
 import type { InquiriesApi } from '../store/useInquiries'
 import { addMonths, cashIn, lastDayOfMonth, won } from '../lib/stats'
 import { sampleData } from '../lib/sample'
@@ -66,7 +66,7 @@ export function InquiryLedger({ api, staffSuggestions, canDelete, canEditOptions
   const [q, setQ] = useState('')
   const rows = api.inquiries.filter((i) => i.date.startsWith(month))
   const query = q.trim().toLowerCase()
-  const found = query ? api.inquiries.filter((i) => [i.note, i.source, i.channel, i.interest, i.nationality, i.staff, i.campaign].join(' ').toLowerCase().includes(query)) : []
+  const found = query ? api.inquiries.filter((i) => searchText(i).includes(query)) : []
   const groups = activeGroups(api.inquiries, today)
   const activeCount = groups.reduce((n, [, l]) => n + l.length, 0)
   const campaigns = useMemo(() => [...new Set(api.inquiries.map((i) => i.campaign).filter(Boolean))], [api.inquiries])
@@ -111,11 +111,16 @@ export function InquiryLedger({ api, staffSuggestions, canDelete, canEditOptions
           </span>
           <span className="icard-main">
             <b>
-              {i.note && <span className="icard-who">{i.note}</span>}
+              {(i.patientName || i.birthDate) && (
+                <span className="icard-who">
+                  {i.patientName}
+                  {i.birthDate && <small> {i.birthDate.slice(2).replace(/-/g, '')}</small>}
+                </span>
+              )}
               {i.source || '경로 미입력'}
             </b>
             <span className="sub">
-              {[i.channel, i.nationality, i.interest].filter(Boolean).join(' · ')}
+              {[i.channel, i.nationality, i.interest, i.note].filter(Boolean).join(' · ')}
               {i.campaign && ` · ${i.campaign}`}
             </span>
           </span>
@@ -197,7 +202,7 @@ export function InquiryLedger({ api, staffSuggestions, canDelete, canEditOptions
               월별 전체
             </button>
           </div>
-          <input id="ledger-search" type="search" className="search" placeholder="이니셜·경로·시술로 찾기" value={q} onChange={(e) => setQ(e.target.value)} />
+          <input id="ledger-search" type="search" className="search" placeholder="이름·생년월일·경로로 찾기" value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
 
         {query ? (

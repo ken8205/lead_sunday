@@ -2,7 +2,7 @@
 -- 환자 동선 보드와 같은 Supabase 프로젝트에 실행하면 직원 계정(staff)을 함께 쓴다.
 -- 새 프로젝트에 실행해도 되며, 그때는 staff 표가 새로 생기므로 직원 프로필을 따로 넣는다.
 -- 원칙: 로그인한 "활성" 직원만 읽고 쓸 수 있다. 로그인하지 않은 요청은 아무것도 볼 수 없다.
--- 원칙: 통계용이라 오래 보관하므로 이름·연락처·생년월일은 저장하지 않는다(메모에는 이니셜 정도만).
+-- 원칙: 이름·생년월일은 알 때만 적는다(선택). 연락처는 저장하지 않는다.
 -- 보드의 7일 자동 삭제(purge_old_data) 대상이 아니다.
 
 -- 직원 프로필 (동선 보드와 공용). 이미 있으면 그대로 둔다.
@@ -32,6 +32,8 @@ create policy "staff can read staff" on public.staff for select to authenticated
 create table if not exists public.inquiries (
   id uuid primary key default gen_random_uuid(),
   inquiry_date date not null default current_date,   -- 문의일 (통계는 이 날짜 기준)
+  patient_name text not null default '' check (char_length(patient_name) <= 40), -- 실명 (모르면 빈 값)
+  birth_date date,                                   -- 생년월일 (모르면 비움)
   channel text not null default '',                  -- 문의 창구 (카카오톡, LINE, 전화 등)
   source text not null default '',                   -- 알게 된 경로 (네이버, 인스타, 지인 소개 등)
   campaign text not null default '',                 -- 광고·이벤트 이름 (선택)
@@ -48,7 +50,7 @@ create table if not exists public.inquiries (
   paid_date date,                                    -- 완불한 날 (잔금 또는 전액)
   canceled_date date,                                -- 수술 예약 취소한 날
   refund_amount integer check (refund_amount is null or refund_amount >= 0), -- 환불액 (만원)
-  note text not null default '' check (char_length(note) <= 100), -- 이니셜·구분 메모 (이름·연락처 금지)
+  note text not null default '' check (char_length(note) <= 100), -- 짧은 메모 (연락처 금지)
   staff text not null default '',                    -- 담당자
   created_by uuid default auth.uid() references public.staff (id) on delete set null,
   created_at timestamptz not null default now(),
@@ -57,6 +59,8 @@ create table if not exists public.inquiries (
 
 -- 이전 버전에서 만든 표에 칸 추가
 alter table public.inquiries add column if not exists paid_date date;
+alter table public.inquiries add column if not exists patient_name text not null default '' check (char_length(patient_name) <= 40);
+alter table public.inquiries add column if not exists birth_date date;
 alter table public.inquiries add column if not exists booked_date date;
 alter table public.inquiries add column if not exists consult_at text;
 alter table public.inquiries add column if not exists visited_date date;

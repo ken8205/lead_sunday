@@ -21,6 +21,8 @@ export interface InquiriesApi {
 interface InquiryRow {
   id: string
   inquiry_date: string
+  patient_name: string | null
+  birth_date: string | null
   channel: string
   source: string
   campaign: string
@@ -45,6 +47,8 @@ interface InquiryRow {
 const toInquiry = (r: InquiryRow): Inquiry => ({
   id: r.id,
   date: r.inquiry_date,
+  patientName: r.patient_name ?? '',
+  birthDate: r.birth_date ?? null,
   channel: r.channel,
   source: r.source,
   campaign: r.campaign,
@@ -69,6 +73,8 @@ const toInquiry = (r: InquiryRow): Inquiry => ({
 function toRow(p: Partial<NewInquiry>) {
   const row: Record<string, unknown> = {}
   if (p.date !== undefined) row.inquiry_date = p.date
+  if (p.patientName !== undefined) row.patient_name = p.patientName
+  if (p.birthDate !== undefined) row.birth_date = p.birthDate
   if (p.paidDate !== undefined) row.paid_date = p.paidDate
   if (p.bookedDate !== undefined) row.booked_date = p.bookedDate
   if (p.consultAt !== undefined) row.consult_at = p.consultAt
@@ -175,7 +181,7 @@ function useCloudInquiries(): InquiriesApi {
 }
 
 // ───────── 이 브라우저 전용 모드 ─────────
-const LOCAL_KEY = 'inquiry-stats:v3' // 단계 날짜가 생겨 예시 데이터를 새로 만든다
+const LOCAL_KEY = 'inquiry-stats:v4' // 이름·생년월일이 생겨 예시 데이터를 새로 만든다
 
 interface LocalData {
   inquiries: Inquiry[]
@@ -217,7 +223,7 @@ function loadLocal(): LocalData {
   try {
     const v = JSON.parse(localStorage.getItem(LOCAL_KEY) ?? '')
     if (Array.isArray(v.inquiries) && Array.isArray(v.adCosts))
-      return migrateLocal({ ...v, inquiries: v.inquiries.map((i: Inquiry) => Object.assign({ depositAmount: null, depositDate: null, canceledDate: null, refundAmount: null, bookedDate: null, consultAt: null, visitedDate: null, surgeryDate: null }, i)), options: { ...DEFAULT_OPTIONS, ...v.options } })
+      return migrateLocal({ ...v, inquiries: v.inquiries.map((i: Inquiry) => Object.assign({ patientName: '', birthDate: null, depositAmount: null, depositDate: null, canceledDate: null, refundAmount: null, bookedDate: null, consultAt: null, visitedDate: null, surgeryDate: null }, i)), options: { ...DEFAULT_OPTIONS, ...v.options } })
   } catch {
     // 없거나 깨졌으면 빈 대장
   }

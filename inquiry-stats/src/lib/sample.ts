@@ -95,7 +95,14 @@ export function sampleData(): { inquiries: Inquiry[]; adCosts: AdCost[] } {
           { bookedDate: date, consultAt, visitedDate: stage === 'booked' ? null : consultDay > today ? today : consultDay, surgeryDate, amount, depositAmount, depositDate, paidDate, canceledDate, refundAmount },
           today,
         ),
-        note: `예시 ${String.fromCharCode(65 + Math.floor(rnd() * 26))}.${String.fromCharCode(65 + Math.floor(rnd() * 26))}.`,
+        // 문의만 한 사람은 보통 이름을 모른다. 상담 예약 이후는 대부분 안다고 가정 (가상 이름)
+        ...(stage === 'inquiry' || rnd() < 0.15
+          ? { patientName: '', birthDate: null }
+          : {
+              patientName: `${pick([['김', 3], ['이', 3], ['박', 2], ['최', 1], ['정', 1], ['강', 1], ['조', 1], ['윤', 1]])}${pick([['예시', 1], ['가상', 1], ['샘플', 1]])}`,
+              birthDate: `${1955 + Math.floor(rnd() * 45)}-${String(1 + Math.floor(rnd() * 12)).padStart(2, '0')}-${String(1 + Math.floor(rnd() * 28)).padStart(2, '0')}`,
+            }),
+        note: rnd() < 0.3 ? pick([['재문의', 1], ['50대 여', 1], ['가족 동반', 1], ['통역 필요', 1]]) : '',
         staff: pick([['유빈', 50], ['도은', 35], ['정실장', 15]]),
         createdAt: k,
       })

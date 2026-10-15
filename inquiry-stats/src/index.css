@@ -227,3 +227,9 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .activity-title { font-size: 13px; font-weight: 700; color: #334155; margin-right: 4px; }
 .act { padding: 4px 10px; border-radius: 999px; background: #f1f5f9; font-size: 13px; color: #475569; }
 .act b { color: #111827; font-variant-numeric: tabular-nums; }
+/* ── 환자 이름·생년월일 ── */
+fieldset.who { border: 0; margin: 0; padding: 0; display: grid; gap: 6px; }
+fieldset.who legend { padding: 0; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #334155; }
+.who-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px; }
+fieldset.who input[aria-invalid=true] { border-color: #f59e0b; }
+.icard-who small { font-weight: 400; opacity: 0.8; }
