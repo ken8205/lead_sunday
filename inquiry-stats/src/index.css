@@ -333,3 +333,5 @@ fieldset.who input[aria-invalid=true] { border-color: #f59e0b; }
 .chart-tip .down { color: #b91c1c; }
 .chart-tip small { color: #64748b; }
 .panel-head h2 small { font-size: 13px; font-weight: 400; }
+.agency-check { font-size: 13px; white-space: nowrap; }
+.agency-tag { padding: 0 6px; border-radius: 6px; background: #fef3c7; color: #92400e; font-size: 11px; }

@@ -25,12 +25,10 @@ export function sampleData(): { entries: Entry[]; adCosts: AdCost[] } {
       const foreign = nationality !== '한국'
       const source = foreign
         ? pick([['인스타', 30], ['구글검색', 20], ['유튜브', 15], ['스레드', 10], ['소개', 15], ['AI', 10]])
-        : pick([['강남언니', 20], ['인터넷', 18], ['인스타', 15], ['소개', 12], ['구환', 10], ['미뷰', 7], ['메이비', 5], ['카페', 5], ['유튜브', 5], ['모름', 3]])
+        : pick([['강남언니', 20], ['인터넷', 18], ['인스타', 15], ['소개', 12], ['구환', 10], ['카페', 5], ['유튜브', 5], ['모름', 3]])
       const channel = foreign
         ? pick([['해외에이전시', 45], ['인스타DM', 35], ['홈페이지', 20]])
         : source === '강남언니' ? pick([['강남언니', 70], ['카카오채널', 30]])
-        : source === '미뷰' ? '미뷰'
-        : source === '메이비' ? '메이비'
         : pick([['카카오채널', 45], ['인콜', 25], ['네이버예약', 20], ['인스타DM', 10]])
       const interest =
         nationality === '일본'
@@ -51,6 +49,11 @@ export function sampleData(): { entries: Entry[]; adCosts: AdCost[] } {
           out.push({ ...base, kind: 'treatment', date: day, amount: Math.round((big ? 400 + rnd() * 900 : 40 + rnd() * 260) / 10) * 10 })
         }
       }
+    }
+    // 에이전시(미뷰·메이비·해외에이전시): 해외에서 예약하고 와서 시술만 기록 (0-0-1)
+    if (rnd() < 0.3) {
+      const src = pick([['메이비', 40], ['미뷰', 35], ['해외에이전시', 25]])
+      out.push({ ...blank, kind: 'treatment', date: d, source: src, nationality: pick([['일본', 30], ['미국', 20], ['중국', 15], ['대만', 10], ['동남아', 10], ['중동지역', 5], ['기타', 10]]), interest: pick([['안면거상', 40], ['미니거상', 25], ['처진눈성형', 20], ['코성형', 15]]), amount: Math.round((600 + rnd() * 1200) / 10) * 10 })
     }
     if (rnd() < 0.15) out.push({ ...blank, kind: 'inquiry', date: d, source: '워크인', channel: '', nationality: '한국', interest: '필러 및 스킨부스터' }, { ...blank, kind: 'consult', date: d, source: '워크인', nationality: '한국', interest: '필러 및 스킨부스터' })
   }

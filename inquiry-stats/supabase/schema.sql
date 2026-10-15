@@ -65,9 +65,13 @@ insert into public.commission_rates (source, rate) values ('메이비', 30), ('�
 -- 입력 화면 선택지 (문의 채널, 유입 경로, 국적, 관심 시술). 순서 그대로 화면에 나온다.
 -- 한 번도 저장하지 않은 종류는 앱의 기본 목록을 쓴다.
 create table if not exists public.option_lists (
-  kind text primary key check (kind in ('channel', 'source', 'nationality', 'interest')),
+  kind text primary key check (kind in ('channel', 'source', 'nationality', 'interest', 'agency')), -- agency: 에이전시 경로 목록
   items text[] not null
 );
+
+-- 이전 버전 표에 'agency' 종류 허용
+alter table public.option_lists drop constraint if exists option_lists_kind_check;
+alter table public.option_lists add constraint option_lists_kind_check check (kind in ('channel', 'source', 'nationality', 'interest', 'agency'));
 
 -- 원장·실장만 (광고비 입력, 통계 화면)
 create or replace function public.is_active_lead()

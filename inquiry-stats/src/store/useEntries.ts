@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { isCloud, supabase } from '../lib/supabase'
-import type { AdCost, Entry, Kind, NewEntry, OptionKind, OptionLists, Rates } from '../inquiries'
-import { DEFAULT_OPTIONS, DEFAULT_RATES, OPTION_KINDS } from '../inquiries'
+import type { AdCost, Entry, Kind, NewEntry, OptionLists, Rates, StoredKind } from '../inquiries'
+import { DEFAULT_OPTIONS, DEFAULT_RATES, STORED_KINDS } from '../inquiries'
 import { sampleData } from '../lib/sample'
 
 export interface EntriesApi {
@@ -15,7 +15,7 @@ export interface EntriesApi {
   update: (id: string, patch: Partial<NewEntry>) => void
   remove: (id: string) => void
   setAdCost: (month: string, source: string, amount: number) => void // 0이면 지운다
-  setOptions: (kind: OptionKind, items: string[]) => void
+  setOptions: (kind: StoredKind, items: string[]) => void
   setRate: (source: string, rate: number) => void // 0이면 지운다
   replaceAll?: (d: { entries: Entry[]; adCosts: AdCost[] }) => void // 이 브라우저 전용 모드에서만 (예시 채우기·비우기)
 }
@@ -61,9 +61,9 @@ function toRow(p: Partial<NewEntry>) {
 const byNewest = (a: Entry, b: Entry) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt
 
 // 서버에 저장된 목록만 덮어쓰고, 아직 저장한 적 없는 종류는 기본 목록을 쓴다.
-function mergeOptions(rows: { kind: OptionKind; items: string[] }[]): OptionLists {
+function mergeOptions(rows: { kind: StoredKind; items: string[] }[]): OptionLists {
   const o = { ...DEFAULT_OPTIONS }
-  for (const r of rows) if (OPTION_KINDS.includes(r.kind) && Array.isArray(r.items)) o[r.kind] = r.items
+  for (const r of rows) if (STORED_KINDS.includes(r.kind) && Array.isArray(r.items)) o[r.kind] = r.items
   return o
 }
 
@@ -86,7 +86,7 @@ function useCloudEntries(): EntriesApi {
     setError(null)
     setEntries((q.data as EntryRow[]).map(toEntry).sort(byNewest))
     if (!c.error) setAdCosts(c.data as AdCost[]) // 원장·실장이 아니면 광고비는 읽을 수 없다
-    if (!o.error) setOptionsState(mergeOptions(o.data as { kind: OptionKind; items: string[] }[]))
+    if (!o.error) setOptionsState(mergeOptions(o.data as { kind: StoredKind; items: string[] }[]))
     if (!r.error && r.data.length) setRates(Object.fromEntries((r.data as { source: string; rate: number }[]).map((x) => [x.source, Number(x.rate)])))
     setReady(true)
   }, [sb])
@@ -153,7 +153,7 @@ function useCloudEntries(): EntriesApi {
 }
 
 // ───────── 이 브라우저 전용 모드 ─────────
-const LOCAL_KEY = 'inquiry-stats:entries-v1' // 하루 기록장 방식으로 바뀌어 새 키로 시작한다
+const LOCAL_KEY = 'inquiry-stats:entries-v2' // 에이전시(시술만 기록) 예시로 새로 시작한다
 
 interface LocalData {
   entries: Entry[]

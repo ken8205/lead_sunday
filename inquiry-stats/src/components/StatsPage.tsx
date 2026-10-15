@@ -95,7 +95,8 @@ function Tile({ label, value, sub, tone }: { label: string; value: string; sub?:
   )
 }
 
-function GroupTable({ rows, first, showCost }: { rows: StatRow[]; first: string; showCost: boolean }) {
+// rates: 비율 계산용 (에이전시를 뺀 줄). agencyKeys: 비율 대신 '에이전시'로 표시할 줄
+function GroupTable({ rows, rates, agencyKeys, first, showCost }: { rows: StatRow[]; rates: Map<string, StatRow>; agencyKeys: string[]; first: string; showCost: boolean }) {
   const maxRev = Math.max(1, ...rows.map((r) => r.revenue))
   return (
     <div className="table-wrap">
@@ -122,18 +123,14 @@ function GroupTable({ rows, first, showCost }: { rows: StatRow[]; first: string;
               <td className="num">{r.inquiry}</td>
               <td className="num">
                 {r.consult}{' '}
-                <small className="sub">
-                  <Rate a={r.consult} b={r.inquiry} />
-                </small>
+                <small className="sub">{agencyKeys.includes(r.key) ? '' : <Rate a={rates.get(r.key)?.consult ?? 0} b={rates.get(r.key)?.inquiry ?? 0} />}</small>
               </td>
               <td className="num">
                 {r.treatment}{' '}
-                <small className="sub">
-                  <Rate a={r.treatment} b={r.consult} />
-                </small>
+                <small className="sub">{agencyKeys.includes(r.key) ? <span className="agency-tag">에이전시</span> : <Rate a={rates.get(r.key)?.treatment ?? 0} b={rates.get(r.key)?.consult ?? 0} />}</small>
               </td>
               <td className="num bar-cell" title={`${r.label}: 매출 ${won(r.revenue)}`}>
-                <span className="bar" style={{ width: `${(r.revenue / maxRev) * 100}%` }} />
+                <span className="bar" style={{ width: `${(r.revenue / maxRev) * 55}%` }} />
                 <span className="bar-num">{r.revenue ? won(r.revenue) : '–'}</span>
               </td>
               {showCost && (
@@ -168,7 +165,13 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
   const period = api.entries.filter((e) => inPeriod(e.date, from, to))
   const showCost = canEditCost
   const total = totalRow(period, api.adCosts, api.rates, from, to)
+  // 비율(문의→상담, 상담→시술)은 에이전시 경로를 빼고 계산한다 (에이전시 환자는 문의·상담 없이 해외에서 확정해 온다)
+  const isAgency = (src: string) => api.options.agency.includes(src)
+  const direct = period.filter((e) => !isAgency(e.source))
+  const d = totalRow(direct, [], api.rates, from, to)
+  const ag = totalRow(period.filter((e) => isAgency(e.source)), [], api.rates, from, to)
   const groups = groupStats(period, by, api.adCosts, api.rates, from, to)
+  const groupRates = new Map(groupStats(direct, by, [], api.rates, from, to).map((r) => [r.key, r]))
   const bySource = by === 'source' ? groups : groupStats(period, 'source', api.adCosts, api.rates, from, to)
   // 추이는 위의 기간과 상관없이 오늘을 끝으로 (일간 30일, 주간 12주, 월간 12개월, 연간 5년)
   const trend = trendWindow(src ? api.entries.filter((e) => e.source === src) : api.entries, api.rates, gran, localDate())
@@ -206,15 +209,15 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
         )}
         <div className="tiles tiles-4">
           <Tile label="문의" value={`${total.inquiry}건`} tone="inquiry" />
-          <Tile label="상담" value={`${total.consult}건`} sub={`문의의 ${pct(total.consult, total.inquiry)}`} tone="consult" />
-          <Tile label="시술" value={`${total.treatment}건`} sub={`상담의 ${pct(total.treatment, total.consult)}`} tone="treatment" />
+          <Tile label="상담" value={`${d.consult}건`} sub={`문의의 ${pct(d.consult, d.inquiry)}`} tone="consult" />
+          <Tile label="시술" value={`${total.treatment}건`} sub={[`상담의 ${pct(d.treatment, d.consult)}`, ag.treatment ? `에이전시 ${ag.treatment}건 포함` : ''].filter(Boolean).join(' · ')} tone="treatment" />
           <Tile
             label="매출"
             value={won(total.revenue)}
-            sub={[total.treatment ? `객단가 ${won(Math.round(total.revenue / total.treatment))}` : '', showCost && marketing(total) ? `마케팅비 ${pct(marketing(total), total.revenue)}` : ''].filter(Boolean).join(' · ') || undefined}
+            sub={[total.treatment ? `객단가 ${won(Math.round(total.revenue / total.treatment))}` : '', ag.revenue ? `에이전시 ${won(ag.revenue)}` : '', showCost && marketing(total) ? `마케팅비 ${pct(marketing(total), total.revenue)}` : ''].filter(Boolean).join(' · ') || undefined}
           />
         </div>
-        <p className="help">비율은 같은 기간 건수끼리 나눈 값이라 짧은 기간에는 흔들립니다. 월 단위 이상으로 보세요.</p>
+        <p className="help">비율은 같은 기간 건수끼리 나눈 값이라 짧은 기간에는 흔들립니다. 월 단위 이상으로 보세요. 에이전시 환자는 비율 계산에서 뺍니다.</p>
       </section>
 
       <section className="panel">
@@ -258,7 +261,7 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
           <Segmented value={by} options={GROUP_KEYS.map((k) => [k, GROUP_LABEL[k]])} onChange={(v) => set({ by: v })} />
         </div>
         {by === 'channel' && <p className="help">문의 채널은 문의 기록에만 있어서 문의 건수만 나옵니다.</p>}
-        {groups.length === 0 ? <p className="empty-all">이 기간 기록이 없습니다.</p> : <GroupTable rows={groups} first={GROUP_LABEL[by]} showCost={showCost && by === 'source'} />}
+        {groups.length === 0 ? <p className="empty-all">이 기간 기록이 없습니다.</p> : <GroupTable rows={groups} rates={groupRates} agencyKeys={by === 'source' ? api.options.agency : []} first={GROUP_LABEL[by]} showCost={showCost && by === 'source'} />}
       </section>
 
       {canEditCost && <CostPanel api={api} />}

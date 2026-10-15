@@ -46,6 +46,7 @@ export function OptionsPage({ api }: { api: EntriesApi }) {
             ))}
           </div>
         </div>
+        {kind === 'source' && <p className="help">"에이전시"에 체크한 경로(해외에서 예약하고 오는 환자)는 시술 카드만 적고, 문의→상담·상담→시술 비율 계산에서 뺍니다.</p>}
         <p className="help">새 이름을 쓰고 "+ 추가"를 누르세요. 아래 목록의 순서대로 기록 화면에 나옵니다. 지워도 이미 기록된 문의와 통계는 그대로 남습니다.</p>
 
         <form
@@ -71,6 +72,12 @@ export function OptionsPage({ api }: { api: EntriesApi }) {
               <span className="opt-num">{k + 1}</span>
               <span className="opt-name">{o}</span>
               <span className="opt-used">{used.get(o) ? `${used.get(o)}건 기록` : ''}</span>
+              {kind === 'source' && (
+                <label className="check agency-check" title="해외에서 예약하고 오는 경로: 시술만 기록하고 비율 계산에서 뺍니다">
+                  <input type="checkbox" checked={api.options.agency.includes(o)} onChange={(e) => api.setOptions('agency', e.target.checked ? [...api.options.agency, o] : api.options.agency.filter((x) => x !== o))} />
+                  에이전시
+                </label>
+              )}
               <button className="btn btn-small" aria-label={`${o} 위로`} disabled={k === 0} onClick={() => move(k, -1)}>
                 ▲
               </button>
