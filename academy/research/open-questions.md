@@ -18,3 +18,6 @@
 - [ ] 보톡스 후 "처져 보임"의 시술 전 예측 인자(눈꺼풀 피부 처짐, MRD1·levator function, frontalis 보상, brow-press) 연구 재검색 — 단어별 질의로 (IDEA-008)
 - [ ] 진짜 거근 마비(A)와 frontalis 보상 소실(B)의 임상 구분 기준 문헌 (IDEA-008)
 - [ ] Zargaran 2022 원문에서 ABO OR 1.62(1.15–2.27)와 "P>0.05" 불일치의 원인 확인 (논문 3)
+- [ ] 초음파 사전 혈관 지도를 한 군과 안 한 군의 필러 혈관 합병증 비교 연구 (filler-vessel-depth-layers.md)
+- [ ] 바늘 굵기·주입 압력과 혈관 내 retrograde 거리 (IDEA-011)
+- [ ] 혈관 깊이 지도와 지방 구획 층을 합친 연구 (IDEA-007과 연결)

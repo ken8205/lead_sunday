@@ -16,3 +16,9 @@
 - Öreroğlu 2026 APS (PMID 42192009): double-sling, DTF·mastoid fascia 고정. 최신 후보(APS 우선순위 저널)
 - Pankratz 2020 JPRAS Open (PMID 33251317): frontal branch caution zone, PMC 전문 있음
 - Casagrande 2024 ASJ (PMID 39133567): Full SMAS 내시경 보조
+
+## 2026-10-15 추가 (필러 혈관 깊이·흡인, 논문 4 보강)
+- Trzeciak 2025 APS FA 깊이 메타분석(40164893), Trzeciak 2025 이마 동맥 깊이 메타분석(39764659)
+- Cotofana 2020 ASJ 미간 주름과 STA/SOA(32469392), Ten 2020 FA 도플러(33171021), Gelezhe 2021 angular artery CT(32504489)
+- Cho 2019 ASJ 시신 관류 색전 재현(29873688)
+- Peng 2023 흡인 in vitro(37098936), Wang 2020 흡인 in vivo 정맥(32316755)

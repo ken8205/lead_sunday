@@ -14,3 +14,4 @@
 | IDEA-008 | 2026-10-08 | 보톡스 후 눈꺼풀이 처져 보이는 환자(눈꺼풀 피부 처짐·약한 눈 뜨는 힘·이마 보상)를 시술 전에 가려낼 수 있나 | 학습자 임상 경험(논문 3 리뷰 중) | 문헌 1차 확인, 직접 예측 연구 못 찾음(제한적 검색) | research/ideas/IDEA-008-botox-ptosis-risk-stratification.md |
 | IDEA-009 | 2026-10-15 | 안면거상 팔자(NLF) 교정 핵심과 신경 손상 없는 SMAS 절개 | 학습자 임상 질문(논문 4 토론 중) | 문헌 1차 확인(Mendelson 1992 등), 직접 비교 못 찾음 | research/ideas/IDEA-009-facelift-nlf-correction-and-smas-incision-safety.md |
 | IDEA-010 | 2026-10-15 | SMAS flap이 mastoid·DTF까지 안 닿을 때 원인과 해결 | 학습자 임상 문제 | 문헌 1차 확인(Öreroğlu 2026 sling 방식 1편) | research/ideas/IDEA-010-smas-flap-reach-mastoid-deep-temporal-fascia.md |
+| IDEA-011 | 2026-10-15 | 남은 필러로 흡인 위음성 실험, 가는 바늘이 혈관 내 retrograde를 더 강하게 하는가 | 학습자(논문 4 Box 1 응답) | 문헌 1차 확인(흡인 선행 실험 있음, 바늘 굵기-압력 직접 연구 못 찾음) | research/ideas/IDEA-011-filler-aspiration-test-and-needle-gauge-pressure.md |
