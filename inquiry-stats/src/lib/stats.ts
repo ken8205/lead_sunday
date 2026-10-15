@@ -56,6 +56,7 @@ export interface Activity {
   reserved: number
   paid: number
   canceled: number
+  paidAmount: number // 그 기간에 완불한 건의 총액 (결제 완료한 날 기준)
 }
 export function activityIn(list: Inquiry[], fromDay: string, toDay: string): Activity {
   const inRange = (d: string | null) => !!d && d >= fromDay && d <= toDay
@@ -66,6 +67,7 @@ export function activityIn(list: Inquiry[], fromDay: string, toDay: string): Act
     visited: n((i) => inRange(i.visitedDate)),
     reserved: n((i) => inRange(i.reservedDate)),
     paid: n((i) => i.stage === 'paid' && inRange(i.paidDate)),
+    paidAmount: list.reduce((s, i) => s + (i.stage === 'paid' && inRange(i.paidDate) ? (i.amount ?? 0) : 0), 0),
     canceled: n((i) => i.stage === 'canceled' && inRange(i.canceledDate)),
   }
 }

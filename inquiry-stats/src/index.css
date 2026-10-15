@@ -228,3 +228,4 @@ fieldset.who legend { padding: 0; margin-bottom: 6px; font-size: 13px; font-weig
 .who-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px; }
 fieldset.who input[aria-invalid=true] { border-color: #f59e0b; }
 .icard-who small { font-weight: 400; opacity: 0.8; }
+.act-money { background: #dcfce7; color: #166534; }

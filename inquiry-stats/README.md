@@ -33,7 +33,7 @@ VITE_SUPABASE_URL=https://<프로젝트>.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...   # 공개용 키만. secret/service_role 키는 절대 넣지 않음
 ```
 
-- Supabase SQL Editor에서 `supabase/schema.sql`을 실행합니다 (여러 번 실행해도 안전).
+- Supabase **서울 리전(ap-northeast-2)** 프로젝트의 SQL Editor에서 `supabase/schema.sql`을 실행합니다 (여러 번 실행해도 안전). 이름·생년월일을 저장하므로 서울 리전을 씁니다. 보관 기간(자동 삭제)은 아직 정하지 않았습니다.
 - **동선 보드와 같은 Supabase 프로젝트**에 실행하면 직원 계정을 그대로 씁니다 (권장: 직원이 계정 하나로 두 앱 모두 로그인).
 - 새 프로젝트에 실행하면 직원 계정을 따로 만들어야 합니다 (`../patient-board/supabase/create-staff.sql` 참고).
 - 대장 삭제와 광고비 입력·조회는 원장·실장만 가능합니다 (서버에서 막음).

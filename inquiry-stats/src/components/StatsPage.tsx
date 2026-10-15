@@ -87,12 +87,15 @@ function Tiles({ t, showCost, act: a, dayMode }: { t: StatRow; showCost: boolean
           {l} <b>{n}</b>
         </span>
       ))}
+      <span className="act act-money" title="결제 완료한 날 기준. 예전에 문의한 환자도 이 기간에 완불했으면 들어갑니다. 예약금만 받은 건과 취소는 빠집니다.">
+        {dayMode ? '이날' : '이 기간'} 완불 매출 <b>{won(a.paidAmount)}</b>
+      </span>
     </div>
     <div className="summary-grid">
       <Funnel t={t} />
       <div className="tiles">
         <Tile label="문의 → 결제" value={pct(t.paid, t.total)} sub={`상담 → 결제 ${pct(t.paid, t.visited)} (${t.paid}/${t.visited}건)`} />
-        <Tile label="결제 완료 매출" value={won(t.revenue)} sub={t.paid > 0 ? `${t.paid}건 · 객단가 ${won(Math.round(t.revenue / t.paid))}` : '이 기간 문의 중 완불한 건의 총액'} />
+        <Tile label="경로 성과 매출 (문의일 기준)" value={won(t.revenue)} sub={t.paid > 0 ? `이 기간 문의 중 완불 ${t.paid}건 · 객단가 ${won(Math.round(t.revenue / t.paid))}` : '이 기간 문의 중 완불한 건의 총액'} />
         {showCost && t.adCost != null && (
           <Tile label="광고비" value={won(t.adCost)} sub={t.adCost > 0 ? `매출 ${(t.revenue / t.adCost).toFixed(1)}배${t.paid > 0 ? ` · 결제 1건당 ${won(Math.round(t.adCost / t.paid))}` : ''}` : undefined} />
         )}
@@ -283,7 +286,8 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
         <details className="fine">
           <summary>숫자 읽는 법</summary>
           <ul>
-            <li>깔때기·매출·항목별 표는 문의한 날짜로 묶습니다. 매출은 결제 완료한 건의 총액입니다. 이번 달 문의가 다음 달에 결제되면 이번 달 성과로 들어가서, 최근 기간 결제율은 나중에 올라갈 수 있습니다.</li>
+            <li>깔때기·경로 성과 매출·항목별 표는 문의한 날짜로 묶습니다(경로별 마케팅 효과용). 매출은 결제 완료(완불)한 건의 총액만 넣고, 예약금만 받은 건과 취소는 넣지 않습니다. 이번 달 문의가 다음 달에 결제되면 이번 달 성과로 들어가서, 최근 기간 결제율은 나중에 올라갈 수 있습니다.</li>
+            <li>"완불 매출"은 결제 완료한 날 기준입니다. 그날 실제로 완불된 금액을 볼 때 씁니다.</li>
             <li>"한 일"은 그 단계가 실제로 일어난 날 기준입니다. 예: 지난주 문의한 환자가 오늘 내원하면 오늘의 내원 상담 1건.</li>
             <li>문의 → 결제 = 결제 완료 ÷ 문의, 상담 → 결제 = 결제 완료 ÷ 내원 상담.</li>
             <li>흐린 비율은 건수가 {SMALL_N}건 미만이라 우연에 크게 흔들리는 값입니다. 마우스를 올리면 건수가 보입니다.</li>
