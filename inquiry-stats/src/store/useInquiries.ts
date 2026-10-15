@@ -159,16 +159,29 @@ interface LocalData {
   options: OptionLists
 }
 
-// 예전 기본 국적 목록을 그대로 쓰고 있으면 새 기본 목록으로 바꾸고, 예시 데이터의 국적 이름도 맞춘다.
-const OLD_NATIONALITIES = ['한국', '일본', '중국', '대만·홍콩', '미국·캐나다', '호주·뉴질랜드', '영국·유럽', '동남아', '기타']
-const RENAMED: Record<string, string> = { '미국·캐나다': '미국', '호주·뉴질랜드': '호주', '대만·홍콩': '대만', '영국·유럽': '영국' }
+// 시험 모드: 예전 기본 목록을 그대로 쓰고 있으면 새 기본 목록으로 바꾸고, 예시 데이터의 이름도 새 이름으로 맞춘다.
+const OLD_DEFAULTS: Partial<Record<OptionKind, { list: string[]; renamed: Record<string, string> }>> = {
+  nationality: {
+    list: ['한국', '일본', '중국', '대만·홍콩', '미국·캐나다', '호주·뉴질랜드', '영국·유럽', '동남아', '기타'],
+    renamed: { '미국·캐나다': '미국', '호주·뉴질랜드': '호주', '대만·홍콩': '대만', '영국·유럽': '영국' },
+  },
+  interest: {
+    list: ['실리프팅', '미니거상', '안면거상', '목거상·이중턱', '상안검(눈처짐)', '하안검·눈밑지방재배치', '필러', '스킨부스터', '보톡스', '안면윤곽', '코', '쌍꺼풀', '기타'],
+    renamed: { 미니거상: '안면거상', '목거상·이중턱': '안면거상', '상안검(눈처짐)': '처진눈성형', '하안검·눈밑지방재배치': '눈밑지방재배치', 필러: '필러 및 스킨부스터', 스킨부스터: '필러 및 스킨부스터', 보톡스: '필러 및 스킨부스터', 코: '코성형', 쌍꺼풀: '눈성형' },
+  },
+}
 function migrateLocal(d: LocalData): LocalData {
-  if (d.options.nationality.join() !== OLD_NATIONALITIES.join()) return d
-  return {
-    ...d,
-    options: { ...d.options, nationality: DEFAULT_OPTIONS.nationality },
-    inquiries: d.inquiries.map((i) => (i.id.startsWith('sample-') && RENAMED[i.nationality] ? { ...i, nationality: RENAMED[i.nationality] } : i)),
+  let out = d
+  for (const kind of ['nationality', 'interest'] as const) {
+    const old = OLD_DEFAULTS[kind]!
+    if (out.options[kind].join() !== old.list.join()) continue
+    out = {
+      ...out,
+      options: { ...out.options, [kind]: DEFAULT_OPTIONS[kind] },
+      inquiries: out.inquiries.map((i) => (i.id.startsWith('sample-') && old.renamed[i[kind]] ? { ...i, [kind]: old.renamed[i[kind]] } : i)),
+    }
   }
+  return out
 }
 
 function loadLocal(): LocalData {
