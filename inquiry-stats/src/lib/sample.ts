@@ -35,12 +35,12 @@ export function sampleData(): { inquiries: Inquiry[]; adCosts: AdCost[] } {
       const interest =
         nationality === '일본'
           ? pick([['실리프팅', 70], ['필러 및 스킨부스터', 30]])
-          : pick([['실리프팅', 20], ['안면거상', 25], ['처진눈성형', 15], ['눈밑지방재배치', 12], ['눈성형', 5], ['필러 및 스킨부스터', 15], ['코성형', 3], ['안면윤곽', 2], ['지방이식', 3]])
+          : pick([['실리프팅', 20], ['미니거상', 12], ['안면거상', 13], ['처진눈성형', 15], ['눈밑지방재배치', 12], ['눈성형', 5], ['필러 및 스킨부스터', 15], ['코성형', 3], ['안면윤곽', 2], ['지방이식', 3]])
       // 소개·재방문은 결제까지 잘 이어지고, 광고성 경로는 덜 이어진다 (화면 확인용 가정)
       const warm = source === '소개' || source === '구환' ? 0.25 : channel === '해외에이전시' ? 0.1 : 0
       const r = rnd() - warm
       const stage: Stage = r < 0.25 ? 'paid' : r < 0.4 ? 'visited' : r < 0.6 ? 'booked' : 'inquiry'
-      const big = ['안면거상', '처진눈성형', '눈밑지방재배치', '눈성형', '코성형', '안면윤곽', '지방이식'].includes(interest)
+      const big = ['미니거상', '안면거상', '처진눈성형', '눈밑지방재배치', '눈성형', '코성형', '안면윤곽', '지방이식'].includes(interest)
       const amount = stage === 'paid' ? Math.round((big ? 400 + rnd() * 900 : 40 + rnd() * 260) / 10) * 10 : null
       inquiries.push({
         id: `sample-${m}-${k}`,
