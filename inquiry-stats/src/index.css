@@ -314,3 +314,22 @@ fieldset.who input[aria-invalid=true] { border-color: #f59e0b; }
 @media (prefers-reduced-motion: reduce) { .stand .block { animation: none; } }
 @media (min-width: 901px) { .charts { grid-template-columns: 1fr 1fr; } .chart-tip { grid-column: 1 / -1; } }
 .chart { max-width: 100%; }
+/* ── 추이 (한 가지씩 크게) ── */
+:root { --c-revenue: #c98500; }
+.trend-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.metric-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; flex: 1 1 300px; }
+.metric { min-height: 44px; border-radius: 10px; border: 2px solid #e2e8f0; background: #fff; font-size: 16px; font-weight: 700; color: #475569; cursor: pointer; }
+.metric.on { color: #fff; }
+.metric-inquiry.on { background: var(--k-inquiry); border-color: var(--k-inquiry); }
+.metric-consult.on { background: var(--k-consult); border-color: var(--k-consult); }
+.metric-treatment.on { background: var(--k-treatment); border-color: var(--k-treatment); }
+.metric-revenue.on { background: #a36b00; border-color: #a36b00; }
+.src-select { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: #475569; }
+.src-select select { min-height: 40px; padding: 0 8px; font-size: 15px; border: 1px solid #cbd5e1; border-radius: 8px; }
+.trend { width: 100%; overflow: hidden; }
+.chart .baseline { stroke: #cbd5e1; stroke-width: 1; }
+.chart .val { font-size: 12px; font-weight: 700; fill: #1f2937; font-variant-numeric: tabular-nums; }
+.chart-tip .up { color: #15803d; }
+.chart-tip .down { color: #b91c1c; }
+.chart-tip small { color: #64748b; }
+.panel-head h2 small { font-size: 13px; font-weight: 400; }

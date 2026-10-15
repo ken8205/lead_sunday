@@ -9,8 +9,11 @@ export const GROUP_LABEL: Record<GroupKey, string> = {
 }
 export const EMPTY_GROUP = '(비어 있음)'
 
-export type Gran = 'week' | 'month' | 'year'
-export const GRAN_LABEL: Record<Gran, string> = { week: '주별', month: '월별', year: '연도별' }
+export type Gran = 'day' | 'week' | 'month' | 'year'
+export const GRAN_LABEL: Record<Gran, string> = { day: '일간', week: '주간', month: '월간', year: '연간' }
+// 추이 그래프에 보여 줄 구간 수 (오늘이 들어간 구간까지)
+export const GRAN_SPAN: Record<Gran, number> = { day: 30, week: 12, month: 12, year: 5 }
+export const GRAN_SPAN_LABEL: Record<Gran, string> = { day: '최근 30일', week: '최근 12주', month: '최근 12개월', year: '최근 5년' }
 
 export interface StatRow {
   key: string
@@ -101,45 +104,32 @@ export function lastDayOfMonth(m: string): string {
 }
 
 export function bucketOf(date: string, gran: Gran): string {
-  return gran === 'week' ? weekStart(date) : gran === 'month' ? date.slice(0, 7) : date.slice(0, 4)
+  return gran === 'day' ? date : gran === 'week' ? weekStart(date) : gran === 'month' ? date.slice(0, 7) : date.slice(0, 4)
 }
 
 export function bucketLabel(key: string, gran: Gran): string {
-  if (gran === 'week') return `${key.slice(2, 4)}.${key.slice(5, 7)}.${key.slice(8, 10)} 주`
-  if (gran === 'month') return `${key.slice(0, 4)}.${key.slice(5, 7)}`
-  return `${key}년`
+  if (gran === 'day' || gran === 'week') return `${Number(key.slice(5, 7))}/${Number(key.slice(8, 10))}${gran === 'week' ? '주' : ''}`
+  if (gran === 'month') return `${key.slice(2, 4)}.${key.slice(5, 7)}`
+  return `${key}`
 }
 
-// 기간 안의 모든 구간을 (문의가 없는 구간도) 빠짐없이 만든다.
-function buckets(from: string, to: string, gran: Gran): { key: string; partial: boolean }[] {
-  const out: { key: string; partial: boolean }[] = []
-  if (gran === 'month') for (let m = from; m <= to; m = nextMonth(m)) out.push({ key: m, partial: false })
-  else if (gran === 'year') {
-    const fy = Number(from.slice(0, 4))
-    const ty = Number(to.slice(0, 4))
-    for (let y = fy; y <= ty; y++) out.push({ key: String(y), partial: (y === fy && from.slice(5) !== '01') || (y === ty && to.slice(5) !== '12') })
-  }
-  else {
-    const first = toDay(`${from}-01`)
-    const last = toDay(lastDayOfMonth(to))
-    for (let t = toDay(weekStart(`${from}-01`)); t <= last; t += 7 * DAY) out.push({ key: fromDay(t), partial: t < first || t + 6 * DAY > last })
-  }
-  return out
-}
-
-export function trendStats(list: Entry[], costs: AdCost[], rates: Rates, from: string, to: string, gran: Gran, scope?: Scope): StatRow[] {
+// 추이: 오늘이 들어간 구간을 끝으로, 정해진 개수만큼 거꾸로 (빈 구간도 빠짐없이). 마지막 구간은 아직 진행 중.
+export function trendWindow(list: Entry[], rates: Rates, gran: Gran, today: string): StatRow[] {
+  const keys: string[] = []
+  const n = GRAN_SPAN[gran]
+  if (gran === 'day') for (let k = n - 1; k >= 0; k--) keys.push(fromDay(toDay(today) - k * DAY))
+  else if (gran === 'week') for (let k = n - 1; k >= 0; k--) keys.push(fromDay(toDay(weekStart(today)) - k * 7 * DAY))
+  else if (gran === 'month') for (let k = n - 1; k >= 0; k--) keys.push(addMonths(today.slice(0, 7), -k))
+  else for (let k = n - 1; k >= 0; k--) keys.push(String(Number(today.slice(0, 4)) - k))
+  const first = keys[0]
   const byBucket = new Map<string, Entry[]>()
-  for (const i of list) {
-    const k = bucketOf(i.date, gran)
+  for (const e of list) {
+    const k = bucketOf(e.date, gran)
+    if (k < first) continue
     if (!byBucket.has(k)) byBucket.set(k, [])
-    byBucket.get(k)!.push(i)
+    byBucket.get(k)!.push(e)
   }
-  const f = costFilter(scope)
-  return buckets(from, to, gran).map(({ key, partial }) => {
-    // 주 단위는 월 광고비를 나눌 수 없어 비워 둔다.
-    const cost = gran === 'week' || !hasCost(scope) ? null : sumCost(costs, (c) => f(c) && c.month >= from && c.month <= to && c.month.startsWith(key))
-    return { ...summarize(key, bucketLabel(key, gran), byBucket.get(key) ?? [], cost, rates), partial }
-  })
+  return keys.map((key, i) => ({ ...summarize(key, bucketLabel(key, gran), byBucket.get(key) ?? [], null, rates), partial: i === keys.length - 1 }))
 }
 
 export function nextMonth(m: string): string {

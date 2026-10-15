@@ -2,10 +2,11 @@ import { useState } from 'react'
 import type { EntriesApi } from '../store/useEntries'
 import { localDate } from '../inquiries'
 import type { Gran, GroupKey, StatRow } from '../lib/stats'
-import { GRAN_LABEL, GROUP_LABEL, SMALL_N, addMonths, groupStats, inPeriod, marketing, pct, totalRow, trendStats, won } from '../lib/stats'
+import { GRAN_LABEL, GRAN_SPAN_LABEL, GROUP_LABEL, SMALL_N, addMonths, groupStats, inPeriod, marketing, pct, totalRow, trendWindow, won } from '../lib/stats'
 import type { Route } from '../hooks/useHashRoute'
 import { buildHash } from '../hooks/useHashRoute'
-import { TrendCharts } from './TrendCharts'
+import { METRICS, TrendChart } from './TrendChart'
+import type { Metric } from './TrendChart'
 
 interface Props {
   api: EntriesApi
@@ -156,10 +157,11 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
   const q = route.query
   const from = isMonth(q.from) ? q.from : thisMonth
   const to = isMonth(q.to) && q.to >= from ? q.to : from > thisMonth ? from : thisMonth
-  const gran: Gran = q.gran === 'week' || q.gran === 'year' ? q.gran : 'month'
+  const gran: Gran = q.gran === 'day' || q.gran === 'week' || q.gran === 'year' ? q.gran : 'month'
+  const metric: Metric = METRICS.some((m) => m.key === q.metric) ? (q.metric as Metric) : 'inquiry'
   const by: GroupKey = GROUP_KEYS.includes(q.by as GroupKey) ? (q.by as GroupKey) : 'source'
   const src = q.src ?? '' // 추이 그래프에서 고른 경로 ('' = 전체)
-  const query = { from, to, gran, by, src }
+  const query = { from, to, gran, by, src, metric }
   const set = (patch: Partial<typeof query>) => go(buildHash(['stats'], { ...query, ...patch }), true)
   const [custom, setCustom] = useState(false)
 
@@ -168,9 +170,9 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
   const total = totalRow(period, api.adCosts, api.rates, from, to)
   const groups = groupStats(period, by, api.adCosts, api.rates, from, to)
   const bySource = by === 'source' ? groups : groupStats(period, 'source', api.adCosts, api.rates, from, to)
-  const trendList = src ? period.filter((e) => e.source === src) : period
-  const trend = trendStats(trendList, api.adCosts, api.rates, from, to, gran, src ? { by: 'source', value: src } : undefined)
-  const sources = bySource.filter((r) => r.inquiry + r.consult + r.treatment > 0).map((r) => r.key)
+  // 추이는 위의 기간과 상관없이 오늘을 끝으로 (일간 30일, 주간 12주, 월간 12개월, 연간 5년)
+  const trend = trendWindow(src ? api.entries.filter((e) => e.source === src) : api.entries, api.rates, gran, localDate())
+  const sources = [...new Set([...api.options.source, ...api.entries.map((e) => e.source)])]
   const year = thisMonth.slice(0, 4)
 
   const presets: [string, string, string][] = [
@@ -222,20 +224,32 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
 
       <section className="panel">
         <div className="panel-head">
-          <h2>추이</h2>
-          <Segmented value={gran} options={(['week', 'month', 'year'] as Gran[]).map((g) => [g, GRAN_LABEL[g]])} onChange={(v) => set({ gran: v })} />
+          <h2>
+            추이 <small className="sub">{GRAN_SPAN_LABEL[gran]}</small>
+          </h2>
+          <Segmented value={gran} options={(['day', 'week', 'month', 'year'] as Gran[]).map((g) => [g, GRAN_LABEL[g]])} onChange={(v) => set({ gran: v })} />
         </div>
-        <div className="src-pick" role="group" aria-label="경로 고르기">
-          <button className={`pick${src === '' ? ' on' : ''}`} onClick={() => set({ src: '' })}>
-            전체
-          </button>
-          {sources.map((s) => (
-            <button key={s} className={`pick${src === s ? ' on' : ''}`} onClick={() => set({ src: s })}>
-              {s}
-            </button>
-          ))}
+        <div className="trend-controls">
+          <div className="metric-tabs" role="tablist">
+            {METRICS.map((m) => (
+              <button key={m.key} className={`metric metric-${m.key}${metric === m.key ? ' on' : ''}`} onClick={() => set({ metric: m.key })}>
+                {m.label}
+              </button>
+            ))}
+          </div>
+          <label className="src-select">
+            경로
+            <select id="trend-source" value={src} onChange={(e) => set({ src: e.target.value })}>
+              <option value="">전체</option>
+              {sources.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
-        <TrendCharts rows={trend} showMarketing={showCost} />
+        <TrendChart rows={trend} metric={metric} unitLabel={{ day: '날', week: '주', month: '달', year: '해' }[gran]} />
       </section>
 
       <section className="panel">
