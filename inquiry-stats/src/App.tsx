@@ -7,7 +7,6 @@ import { ChangePasswordDialog } from './components/ChangePasswordDialog'
 import { useInquiries } from './store/useInquiries'
 import { useAuth } from './hooks/useAuth'
 import type { StaffUser } from './hooks/useAuth'
-import { useStaffList } from './hooks/useStaffList'
 import { isCloud } from './lib/supabase'
 import { ROLE_LABEL } from './types'
 import { buildHash, useHashRoute } from './hooks/useHashRoute'
@@ -22,8 +21,6 @@ interface MainProps {
 
 function Main({ user, onSignOut, onChangePassword }: MainProps) {
   const inquiries = useInquiries()
-  const staffList = useStaffList(isCloud)
-  const staffSuggestions = isCloud ? staffList.filter((x) => x.active).map((x) => x.name) : undefined
   const isLead = !user || user.role === 'doctor' || user.role === 'manager' // 원장·실장: 통계, 광고비, 대장 삭제 (항목 관리는 전 직원)
   const { route, go } = useHashRoute()
   const view: View = route.path[0] === 'options' ? 'options' : route.path[0] === 'stats' && isLead ? 'stats' : 'ledger'
@@ -65,7 +62,7 @@ function Main({ user, onSignOut, onChangePassword }: MainProps) {
 
       {inquiries.error && <div className="banner-error">{inquiries.error}</div>}
       {!inquiries.ready && <p className="empty-all">서버에서 불러오는 중…</p>}
-      {inquiries.ready && view === 'ledger' && <InquiryLedger api={inquiries} staffSuggestions={staffSuggestions} canDelete={isLead} canEditOptions />}
+      {inquiries.ready && view === 'ledger' && <InquiryLedger api={inquiries} canDelete={isLead} canEditOptions />}
       {inquiries.ready && view === 'stats' && <StatsPage api={inquiries} canEditCost={isLead} route={route} go={go} />}
       {inquiries.ready && view === 'options' && <OptionsPage api={inquiries} />}
 

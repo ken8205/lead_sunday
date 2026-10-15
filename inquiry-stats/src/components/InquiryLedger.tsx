@@ -1,15 +1,14 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Inquiry, Stage } from '../inquiries'
-import { STAGES, STAGE_LABEL, balanceDue, localDate, searchText, shortAt, stageFieldsFor } from '../inquiries'
+import { STAGES, STAGE_LABEL, localDate, searchText, shortAt, stageFieldsFor } from '../inquiries'
 import type { InquiriesApi } from '../store/useInquiries'
-import { addMonths, cashIn, lastDayOfMonth, won } from '../lib/stats'
+import { addMonths, won } from '../lib/stats'
 import { sampleData } from '../lib/sample'
 import { InquiryDialog } from './InquiryDialog'
 import { ConfirmButton } from './ConfirmButton'
 
 interface Props {
   api: InquiriesApi
-  staffSuggestions?: string[]
   canDelete: boolean
   canEditOptions: boolean
 }
@@ -50,14 +49,15 @@ function activeGroups(all: Inquiry[], today: string): [string, Inquiry[]][] {
     ['오늘 상담 예정', booked.filter((i) => isToday(i.consultAt)).sort((a, b) => byAt(a.consultAt, b.consultAt))],
     ['오늘 수술', reserved.filter((i) => isToday(i.surgeryDate))],
     ['최근 3일 문의 (아직 상담 예약 전)', all.filter((i) => i.stage === 'inquiry' && i.date >= daysAgo(today, 2))],
-    ['상담 예약 (다른 날)', booked.filter((i) => !isToday(i.consultAt)).sort((a, b) => byAt(a.consultAt, b.consultAt))],
-    ['수술 예약 (잔금 남음)', reserved.filter((i) => !isToday(i.surgeryDate)).sort((a, b) => byAt(a.surgeryDate, b.surgeryDate))],
+    // 예정일이 일주일 넘게 지난 예약(안 오신 분)은 빼고, 예정일이 없으면 예약한 지 30일 이내만
+    ['상담 예약 (다른 날)', booked.filter((i) => !isToday(i.consultAt) && (i.consultAt ? i.consultAt.slice(0, 10) >= daysAgo(today, 7) : (i.bookedDate ?? i.date) >= daysAgo(today, 30))).sort((a, b) => byAt(a.consultAt, b.consultAt))],
+    ['수술 예약 (수술 전)', reserved.filter((i) => !isToday(i.surgeryDate)).sort((a, b) => byAt(a.surgeryDate, b.surgeryDate))],
     ['상담 후 결정 대기 (최근 30일)', all.filter((i) => i.stage === 'visited' && (i.visitedDate ?? i.date) >= daysAgo(today, 30)).sort((a, b) => (b.visitedDate ?? '').localeCompare(a.visitedDate ?? ''))],
   ]
 }
 
 // 상담 대장: 카카오톡·LINE·전화·플랫폼 등 어디로 들어온 문의든 한 장씩 적고, 진행되면 단계를 눌러 올린다.
-export function InquiryLedger({ api, staffSuggestions, canDelete, canEditOptions }: Props) {
+export function InquiryLedger({ api, canDelete, canEditOptions }: Props) {
   const today = localDate()
   const [month, setMonth] = useState(() => today.slice(0, 7))
   const [editing, setEditing] = useState<Inquiry | 'new' | null>(null)
@@ -69,11 +69,9 @@ export function InquiryLedger({ api, staffSuggestions, canDelete, canEditOptions
   const found = query ? api.inquiries.filter((i) => searchText(i).includes(query)) : []
   const groups = activeGroups(api.inquiries, today)
   const activeCount = groups.reduce((n, [, l]) => n + l.length, 0)
-  const campaigns = useMemo(() => [...new Set(api.inquiries.map((i) => i.campaign).filter(Boolean))], [api.inquiries])
 
   const todayCount = api.inquiries.filter((i) => i.date === today).length
   const monthPaid = rows.filter((i) => i.stage === 'paid')
-  const monthCash = cashIn(api.inquiries, `${month}-01`, lastDayOfMonth(month)) // 받은 날 기준
 
   useEffect(() => {
     if (!cheer) return
@@ -86,13 +84,13 @@ export function InquiryLedger({ api, staffSuggestions, canDelete, canEditOptions
   const setStage = (i: Inquiry, stage: Stage) => {
     if (stage === i.stage) return
     if (stage === 'paid' && i.stage === 'reserved' && i.amount) {
-      // 수술 당일 잔금: 오늘 날짜로 완불
+      // 수술 당일 완불: 총액은 수술 예약 때 정해져 있으니 오늘 날짜로 바로 결제 완료
       api.update(i.id, { stage: 'paid', ...stageFieldsFor('paid', { ...i, paidDate: today, surgeryDate: i.surgeryDate ?? today }, today) })
-      setCheer(`잔금 ${won(balanceDue(i))} 받음 · 결제 완료!`)
+      setCheer(`결제 완료! ${won(i.amount)}`)
       return
     }
     if (stage === 'booked' || stage === 'reserved' || stage === 'paid' || stage === 'canceled') {
-      setEditing({ ...i, stage }) // 상담 예정 일시나 금액(총액·예약금·환불)을 입력하는 창을 띄운다
+      setEditing({ ...i, stage }) // 상담 예정 일시나 총액을 입력하는 창을 띄운다
       return
     }
     // 문의만·내원 상담: 바로 바꾸고 오늘 날짜를 남긴다 (앞 단계로 되돌리면 뒤 단계 기록은 지운다)
@@ -121,23 +119,12 @@ export function InquiryLedger({ api, staffSuggestions, canDelete, canEditOptions
             </b>
             <span className="sub">
               {[i.channel, i.nationality, i.interest, i.note].filter(Boolean).join(' · ')}
-              {i.campaign && ` · ${i.campaign}`}
             </span>
           </span>
           {i.stage === 'paid' && i.amount != null && <span className="icard-amount">{won(i.amount)}</span>}
-          {i.stage === 'canceled' && <span className="icard-amount icard-amount-canceled">환불 {won(i.refundAmount ?? 0)}</span>}
+          {(i.stage === 'reserved' || i.stage === 'canceled') && i.amount != null && <span className={`icard-amount icard-amount-${i.stage}`}>{won(i.amount)}</span>}
         </div>
         <DateLine i={i} today={today} />
-        {i.stage === 'reserved' && i.amount != null && (
-          <p className="icard-money">
-            총액 {won(i.amount)} · 예약금 {won(i.depositAmount ?? 0)} 받음{i.depositDate && ` (${Number(i.depositDate.slice(5, 7))}/${Number(i.depositDate.slice(8))})`} · <b>잔금 {won(balanceDue(i))}</b>
-          </p>
-        )}
-        {i.stage === 'canceled' && i.amount != null && (
-          <p className="icard-money">
-            총액 {won(i.amount)} · 예약금 {won(i.depositAmount ?? 0)} · 취소{i.canceledDate && ` ${Number(i.canceledDate.slice(5, 7))}/${Number(i.canceledDate.slice(8))}`}
-          </p>
-        )}
         <div className="icard-bottom">
           <div className="stepper stepper-small" role="group" aria-label="단계">
             {(i.stage === 'canceled' ? [...STAGES, 'canceled' as Stage] : STAGES).map((s) => (
@@ -150,14 +137,13 @@ export function InquiryLedger({ api, staffSuggestions, canDelete, canEditOptions
             {i.stage === 'reserved' && (
               <>
                 <button className="btn btn-small btn-pay" onClick={() => setStage(i, 'paid')}>
-                  잔금 {won(balanceDue(i))} 받기
+                  결제 완료 (수술 당일)
                 </button>
                 <button className="btn btn-small" onClick={() => setStage(i, 'canceled')}>
                   예약 취소
                 </button>
               </>
             )}
-            {i.staff && <span className="sub">{i.staff}</span>}
             <button className="btn btn-small" onClick={() => setEditing(i)}>
               수정
             </button>
@@ -236,7 +222,7 @@ export function InquiryLedger({ api, staffSuggestions, canDelete, canEditOptions
                 ▶
               </button>
               <span className="month-sum">
-                문의 <b>{rows.length}</b> · 결제 완료 <b>{monthPaid.length}</b> · 이달 받은 금액 <b>{won(monthCash.net)}</b>
+                문의 <b>{rows.length}</b> · 결제 완료 <b>{monthPaid.length}</b> · 결제 완료 매출 <b>{won(monthPaid.reduce((s, i) => s + (i.amount ?? 0), 0))}</b>
               </span>
             </div>
             {rows.length === 0 ? (
@@ -262,8 +248,6 @@ export function InquiryLedger({ api, staffSuggestions, canDelete, canEditOptions
       {editing && (
         <InquiryDialog
           initial={editing === 'new' ? undefined : editing}
-          staffSuggestions={staffSuggestions}
-          campaignSuggestions={campaigns}
           options={api.options}
           onAddOption={canEditOptions ? (kind, name) => api.setOptions(kind, [...api.options[kind], name]) : undefined}
           onClose={() => setEditing(null)}
@@ -276,7 +260,7 @@ export function InquiryLedger({ api, staffSuggestions, canDelete, canEditOptions
             } else api.update(editing.id, v)
             if (v.stage !== before?.stage) {
               if (v.stage === 'paid') setCheer(`결제 완료! ${won(v.amount ?? 0)}`)
-              if (v.stage === 'reserved') setCheer(`수술 예약 완료! 예약금 ${won(v.depositAmount ?? 0)} 받음`)
+              if (v.stage === 'reserved') setCheer(`수술 예약 완료! ${won(v.amount ?? 0)}`)
             }
             setEditing(null)
           }}

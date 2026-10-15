@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
 import type { InquiriesApi } from '../store/useInquiries'
-import { STAGE_LABEL, balanceDue, localDate } from '../inquiries'
+import { STAGE_LABEL, localDate } from '../inquiries'
 import type { Gran, GroupKey, Scope, StatRow } from '../lib/stats'
-import type { Activity, Cash } from '../lib/stats'
-import { GRAN_LABEL, GROUP_LABEL, SMALL_N, addMonths, activityIn, cashIn, lastDayOfMonth, groupStats, groupValue, inPeriod, pct, totalRow, trendStats, won } from '../lib/stats'
+import type { Activity } from '../lib/stats'
+import { GRAN_LABEL, GROUP_LABEL, SMALL_N, addMonths, activityIn, lastDayOfMonth, groupStats, groupValue, inPeriod, pct, totalRow, trendStats, won } from '../lib/stats'
 import type { Route } from '../hooks/useHashRoute'
 import { buildHash } from '../hooks/useHashRoute'
 
@@ -68,15 +68,7 @@ function Funnel({ t }: { t: StatRow }) {
   )
 }
 
-interface Money {
-  act: Activity // 이 기간에 실제로 한 일 (단계별 날짜 기준)
-  cash: Cash // 받은 날 기준으로 이 기간에 들어온 돈
-  due: { count: number; amount: number } // 지금 수술 예약 상태인 건의 남은 잔금
-}
-
-function Tiles({ t, showCost, money, dayMode }: { t: StatRow; showCost: boolean; money: Money; dayMode: boolean }) {
-  const c = money.cash
-  const a = money.act
+function Tiles({ t, showCost, act: a, dayMode }: { t: StatRow; showCost: boolean; act: Activity; dayMode: boolean }) {
   return (
     <>
     <div className="activity" aria-label={dayMode ? '이날 한 일' : '이 기간 한 일'}>
@@ -101,12 +93,6 @@ function Tiles({ t, showCost, money, dayMode }: { t: StatRow; showCost: boolean;
       <div className="tiles">
         <Tile label="문의 → 결제" value={pct(t.paid, t.total)} sub={`상담 → 결제 ${pct(t.paid, t.visited)} (${t.paid}/${t.visited}건)`} />
         <Tile label="결제 완료 매출" value={won(t.revenue)} sub={t.paid > 0 ? `${t.paid}건 · 객단가 ${won(Math.round(t.revenue / t.paid))}` : '이 기간 문의 중 완불한 건의 총액'} />
-        <Tile
-          label={dayMode ? '이날 받은 금액' : '이 기간 받은 금액'}
-          value={won(c.net)}
-          sub={`예약금 ${won(c.deposits)} · 잔금·전액 ${won(c.balances)}${c.refunds ? ` · 환불 −${won(c.refunds)}` : ''}`}
-        />
-        <Tile label="남은 잔금 (지금 수술 예약)" value={won(money.due.amount)} sub={`${money.due.count}건 · 수술 당일 받을 돈`} />
         {showCost && t.adCost != null && (
           <Tile label="광고비" value={won(t.adCost)} sub={t.adCost > 0 ? `매출 ${(t.revenue / t.adCost).toFixed(1)}배${t.paid > 0 ? ` · 결제 1건당 ${won(Math.round(t.adCost / t.paid))}` : ''}` : undefined} />
         )}
@@ -244,14 +230,9 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
   const costs = day ? [] : api.adCosts // 광고비는 월 단위라 하루 통계에는 쓰지 않는다
   const showCost = !day && canEditCost && api.adCosts.length > 0
   const total = totalRow(list, costs, from, to, scope)
-  // 돈: 받은 날 기준 (문의일과 상관없이), 남은 잔금은 지금 기준
+  // 한 일: 단계가 실제로 일어난 날 기준 (문의일과 상관없이)
   const inScope = scope ? api.inquiries.filter((i) => groupValue(i, scope.by) === scope.value) : api.inquiries
-  const reservedNow = inScope.filter((i) => i.stage === 'reserved')
-  const money = {
-    cash: day ? cashIn(inScope, day, day) : cashIn(inScope, `${from}-01`, lastDayOfMonth(to)),
-    act: day ? activityIn(inScope, day, day) : activityIn(inScope, `${from}-01`, lastDayOfMonth(to)),
-    due: { count: reservedNow.length, amount: reservedNow.reduce((s, i) => s + balanceDue(i), 0) },
-  }
+  const act = day ? activityIn(inScope, day, day) : activityIn(inScope, `${from}-01`, lastDayOfMonth(to))
   const trend = trendStats(list, api.adCosts, from, to, gran, scope)
   const year = thisMonth.slice(0, 4)
   const lastYear = String(Number(year) - 1)
@@ -298,13 +279,12 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
           ))}
         </div>
         {day && <h2 className="day-title">{day === today ? '오늘' : day === yesterday ? '어제' : ''} {dayTitle(day)}</h2>}
-        <Tiles t={total} showCost={showCost} money={money} dayMode={!!day} />
+        <Tiles t={total} showCost={showCost} act={act} dayMode={!!day} />
         <details className="fine">
           <summary>숫자 읽는 법</summary>
           <ul>
-            <li>깔때기·매출·항목별 표는 문의한 날짜로 묶습니다. 이번 달 문의가 다음 달에 결제되면 이번 달 성과로 들어가서, 최근 기간 결제율은 나중에 올라갈 수 있습니다.</li>
+            <li>깔때기·매출·항목별 표는 문의한 날짜로 묶습니다. 매출은 결제 완료한 건의 총액입니다. 이번 달 문의가 다음 달에 결제되면 이번 달 성과로 들어가서, 최근 기간 결제율은 나중에 올라갈 수 있습니다.</li>
             <li>"한 일"은 그 단계가 실제로 일어난 날 기준입니다. 예: 지난주 문의한 환자가 오늘 내원하면 오늘의 내원 상담 1건.</li>
-            <li>"받은 금액"만 받은 날 기준입니다(예약금은 받은 날, 잔금은 수술 날, 환불은 취소한 날). 엑셀 매출 장부와 맞춰 볼 숫자입니다.</li>
             <li>문의 → 결제 = 결제 완료 ÷ 문의, 상담 → 결제 = 결제 완료 ÷ 내원 상담.</li>
             <li>흐린 비율은 건수가 {SMALL_N}건 미만이라 우연에 크게 흔들리는 값입니다. 마우스를 올리면 건수가 보입니다.</li>
           </ul>

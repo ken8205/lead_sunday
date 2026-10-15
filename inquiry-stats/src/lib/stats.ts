@@ -1,13 +1,12 @@
 import type { AdCost, Inquiry } from '../inquiries'
 import { reached } from '../inquiries'
 
-export type GroupKey = 'source' | 'channel' | 'nationality' | 'interest' | 'campaign'
+export type GroupKey = 'source' | 'channel' | 'nationality' | 'interest'
 export const GROUP_LABEL: Record<GroupKey, string> = {
   source: '유입 경로',
   channel: '문의 채널',
   nationality: '국적',
   interest: '관심 시술',
-  campaign: '광고·이벤트',
 }
 export const EMPTY_GROUP = '(비어 있음)'
 
@@ -49,27 +48,6 @@ function summarize(key: string, label: string, list: Inquiry[], adCost: number |
   }
 }
 
-// 받은 날 기준으로 실제 들어온 돈 (만원). 예약금은 예약금 받은 날, 잔금·전액은 완불한 날, 환불은 취소한 날(빼기).
-// 문의일과 상관없이 날짜만 본다 (엑셀 매출 장부와 같은 기준).
-export interface Cash {
-  deposits: number
-  balances: number
-  refunds: number
-  net: number
-}
-export function cashIn(list: Inquiry[], fromDay: string, toDay: string): Cash {
-  const inRange = (d: string | null) => !!d && d >= fromDay && d <= toDay
-  let deposits = 0
-  let balances = 0
-  let refunds = 0
-  for (const i of list) {
-    if (i.depositAmount && inRange(i.depositDate)) deposits += i.depositAmount
-    if (i.stage === 'paid' && inRange(i.paidDate)) balances += Math.max(0, (i.amount ?? 0) - (i.depositAmount ?? 0))
-    if (i.stage === 'canceled' && i.refundAmount && inRange(i.canceledDate)) refunds += i.refundAmount
-  }
-  return { deposits, balances, refunds, net: deposits + balances - refunds }
-}
-
 // 그 기간에 실제로 일어난 일 (단계별 날짜 기준, 문의일과 상관없이)
 export interface Activity {
   inquiry: number
@@ -86,7 +64,7 @@ export function activityIn(list: Inquiry[], fromDay: string, toDay: string): Act
     inquiry: n((i) => inRange(i.date)),
     booked: n((i) => inRange(i.bookedDate)),
     visited: n((i) => inRange(i.visitedDate)),
-    reserved: n((i) => !!i.depositAmount && inRange(i.depositDate)),
+    reserved: n((i) => inRange(i.reservedDate)),
     paid: n((i) => i.stage === 'paid' && inRange(i.paidDate)),
     canceled: n((i) => i.stage === 'canceled' && inRange(i.canceledDate)),
   }

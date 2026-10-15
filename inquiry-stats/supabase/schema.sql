@@ -36,7 +36,6 @@ create table if not exists public.inquiries (
   birth_date date,                                   -- 생년월일 (모르면 비움)
   channel text not null default '',                  -- 문의 창구 (카카오톡, LINE, 전화 등)
   source text not null default '',                   -- 알게 된 경로 (네이버, 인스타, 지인 소개 등)
-  campaign text not null default '',                 -- 광고·이벤트 이름 (선택)
   nationality text not null default '',              -- 국적
   interest text not null default '',                 -- 관심 시술
   stage text not null default 'inquiry' check (stage in ('inquiry', 'booked', 'visited', 'reserved', 'paid', 'canceled')),
@@ -45,13 +44,10 @@ create table if not exists public.inquiries (
   visited_date date,                                 -- 내원 상담한 날
   surgery_date date,                                 -- 수술 예정일
   amount integer check (amount is null or amount >= 0), -- 수술·시술 총액 (만원)
-  deposit_amount integer check (deposit_amount is null or deposit_amount >= 0), -- 예약금 (만원)
-  deposit_date date,                                 -- 예약금 받은 날
-  paid_date date,                                    -- 완불한 날 (잔금 또는 전액)
+  reserved_date date,                                -- 수술 예약한 날
+  paid_date date,                                    -- 결제 완료(완불)한 날
   canceled_date date,                                -- 수술 예약 취소한 날
-  refund_amount integer check (refund_amount is null or refund_amount >= 0), -- 환불액 (만원)
   note text not null default '' check (char_length(note) <= 100), -- 짧은 메모 (연락처 금지)
-  staff text not null default '',                    -- 담당자
   created_by uuid default auth.uid() references public.staff (id) on delete set null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -65,10 +61,8 @@ alter table public.inquiries add column if not exists booked_date date;
 alter table public.inquiries add column if not exists consult_at text;
 alter table public.inquiries add column if not exists visited_date date;
 alter table public.inquiries add column if not exists surgery_date date;
-alter table public.inquiries add column if not exists deposit_amount integer check (deposit_amount is null or deposit_amount >= 0);
-alter table public.inquiries add column if not exists deposit_date date;
+alter table public.inquiries add column if not exists reserved_date date;
 alter table public.inquiries add column if not exists canceled_date date;
-alter table public.inquiries add column if not exists refund_amount integer check (refund_amount is null or refund_amount >= 0);
 -- 단계에 '수술 예약', '취소' 추가
 alter table public.inquiries drop constraint if exists inquiries_stage_check;
 alter table public.inquiries add constraint inquiries_stage_check check (stage in ('inquiry', 'booked', 'visited', 'reserved', 'paid', 'canceled'));

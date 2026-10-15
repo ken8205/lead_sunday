@@ -4,9 +4,10 @@
 //   문의만     문의만 하고 아직 상담 날짜를 잡지 않음
 //   상담 예약  병원 상담 날짜를 잡음 (전화·카톡 등 어떤 채널이든)
 //   내원 상담  병원에 와서 상담함 (예약 없이 바로 와도 여기)
-//   수술 예약  수술 날짜를 잡고 예약금을 받음 (보통 총액의 10%)
-//   결제 완료  완불 (수술 당일 잔금, 또는 당일 상담·당일 시술로 전액)
-//   취소       수술 예약 후 취소 (전액·일부 환불 또는 환불 없음)
+//   수술 예약  수술 날짜를 잡음 (예약금을 받은 상태)
+//   결제 완료  완불 (수술 당일, 또는 당일 상담·당일 시술)
+//   취소       수술 예약 후 취소
+// 돈은 총액 하나만 적는다 (예약금·잔금·환불 같은 장부 일은 엑셀 매출 장부에서).
 export type Stage = 'inquiry' | 'booked' | 'visited' | 'reserved' | 'paid' | 'canceled'
 export const STAGES: Stage[] = ['inquiry', 'booked', 'visited', 'reserved', 'paid'] // 진행 순서 (취소는 따로)
 export const STAGE_LABEL: Record<Stage, string> = {
@@ -17,7 +18,6 @@ export const STAGE_LABEL: Record<Stage, string> = {
   paid: '결제 완료',
   canceled: '취소',
 }
-export const DEPOSIT_RATE = 0.1 // 수술 예약금: 총액의 10%
 
 export interface Inquiry {
   id: string
@@ -26,7 +26,6 @@ export interface Inquiry {
   birthDate: string | null // 생년월일 YYYY-MM-DD (모르면 비움)
   channel: string // 문의 창구
   source: string // 알게 된 경로
-  campaign: string // 광고·이벤트 이름 (선택)
   nationality: string
   interest: string // 관심 시술
   stage: Stage // 지금까지 도달한 가장 마지막 단계
@@ -34,14 +33,11 @@ export interface Inquiry {
   consultAt: string | null // 상담 예정 일시 'YYYY-MM-DDTHH:MM' (시간은 비어 있을 수 있음: 'YYYY-MM-DD')
   visitedDate: string | null // 내원 상담한 날
   surgeryDate: string | null // 수술 예정일 (수술 예약 때)
-  amount: number | null // 수술·시술 총액 (만원). 수술 예약 때 정해진다
-  depositAmount: number | null // 예약금 (만원). 당일 전액 결제면 비어 있음
-  depositDate: string | null // 예약금 받은 날
-  paidDate: string | null // 완불한 날 (잔금 또는 전액). 엑셀 매출 장부와 맞춰 볼 때 사용
+  reservedDate: string | null // 수술 예약한 날
+  amount: number | null // 수술·시술 총액 (만원)
+  paidDate: string | null // 결제 완료(완불)한 날
   canceledDate: string | null // 수술 예약을 취소한 날
-  refundAmount: number | null // 취소 때 돌려준 금액 (만원)
   note: string // 짧은 메모 (예: 50대 여, 재문의). 연락처는 적지 않는다
-  staff: string
   createdAt: number
 }
 export type NewInquiry = Omit<Inquiry, 'id' | 'createdAt'>
@@ -73,15 +69,12 @@ export function reached(i: Inquiry, s: Stage): boolean {
   return at >= STAGES.indexOf(s)
 }
 
-// 아직 받지 않은 잔금 (수술 예약 상태일 때만)
-export const balanceDue = (i: Inquiry) => (i.stage === 'reserved' && i.amount != null ? Math.max(0, i.amount - (i.depositAmount ?? 0)) : 0)
-
 type StageFields = Pick<
   Inquiry,
-  'bookedDate' | 'consultAt' | 'visitedDate' | 'surgeryDate' | 'amount' | 'depositAmount' | 'depositDate' | 'paidDate' | 'canceledDate' | 'refundAmount'
+  'bookedDate' | 'consultAt' | 'visitedDate' | 'reservedDate' | 'surgeryDate' | 'amount' | 'paidDate' | 'canceledDate'
 >
 
-// 단계에 맞게 날짜·돈 기록을 정리한다.
+// 단계에 맞게 날짜·총액을 정리한다.
 //  - 지금 단계보다 뒤의 기록은 지운다 (단계를 되돌렸을 때)
 //  - 거친 단계인데 날짜가 비어 있으면 (예: 예약 없이 바로 내원) 다음 단계의 날짜로 채운다. 그것도 없으면 오늘.
 export function stageFieldsFor(stage: Stage, i: StageFields, today: string): StageFields {
@@ -91,19 +84,17 @@ export function stageFieldsFor(stage: Stage, i: StageFields, today: string): Sta
     bookedDate: r('booked') ? i.bookedDate : null,
     consultAt: r('booked') ? i.consultAt : null,
     visitedDate: r('visited') ? i.visitedDate : null,
+    reservedDate: stage === 'reserved' || stage === 'canceled' || (stage === 'paid' && i.reservedDate) ? i.reservedDate : null, // 당일 전액 결제는 수술 예약 없이 바로 결제 완료
     surgeryDate: r('reserved') ? i.surgeryDate : null,
     amount: money ? i.amount : null,
-    depositAmount: money ? i.depositAmount : null,
-    depositDate: money && i.depositAmount ? i.depositDate : null,
     paidDate: stage === 'paid' ? i.paidDate : null,
     canceledDate: stage === 'canceled' ? i.canceledDate : null,
-    refundAmount: stage === 'canceled' ? i.refundAmount : null,
   }
   // 늦은 단계부터 거꾸로 채운다
   if (stage === 'paid') out.paidDate ??= today
   if (stage === 'canceled') out.canceledDate ??= today
-  if (out.depositAmount) out.depositDate ??= out.paidDate ?? out.canceledDate ?? today
-  const after = out.depositDate ?? out.paidDate ?? out.canceledDate
+  if (stage === 'reserved' || stage === 'canceled') out.reservedDate ??= out.canceledDate ?? today
+  const after = out.reservedDate ?? out.paidDate ?? out.canceledDate
   if (r('visited')) out.visitedDate ??= after ?? today
   if (r('booked')) out.bookedDate ??= out.visitedDate ?? after ?? today
   return out
@@ -133,7 +124,7 @@ export function normalizeBirth(raw: string): string | null {
 export function searchText(i: Inquiry): string {
   const b = i.birthDate ?? ''
   const birthForms = b ? [b, b.replace(/-/g, ''), b.slice(2).replace(/-/g, ''), b.replace(/-/g, '.')] : []
-  return [i.patientName, ...birthForms, i.note, i.source, i.channel, i.interest, i.nationality, i.staff, i.campaign].join(' ').toLowerCase()
+  return [i.patientName, ...birthForms, i.note, i.source, i.channel, i.interest, i.nationality].join(' ').toLowerCase()
 }
 
 // 상담 예정 일시를 보기 좋게: '10/15 14:00' 또는 '10/15'

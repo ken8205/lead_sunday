@@ -25,7 +25,6 @@ interface InquiryRow {
   birth_date: string | null
   channel: string
   source: string
-  campaign: string
   nationality: string
   interest: string
   stage: Stage
@@ -34,13 +33,10 @@ interface InquiryRow {
   visited_date: string | null
   surgery_date: string | null
   amount: number | null
-  deposit_amount: number | null
-  deposit_date: string | null
+  reserved_date: string | null
   paid_date: string | null
   canceled_date: string | null
-  refund_amount: number | null
   note: string
-  staff: string
   created_at: string
 }
 
@@ -51,7 +47,6 @@ const toInquiry = (r: InquiryRow): Inquiry => ({
   birthDate: r.birth_date ?? null,
   channel: r.channel,
   source: r.source,
-  campaign: r.campaign,
   nationality: r.nationality,
   interest: r.interest,
   stage: r.stage,
@@ -60,13 +55,10 @@ const toInquiry = (r: InquiryRow): Inquiry => ({
   visitedDate: r.visited_date ?? null,
   surgeryDate: r.surgery_date ?? null,
   amount: r.amount,
-  depositAmount: r.deposit_amount ?? null,
-  depositDate: r.deposit_date ?? null,
+  reservedDate: r.reserved_date ?? null,
   paidDate: r.paid_date,
   canceledDate: r.canceled_date ?? null,
-  refundAmount: r.refund_amount ?? null,
   note: r.note,
-  staff: r.staff,
   createdAt: Date.parse(r.created_at),
 })
 
@@ -80,11 +72,9 @@ function toRow(p: Partial<NewInquiry>) {
   if (p.consultAt !== undefined) row.consult_at = p.consultAt
   if (p.visitedDate !== undefined) row.visited_date = p.visitedDate
   if (p.surgeryDate !== undefined) row.surgery_date = p.surgeryDate
-  if (p.depositAmount !== undefined) row.deposit_amount = p.depositAmount
-  if (p.depositDate !== undefined) row.deposit_date = p.depositDate
+  if (p.reservedDate !== undefined) row.reserved_date = p.reservedDate
   if (p.canceledDate !== undefined) row.canceled_date = p.canceledDate
-  if (p.refundAmount !== undefined) row.refund_amount = p.refundAmount
-  for (const k of ['channel', 'source', 'campaign', 'nationality', 'interest', 'stage', 'amount', 'note', 'staff'] as const) {
+  for (const k of ['channel', 'source', 'nationality', 'interest', 'stage', 'amount', 'note'] as const) {
     if (p[k] !== undefined) row[k] = p[k]
   }
   return row
@@ -181,7 +171,7 @@ function useCloudInquiries(): InquiriesApi {
 }
 
 // ───────── 이 브라우저 전용 모드 ─────────
-const LOCAL_KEY = 'inquiry-stats:v4' // 이름·생년월일이 생겨 예시 데이터를 새로 만든다
+const LOCAL_KEY = 'inquiry-stats:v5' // 돈 기록을 총액 하나로 줄여 예시 데이터를 새로 만든다
 
 interface LocalData {
   inquiries: Inquiry[]
@@ -223,7 +213,7 @@ function loadLocal(): LocalData {
   try {
     const v = JSON.parse(localStorage.getItem(LOCAL_KEY) ?? '')
     if (Array.isArray(v.inquiries) && Array.isArray(v.adCosts))
-      return migrateLocal({ ...v, inquiries: v.inquiries.map((i: Inquiry) => Object.assign({ patientName: '', birthDate: null, depositAmount: null, depositDate: null, canceledDate: null, refundAmount: null, bookedDate: null, consultAt: null, visitedDate: null, surgeryDate: null }, i)), options: { ...DEFAULT_OPTIONS, ...v.options } })
+      return migrateLocal({ ...v, inquiries: v.inquiries.map((i: Inquiry) => Object.assign({ patientName: '', birthDate: null, reservedDate: null, canceledDate: null, bookedDate: null, consultAt: null, visitedDate: null, surgeryDate: null }, i)), options: { ...DEFAULT_OPTIONS, ...v.options } })
   } catch {
     // 없거나 깨졌으면 빈 대장
   }

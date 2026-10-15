@@ -44,11 +44,9 @@ export function sampleData(): { inquiries: Inquiry[]; adCosts: AdCost[] } {
       const plus = (d: string, n: number) => localDate(new Date(new Date(`${d}T00:00:00`).getTime() + n * 86400000))
       let stage: Stage = r < 0.3 ? 'visited' : r < 0.5 ? 'booked' : r < 0.75 ? 'inquiry' : 'visited'
       let amount: number | null = null
-      let depositAmount: number | null = null
-      let depositDate: string | null = null
+      let reservedDate: string | null = null
       let paidDate: string | null = null
       let canceledDate: string | null = null
-      let refundAmount: number | null = null
       let surgeryDate: string | null = null
       const consultDay = plus(date, Math.floor(rnd() * 4))
       const consultAt = `${consultDay}T${pick([['10:00', 1], ['11:30', 1], ['14:00', 1], ['15:30', 1], ['17:00', 1]])}`
@@ -59,26 +57,23 @@ export function sampleData(): { inquiries: Inquiry[]; adCosts: AdCost[] } {
           stage = 'paid' // 시술: 당일 상담·당일 전액
           paidDate = consult
         } else {
-          depositAmount = Math.round(amount * 0.1)
-          depositDate = consult
+          reservedDate = consult
           const surgery = plus(consult, 7 + Math.floor(rnd() * 30))
           surgeryDate = surgery
           const c = rnd()
           if (c < 0.18) {
             stage = 'canceled'
             canceledDate = plus(consult, 3)
-            refundAmount = c < 0.09 ? depositAmount : Math.round(depositAmount / 2)
           } else if (surgery <= today) {
             stage = 'paid'
             paidDate = surgery
           } else stage = 'reserved'
         }
-        if ((paidDate ?? '') > today || (depositDate ?? '') > today || (canceledDate ?? '') > today) {
+        if ((paidDate ?? '') > today || (reservedDate ?? '') > today || (canceledDate ?? '') > today) {
           // 아직 오지 않은 날짜면 그 전 단계로
           stage = 'visited'
-          amount = depositAmount = null
-          depositDate = paidDate = canceledDate = surgeryDate = null
-          refundAmount = null
+          amount = null
+          reservedDate = paidDate = canceledDate = surgeryDate = null
         }
       }
       inquiries.push({
@@ -86,13 +81,12 @@ export function sampleData(): { inquiries: Inquiry[]; adCosts: AdCost[] } {
         date,
         channel,
         source,
-        campaign: source === '인스타' && rnd() < 0.4 ? `${Number(m.slice(5))}월 인스타 실리프팅` : '',
         nationality,
         interest,
         stage,
         ...stageFieldsFor(
           stage,
-          { bookedDate: date, consultAt, visitedDate: stage === 'booked' ? null : consultDay > today ? today : consultDay, surgeryDate, amount, depositAmount, depositDate, paidDate, canceledDate, refundAmount },
+          { bookedDate: date, consultAt, visitedDate: stage === 'booked' ? null : consultDay > today ? today : consultDay, reservedDate, surgeryDate, amount, paidDate, canceledDate },
           today,
         ),
         // 문의만 한 사람은 보통 이름을 모른다. 상담 예약 이후는 대부분 안다고 가정 (가상 이름)
@@ -103,7 +97,6 @@ export function sampleData(): { inquiries: Inquiry[]; adCosts: AdCost[] } {
               birthDate: `${1955 + Math.floor(rnd() * 45)}-${String(1 + Math.floor(rnd() * 12)).padStart(2, '0')}-${String(1 + Math.floor(rnd() * 28)).padStart(2, '0')}`,
             }),
         note: rnd() < 0.3 ? pick([['재문의', 1], ['50대 여', 1], ['가족 동반', 1], ['통역 필요', 1]]) : '',
-        staff: pick([['유빈', 50], ['도은', 35], ['정실장', 15]]),
         createdAt: k,
       })
     }

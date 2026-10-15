@@ -197,19 +197,14 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .step-canceled.on { background: #b91c1c; }
 .icard-reserved { border-left-color: #7c3aed; }
 .icard-canceled { border-left-color: #fca5a5; background: #fffafa; }
-.icard-money { margin: 0; font-size: 13px; color: #475569; font-variant-numeric: tabular-nums; }
-.icard-money b { color: #6d28d9; }
-.icard-amount-canceled { color: #b91c1c; font-weight: 600; }
+.icard-amount-canceled { color: #b91c1c; font-weight: 600; text-decoration: line-through; }
+.icard-amount-reserved { color: #6d28d9; }
 .btn-pay { background: #16a34a; border-color: #16a34a; color: #fff; font-weight: 700; }
 .f-note { margin: 2px 0 0; font-size: 12px; color: #64748b; }
 .f-note b { color: #b91c1c; }
 .pay-box { display: grid; gap: 10px; padding: 12px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; }
 .pay-box label small { color: #94a3b8; font-weight: 400; }
 .pay-note { margin: 0; }
-.refund { display: grid; gap: 6px; }
-.refund .help { margin: 0; }
-.refund-amount { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #475569; max-width: 220px; }
-.refund-amount input { min-height: 44px; padding: 0 10px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 8px; }
 /* ── 진행 중 목록·찾기·날짜 ── */
 .list-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .search { flex: 1 1 200px; max-width: 320px; min-height: 40px; padding: 0 12px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 999px; }
