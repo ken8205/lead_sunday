@@ -70,6 +70,28 @@ export function cashIn(list: Inquiry[], fromDay: string, toDay: string): Cash {
   return { deposits, balances, refunds, net: deposits + balances - refunds }
 }
 
+// 그 기간에 실제로 일어난 일 (단계별 날짜 기준, 문의일과 상관없이)
+export interface Activity {
+  inquiry: number
+  booked: number
+  visited: number
+  reserved: number
+  paid: number
+  canceled: number
+}
+export function activityIn(list: Inquiry[], fromDay: string, toDay: string): Activity {
+  const inRange = (d: string | null) => !!d && d >= fromDay && d <= toDay
+  const n = (f: (i: Inquiry) => boolean) => list.filter(f).length
+  return {
+    inquiry: n((i) => inRange(i.date)),
+    booked: n((i) => inRange(i.bookedDate)),
+    visited: n((i) => inRange(i.visitedDate)),
+    reserved: n((i) => !!i.depositAmount && inRange(i.depositDate)),
+    paid: n((i) => i.stage === 'paid' && inRange(i.paidDate)),
+    canceled: n((i) => i.stage === 'canceled' && inRange(i.canceledDate)),
+  }
+}
+
 const sumCost = (costs: AdCost[], pred: (c: AdCost) => boolean) => costs.filter(pred).reduce((s, c) => s + c.amount, 0)
 
 // 광고비는 "알게 된 경로"별로만 입력하므로, 경로로 좁힌 경우에만 그 경로 광고비를 쓴다.

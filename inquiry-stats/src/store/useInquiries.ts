@@ -27,6 +27,10 @@ interface InquiryRow {
   nationality: string
   interest: string
   stage: Stage
+  booked_date: string | null
+  consult_at: string | null
+  visited_date: string | null
+  surgery_date: string | null
   amount: number | null
   deposit_amount: number | null
   deposit_date: string | null
@@ -47,6 +51,10 @@ const toInquiry = (r: InquiryRow): Inquiry => ({
   nationality: r.nationality,
   interest: r.interest,
   stage: r.stage,
+  bookedDate: r.booked_date ?? null,
+  consultAt: r.consult_at ?? null,
+  visitedDate: r.visited_date ?? null,
+  surgeryDate: r.surgery_date ?? null,
   amount: r.amount,
   depositAmount: r.deposit_amount ?? null,
   depositDate: r.deposit_date ?? null,
@@ -62,6 +70,10 @@ function toRow(p: Partial<NewInquiry>) {
   const row: Record<string, unknown> = {}
   if (p.date !== undefined) row.inquiry_date = p.date
   if (p.paidDate !== undefined) row.paid_date = p.paidDate
+  if (p.bookedDate !== undefined) row.booked_date = p.bookedDate
+  if (p.consultAt !== undefined) row.consult_at = p.consultAt
+  if (p.visitedDate !== undefined) row.visited_date = p.visitedDate
+  if (p.surgeryDate !== undefined) row.surgery_date = p.surgeryDate
   if (p.depositAmount !== undefined) row.deposit_amount = p.depositAmount
   if (p.depositDate !== undefined) row.deposit_date = p.depositDate
   if (p.canceledDate !== undefined) row.canceled_date = p.canceledDate
@@ -163,7 +175,7 @@ function useCloudInquiries(): InquiriesApi {
 }
 
 // ───────── 이 브라우저 전용 모드 ─────────
-const LOCAL_KEY = 'inquiry-stats:v2' // 예시 데이터의 채널·경로 이름이 바뀌어 새 키로 시작한다
+const LOCAL_KEY = 'inquiry-stats:v3' // 단계 날짜가 생겨 예시 데이터를 새로 만든다
 
 interface LocalData {
   inquiries: Inquiry[]
@@ -205,7 +217,7 @@ function loadLocal(): LocalData {
   try {
     const v = JSON.parse(localStorage.getItem(LOCAL_KEY) ?? '')
     if (Array.isArray(v.inquiries) && Array.isArray(v.adCosts))
-      return migrateLocal({ ...v, inquiries: v.inquiries.map((i: Inquiry) => Object.assign({ depositAmount: null, depositDate: null, canceledDate: null, refundAmount: null }, i)), options: { ...DEFAULT_OPTIONS, ...v.options } })
+      return migrateLocal({ ...v, inquiries: v.inquiries.map((i: Inquiry) => Object.assign({ depositAmount: null, depositDate: null, canceledDate: null, refundAmount: null, bookedDate: null, consultAt: null, visitedDate: null, surgeryDate: null }, i)), options: { ...DEFAULT_OPTIONS, ...v.options } })
   } catch {
     // 없거나 깨졌으면 빈 대장
   }

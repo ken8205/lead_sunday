@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Inquiry, NewInquiry, Stage } from '../inquiries'
 import type { OptionKind, OptionLists } from '../inquiries'
-import { DEPOSIT_RATE, STAGES, STAGE_LABEL, localDate, paymentFieldsFor } from '../inquiries'
+import { DEPOSIT_RATE, STAGES, STAGE_LABEL, localDate, stageFieldsFor } from '../inquiries'
 
 interface Props {
   initial?: Inquiry // 있으면 수정
@@ -89,6 +89,10 @@ export function InquiryDialog({ initial, staffSuggestions = [], campaignSuggesti
     depositAmount: initial?.depositAmount ?? null,
     depositDate: initial?.depositDate ?? null,
     paidDate: initial?.paidDate ?? null,
+    bookedDate: initial?.bookedDate ?? null,
+    consultAt: initial?.consultAt ?? null,
+    visitedDate: initial?.visitedDate ?? null,
+    surgeryDate: initial?.surgeryDate ?? null,
     canceledDate: initial?.canceledDate ?? null,
     refundAmount: initial?.refundAmount ?? null,
     note: initial?.note ?? '',
@@ -129,13 +133,18 @@ export function InquiryDialog({ initial, staffSuggestions = [], campaignSuggesti
             canceledDate: f.canceledDate ?? today,
             refundAmount: f.refundAmount ?? dep ?? 0,
           }
-          onSubmit({ ...filled, ...paymentFieldsFor(f.stage, filled), campaign: f.campaign.trim(), note: f.note.trim(), staff: f.staff.trim() })
+          onSubmit({ ...filled, ...stageFieldsFor(f.stage, filled, today), campaign: f.campaign.trim(), note: f.note.trim(), staff: f.staff.trim() })
         }}
       >
         <div className="sheet-head">
           <h2>{initial ? '문의 수정' : '새 문의'}</h2>
           <span className="help">{f.date === today ? '오늘' : f.date}</span>
         </div>
+
+        <label className="who">
+          이니셜·구분 <small>(선택 · 나중에 이 카드를 찾을 때 씁니다)</small>
+          <input id="inq-note" maxLength={100} value={f.note} placeholder="예: K.H. 50대 여" onChange={(e) => set('note', e.target.value)} />
+        </label>
 
         <Chips label="문의 채널" value={f.channel} options={options.channel} onChange={(v) => set('channel', v)} onAdd={onAddOption && ((n) => onAddOption('channel', n))} required />
         <Chips label="유입 경로" value={f.source} options={options.source} onChange={(v) => set('source', v)} onAdd={onAddOption && ((n) => onAddOption('source', n))} required />
@@ -152,6 +161,37 @@ export function InquiryDialog({ initial, staffSuggestions = [], campaignSuggesti
             ))}
           </div>
         </fieldset>
+
+        {(f.stage === 'booked' || f.stage === 'visited') && (
+          <div className="pay-box">
+            <div className="form-grid">
+              <label>
+                상담 {f.stage === 'booked' ? '예정일' : '한 날'}
+                <input
+                  id="inq-consult-day"
+                  type="date"
+                  min={f.date}
+                  value={(f.consultAt ?? '').slice(0, 10) || (f.stage === 'visited' ? (f.visitedDate ?? today) : '')}
+                  onChange={(e) => set('consultAt', e.target.value ? e.target.value + (f.consultAt && f.consultAt.length > 10 ? f.consultAt.slice(10) : '') : null)}
+                />
+              </label>
+              <label>
+                시간 <small>(선택)</small>
+                <input
+                  id="inq-consult-time"
+                  type="time"
+                  step={600}
+                  value={(f.consultAt ?? '').slice(11, 16)}
+                  onChange={(e) => {
+                    const day = (f.consultAt ?? '').slice(0, 10) || (f.stage === 'visited' ? (f.visitedDate ?? today) : today)
+                    set('consultAt', e.target.value ? `${day}T${e.target.value}` : day)
+                  }}
+                />
+              </label>
+            </div>
+            {f.stage === 'booked' && <p className="help pay-note">예정 일시를 적어 두면 대장의 "진행 중"에서 그날 상담 순서대로 찾을 수 있습니다.</p>}
+          </div>
+        )}
 
         {money && (
           <div className="pay-box">
@@ -205,6 +245,12 @@ export function InquiryDialog({ initial, staffSuggestions = [], campaignSuggesti
                 </label>
               )}
             </div>
+            {(f.stage === 'reserved' || (f.stage === 'paid' && split)) && (
+              <label className="surgery-date">
+                수술 {f.stage === 'reserved' ? '예정일' : '날'}
+                <input id="inq-surgery" type="date" value={f.surgeryDate ?? ''} min={f.date} onChange={(e) => set('surgeryDate', e.target.value || null)} />
+              </label>
+            )}
             {f.stage === 'reserved' && <p className="help pay-note">잔금 {balance.toLocaleString('ko-KR')}만원은 수술 당일 받으면 카드의 "잔금 받기"를 누르세요.</p>}
             {f.stage === 'canceled' && (
               <div className="refund">
@@ -255,15 +301,23 @@ export function InquiryDialog({ initial, staffSuggestions = [], campaignSuggesti
                 ))}
               </datalist>
             </label>
-            <label>
-              메모 (이니셜 정도만)
-              <input id="inq-note" maxLength={100} value={f.note} placeholder="예: K.H. / 재문의" onChange={(e) => set('note', e.target.value)} />
-            </label>
+            {f.bookedDate && (
+              <label>
+                상담 예약한 날
+                <input id="inq-booked" type="date" value={f.bookedDate} min={f.date} max={today} onChange={(e) => set('bookedDate', e.target.value || null)} />
+              </label>
+            )}
+            {f.visitedDate && (
+              <label>
+                내원 상담한 날
+                <input id="inq-visited" type="date" value={f.visitedDate} min={f.date} max={today} onChange={(e) => set('visitedDate', e.target.value || null)} />
+              </label>
+            )}
             <p className="help wide">이름·연락처·생년월일은 적지 마세요. 통계용으로 오래 보관하는 대장입니다.</p>
           </div>
         ) : (
           <button type="button" className="linkish" onClick={() => setMore(true)}>
-            + 날짜·광고 이름·담당자·메모
+            + 문의일·단계 날짜·광고 이름·담당자
           </button>
         )}
 

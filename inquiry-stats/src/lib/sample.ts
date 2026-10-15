@@ -1,5 +1,5 @@
 import type { AdCost, Inquiry, Stage } from '../inquiries'
-import { localDate } from '../inquiries'
+import { localDate, stageFieldsFor } from '../inquiries'
 import { addMonths } from './stats'
 
 // 화면 확인용 가상 데이터 (실제 환자 아님). 최근 6개월치를 만든다. 매번 같은 결과가 나오도록 간단한 난수를 쓴다.
@@ -49,6 +49,9 @@ export function sampleData(): { inquiries: Inquiry[]; adCosts: AdCost[] } {
       let paidDate: string | null = null
       let canceledDate: string | null = null
       let refundAmount: number | null = null
+      let surgeryDate: string | null = null
+      const consultDay = plus(date, Math.floor(rnd() * 4))
+      const consultAt = `${consultDay}T${pick([['10:00', 1], ['11:30', 1], ['14:00', 1], ['15:30', 1], ['17:00', 1]])}`
       if (r < 0.25) {
         amount = Math.round((big ? 400 + rnd() * 900 : 40 + rnd() * 260) / 10) * 10
         const consult = plus(date, Math.floor(rnd() * 5))
@@ -59,6 +62,7 @@ export function sampleData(): { inquiries: Inquiry[]; adCosts: AdCost[] } {
           depositAmount = Math.round(amount * 0.1)
           depositDate = consult
           const surgery = plus(consult, 7 + Math.floor(rnd() * 30))
+          surgeryDate = surgery
           const c = rnd()
           if (c < 0.18) {
             stage = 'canceled'
@@ -73,7 +77,7 @@ export function sampleData(): { inquiries: Inquiry[]; adCosts: AdCost[] } {
           // 아직 오지 않은 날짜면 그 전 단계로
           stage = 'visited'
           amount = depositAmount = null
-          depositDate = paidDate = canceledDate = null
+          depositDate = paidDate = canceledDate = surgeryDate = null
           refundAmount = null
         }
       }
@@ -86,13 +90,12 @@ export function sampleData(): { inquiries: Inquiry[]; adCosts: AdCost[] } {
         nationality,
         interest,
         stage,
-        amount,
-        depositAmount,
-        depositDate,
-        paidDate,
-        canceledDate,
-        refundAmount,
-        note: '예시',
+        ...stageFieldsFor(
+          stage,
+          { bookedDate: date, consultAt, visitedDate: stage === 'booked' ? null : consultDay > today ? today : consultDay, surgeryDate, amount, depositAmount, depositDate, paidDate, canceledDate, refundAmount },
+          today,
+        ),
+        note: `예시 ${String.fromCharCode(65 + Math.floor(rnd() * 26))}.${String.fromCharCode(65 + Math.floor(rnd() * 26))}.`,
         staff: pick([['유빈', 50], ['도은', 35], ['정실장', 15]]),
         createdAt: k,
       })

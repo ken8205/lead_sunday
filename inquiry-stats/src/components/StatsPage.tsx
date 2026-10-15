@@ -2,8 +2,8 @@ import { useMemo, useState } from 'react'
 import type { InquiriesApi } from '../store/useInquiries'
 import { STAGE_LABEL, balanceDue, localDate } from '../inquiries'
 import type { Gran, GroupKey, Scope, StatRow } from '../lib/stats'
-import type { Cash } from '../lib/stats'
-import { GRAN_LABEL, GROUP_LABEL, SMALL_N, addMonths, cashIn, lastDayOfMonth, groupStats, groupValue, inPeriod, pct, totalRow, trendStats, won } from '../lib/stats'
+import type { Activity, Cash } from '../lib/stats'
+import { GRAN_LABEL, GROUP_LABEL, SMALL_N, addMonths, activityIn, cashIn, lastDayOfMonth, groupStats, groupValue, inPeriod, pct, totalRow, trendStats, won } from '../lib/stats'
 import type { Route } from '../hooks/useHashRoute'
 import { buildHash } from '../hooks/useHashRoute'
 
@@ -69,13 +69,33 @@ function Funnel({ t }: { t: StatRow }) {
 }
 
 interface Money {
+  act: Activity // 이 기간에 실제로 한 일 (단계별 날짜 기준)
   cash: Cash // 받은 날 기준으로 이 기간에 들어온 돈
   due: { count: number; amount: number } // 지금 수술 예약 상태인 건의 남은 잔금
 }
 
 function Tiles({ t, showCost, money, dayMode }: { t: StatRow; showCost: boolean; money: Money; dayMode: boolean }) {
   const c = money.cash
+  const a = money.act
   return (
+    <>
+    <div className="activity" aria-label={dayMode ? '이날 한 일' : '이 기간 한 일'}>
+      <span className="activity-title">{dayMode ? '이날 한 일' : '이 기간 한 일'}</span>
+      {(
+        [
+          ['문의', a.inquiry],
+          ['상담 예약', a.booked],
+          ['내원 상담', a.visited],
+          ['수술 예약', a.reserved],
+          ['결제 완료', a.paid],
+          ['취소', a.canceled],
+        ] as [string, number][]
+      ).map(([l, n]) => (
+        <span key={l} className="act">
+          {l} <b>{n}</b>
+        </span>
+      ))}
+    </div>
     <div className="summary-grid">
       <Funnel t={t} />
       <div className="tiles">
@@ -92,6 +112,7 @@ function Tiles({ t, showCost, money, dayMode }: { t: StatRow; showCost: boolean;
         )}
       </div>
     </div>
+    </>
   )
 }
 
@@ -228,6 +249,7 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
   const reservedNow = inScope.filter((i) => i.stage === 'reserved')
   const money = {
     cash: day ? cashIn(inScope, day, day) : cashIn(inScope, `${from}-01`, lastDayOfMonth(to)),
+    act: day ? activityIn(inScope, day, day) : activityIn(inScope, `${from}-01`, lastDayOfMonth(to)),
     due: { count: reservedNow.length, amount: reservedNow.reduce((s, i) => s + balanceDue(i), 0) },
   }
   const trend = trendStats(list, api.adCosts, from, to, gran, scope)
@@ -281,6 +303,7 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
           <summary>숫자 읽는 법</summary>
           <ul>
             <li>깔때기·매출·항목별 표는 문의한 날짜로 묶습니다. 이번 달 문의가 다음 달에 결제되면 이번 달 성과로 들어가서, 최근 기간 결제율은 나중에 올라갈 수 있습니다.</li>
+            <li>"한 일"은 그 단계가 실제로 일어난 날 기준입니다. 예: 지난주 문의한 환자가 오늘 내원하면 오늘의 내원 상담 1건.</li>
             <li>"받은 금액"만 받은 날 기준입니다(예약금은 받은 날, 잔금은 수술 날, 환불은 취소한 날). 엑셀 매출 장부와 맞춰 볼 숫자입니다.</li>
             <li>문의 → 결제 = 결제 완료 ÷ 문의, 상담 → 결제 = 결제 완료 ÷ 내원 상담.</li>
             <li>흐린 비율은 건수가 {SMALL_N}건 미만이라 우연에 크게 흔들리는 값입니다. 마우스를 올리면 건수가 보입니다.</li>
