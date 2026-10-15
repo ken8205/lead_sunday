@@ -92,13 +92,15 @@ create policy "staff can update inquiries" on public.inquiries for update to aut
 drop policy if exists "lead can delete inquiries" on public.inquiries;
 create policy "lead can delete inquiries" on public.inquiries for delete to authenticated using (public.is_active_lead());
 
--- 선택지: 직원 누구나 읽고, 바꾸는 것은 원장·실장만
+-- 선택지: 직원 누구나 읽고 바꿀 수 있다
 drop policy if exists "staff can read option_lists" on public.option_lists;
 create policy "staff can read option_lists" on public.option_lists for select to authenticated using (public.is_active_staff());
 drop policy if exists "lead can write option_lists" on public.option_lists;
-create policy "lead can write option_lists" on public.option_lists for insert to authenticated with check (public.is_active_lead());
+drop policy if exists "staff can write option_lists" on public.option_lists;
+create policy "staff can write option_lists" on public.option_lists for insert to authenticated with check (public.is_active_staff());
 drop policy if exists "lead can update option_lists" on public.option_lists;
-create policy "lead can update option_lists" on public.option_lists for update to authenticated using (public.is_active_lead()) with check (public.is_active_lead());
+drop policy if exists "staff can update option_lists" on public.option_lists;
+create policy "staff can update option_lists" on public.option_lists for update to authenticated using (public.is_active_staff()) with check (public.is_active_staff());
 
 -- 광고비: 원장·실장만 보고 입력
 drop policy if exists "lead can read ad_costs" on public.ad_costs;

@@ -4,7 +4,7 @@ import { OPTION_KINDS, OPTION_LABEL } from '../inquiries'
 import type { InquiriesApi } from '../store/useInquiries'
 import { ConfirmButton } from './ConfirmButton'
 
-// 입력 화면 선택지 관리 (원장·실장). 여기서 정한 순서대로 "새 문의" 화면에 버튼이 나온다.
+// 입력 화면 선택지 관리 (전 직원). 여기서 정한 순서대로 "새 문의" 화면에 버튼이 나온다.
 export function OptionsPage({ api }: { api: InquiriesApi }) {
   const [kind, setKind] = useState<OptionKind>('channel')
   const [draft, setDraft] = useState('')

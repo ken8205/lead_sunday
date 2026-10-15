@@ -8,7 +8,7 @@ interface Props {
   staffSuggestions?: string[]
   campaignSuggestions: string[]
   options: OptionLists
-  onAddOption?: (kind: OptionKind, name: string) => void // 원장·실장만: 입력하다가 목록에 바로 추가
+  onAddOption?: (kind: OptionKind, name: string) => void // 입력하다가 목록에 바로 추가 (전 직원)
   onSubmit: (i: NewInquiry) => void
   onClose: () => void
 }
