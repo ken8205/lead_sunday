@@ -15,6 +15,8 @@ interface Props {
 
 const GROUP_KEYS = Object.keys(GROUP_LABEL) as GroupKey[]
 const isMonth = (s?: string) => !!s && /^\d{4}-\d{2}$/.test(s)
+const isDay = (s?: string) => !!s && /^\d{4}-\d{2}-\d{2}$/.test(s)
+const dayTitle = (d: string) => `${Number(d.slice(5, 7))}월 ${Number(d.slice(8))}일 (${'일월화수목금토'[new Date(`${d}T00:00:00`).getDay()]})`
 
 function Tile({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
@@ -61,12 +63,13 @@ function Funnel({ t }: { t: StatRow }) {
   )
 }
 
-function Tiles({ t, showCost }: { t: StatRow; showCost: boolean }) {
+function Tiles({ t, showCost, paidOn }: { t: StatRow; showCost: boolean; paidOn?: { count: number; amount: number } }) {
   return (
     <div className="summary-grid">
       <Funnel t={t} />
       <div className="tiles">
         <Tile label="매출" value={won(t.revenue)} sub={t.paid > 0 ? `객단가 ${won(Math.round(t.revenue / t.paid))}` : undefined} />
+        {paidOn && <Tile label="이날 결제 (결제일 기준)" value={`${paidOn.count}건`} sub={paidOn.count ? won(paidOn.amount) : '예전 문의의 결제 포함'} />}
         <Tile label="결제율" value={pct(t.paid, t.total)} sub={`내원 상담 중 결제 ${pct(t.paid, t.visited)}`} />
         {showCost && t.adCost != null && (
           <Tile label="광고비" value={won(t.adCost)} sub={t.adCost > 0 ? `매출 ${(t.revenue / t.adCost).toFixed(1)}배${t.paid > 0 ? ` · 결제 1건당 ${won(Math.round(t.adCost / t.paid))}` : ''}` : undefined} />
@@ -186,15 +189,27 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
   const [, detailBy, detailValue] = route.path
   const scope: Scope | undefined = GROUP_KEYS.includes(detailBy as GroupKey) && detailValue ? { by: detailBy as GroupKey, value: detailValue } : undefined
 
-  const query = { from, to, gran, by }
+  const today = localDate()
+  const day = isDay(q.day) ? q.day : undefined // 하루만 볼 때 (오늘·어제 등)
+  const yesterday = localDate(new Date(Date.now() - 86400000))
+
+  const query: { from: string; to: string; gran: Gran; by: GroupKey; day?: string } = { from, to, gran, by, day }
   const set = (patch: Partial<typeof query>) => go(buildHash(route.path, { ...query, ...patch }), true)
   const overviewHash = buildHash(['stats'], query)
   const detailHash = (b: GroupKey, v: string) => buildHash(['stats', b, v], query)
 
-  const period = api.inquiries.filter((i) => inPeriod(i.date, from, to))
+  const period = api.inquiries.filter((i) => (day ? i.date === day : inPeriod(i.date, from, to)))
   const list = scope ? period.filter((i) => groupValue(i, scope.by) === scope.value) : period
-  const showCost = canEditCost && api.adCosts.length > 0
-  const total = totalRow(list, api.adCosts, from, to, scope)
+  const costs = day ? [] : api.adCosts // 광고비는 월 단위라 하루 통계에는 쓰지 않는다
+  const showCost = !day && canEditCost && api.adCosts.length > 0
+  const total = totalRow(list, costs, from, to, scope)
+  // 하루를 볼 때: 그날 결제한 건 (문의는 예전에 했어도 결제일이 그날인 것)
+  const paidOn = day
+    ? (() => {
+        const xs = api.inquiries.filter((i) => i.stage === 'paid' && i.paidDate === day && (!scope || groupValue(i, scope.by) === scope.value))
+        return { count: xs.length, amount: xs.reduce((s, i) => s + (i.amount ?? 0), 0) }
+      })()
+    : undefined
   const trend = trendStats(list, api.adCosts, from, to, gran, scope)
   const year = thisMonth.slice(0, 4)
   const lastYear = String(Number(year) - 1)
@@ -223,16 +238,25 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
 
       <section className="panel">
         <div className="period">
-          <input type="month" aria-label="시작 달" value={from} onChange={(e) => e.target.value && set({ from: e.target.value, to: e.target.value > to ? e.target.value : to })} />
+          <button className={`btn btn-small${day === today ? ' btn-active' : ''}`} onClick={() => set({ day: today })}>
+            오늘
+          </button>
+          <button className={`btn btn-small${day === yesterday ? ' btn-active' : ''}`} onClick={() => set({ day: yesterday })}>
+            어제
+          </button>
+          <input type="date" id="stats-day" aria-label="하루 고르기" className={day ? 'on' : ''} value={day ?? ''} max={today} onChange={(e) => set({ day: e.target.value || undefined })} />
+          <span className="period-sep" aria-hidden="true" />
+          <input type="month" id="stats-from" aria-label="시작 달" className={day ? 'dim' : ''} value={from} onChange={(e) => e.target.value && set({ day: undefined, from: e.target.value, to: e.target.value > to ? e.target.value : to })} />
           <span>~</span>
-          <input type="month" aria-label="끝 달" value={to} onChange={(e) => e.target.value && set({ to: e.target.value, from: e.target.value < from ? e.target.value : from })} />
+          <input type="month" id="stats-to" aria-label="끝 달" className={day ? 'dim' : ''} value={to} onChange={(e) => e.target.value && set({ day: undefined, to: e.target.value, from: e.target.value < from ? e.target.value : from })} />
           {presets.map(([label, f, t]) => (
-            <button key={label} className={`btn btn-small${f === from && t === to ? ' btn-active' : ''}`} onClick={() => set({ from: f, to: t })}>
+            <button key={label} className={`btn btn-small${!day && f === from && t === to ? ' btn-active' : ''}`} onClick={() => set({ day: undefined, from: f, to: t })}>
               {label}
             </button>
           ))}
         </div>
-        <Tiles t={total} showCost={showCost} />
+        {day && <h2 className="day-title">{day === today ? '오늘' : day === yesterday ? '어제' : ''} {dayTitle(day)}</h2>}
+        <Tiles t={total} showCost={showCost} paidOn={paidOn} />
         <details className="fine">
           <summary>숫자 읽는 법</summary>
           <ul>
@@ -249,18 +273,19 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
             <Segmented value={by} options={GROUP_KEYS.map((k) => [k, GROUP_LABEL[k]])} onChange={(v) => set({ by: v })} />
           </div>
           {(() => {
-            const rows = groupStats(period, by, api.adCosts, from, to)
+            const rows = groupStats(period, by, costs, from, to)
             return <Podium rows={rows} linkFor={(r) => detailHash(by, r.key)} />
           })()}
           <p className="help">이름을 누르면 상세 페이지로 갑니다.</p>
-          {period.length === 0 && by !== 'source' ? (
-            <p className="empty-all">이 기간의 문의가 없습니다.</p>
+          {period.length === 0 && (by !== 'source' || day) ? (
+            <p className="empty-all">{day ? '이날 들어온 문의가 없습니다.' : '이 기간의 문의가 없습니다.'}</p>
           ) : (
-            <StatTable rows={groupStats(period, by, api.adCosts, from, to)} first={GROUP_LABEL[by]} showCost={by === 'source' && showCost} linkFor={(r) => detailHash(by, r.key)} />
+            <StatTable rows={groupStats(period, by, costs, from, to)} first={GROUP_LABEL[by]} showCost={by === 'source' && showCost} linkFor={(r) => detailHash(by, r.key)} />
           )}
         </section>
       )}
 
+      {!day && (
       <section className="panel">
         <div className="panel-head">
           <h2>추이</h2>
@@ -269,6 +294,7 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
         {gran === 'week' && <p className="help">주는 월요일 시작. 광고비는 월 단위라 주별에는 없습니다.</p>}
         <StatTable rows={trend} first={GRAN_LABEL[gran].replace('별', '')} showCost={showCost && gran !== 'week' && (!scope || scope.by === 'source')} />
       </section>
+      )}
 
       {scope && <DetailBreakdown list={list} scope={scope} detailHash={detailHash} from={from} to={to} />}
 

@@ -184,3 +184,10 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .opt-add { margin-bottom: 4px; }
 .opt-add + .help, .opt-add + .opt-list { margin-top: 8px; }
 .help.ok { color: #15803d; }
+/* ── 하루 통계 ── */
+.period input[type=date] { min-height: 40px; padding: 0 10px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 8px; }
+.period input.on { border-color: #1e293b; box-shadow: inset 0 0 0 1px #1e293b; }
+.period input.dim { opacity: 0.5; }
+.period-sep { width: 1px; align-self: stretch; background: #e2e8f0; margin: 0 4px; }
+.day-title { margin: 0 0 10px; font-size: 18px; }
+@media (max-width: 700px) { .period-sep { flex-basis: 100%; height: 0; width: auto; margin: 0; background: none; } }
