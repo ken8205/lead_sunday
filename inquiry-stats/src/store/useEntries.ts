@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
 import { isCloud, supabase } from '../lib/supabase'
-import type { AdCost, Entry, Kind, NewEntry, OptionKind, OptionLists } from '../inquiries'
-import { DEFAULT_OPTIONS, OPTION_KINDS } from '../inquiries'
+import type { AdCost, Entry, Kind, NewEntry, OptionKind, OptionLists, Rates } from '../inquiries'
+import { DEFAULT_OPTIONS, DEFAULT_RATES, OPTION_KINDS } from '../inquiries'
 import { sampleData } from '../lib/sample'
 
 export interface EntriesApi {
   entries: Entry[]
   adCosts: AdCost[]
   options: OptionLists // 입력 화면 선택지
+  rates: Rates // 경로별 수수료율 (%)
   ready: boolean
   error: string | null
   add: (e: NewEntry[]) => void // 여러 장을 한 번에 (예: 워크인 상담 = 상담 + 문의)
@@ -15,6 +16,7 @@ export interface EntriesApi {
   remove: (id: string) => void
   setAdCost: (month: string, source: string, amount: number) => void // 0이면 지운다
   setOptions: (kind: OptionKind, items: string[]) => void
+  setRate: (source: string, rate: number) => void // 0이면 지운다
   replaceAll?: (d: { entries: Entry[]; adCosts: AdCost[] }) => void // 이 브라우저 전용 모드에서만 (예시 채우기·비우기)
 }
 
@@ -71,11 +73,12 @@ function useCloudEntries(): EntriesApi {
   const [entries, setEntries] = useState<Entry[]>([])
   const [adCosts, setAdCosts] = useState<AdCost[]>([])
   const [options, setOptionsState] = useState<OptionLists>(DEFAULT_OPTIONS)
+  const [rates, setRates] = useState<Rates>(DEFAULT_RATES)
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
-    const [q, c, o] = await Promise.all([sb.from('entries').select('*'), sb.from('ad_costs').select('*'), sb.from('option_lists').select('kind, items')])
+    const [q, c, o, r] = await Promise.all([sb.from('entries').select('*'), sb.from('ad_costs').select('*'), sb.from('option_lists').select('kind, items'), sb.from('commission_rates').select('source, rate')])
     if (q.error) {
       setError('기록을 불러오지 못했습니다. (서버에 schema.sql을 실행했는지 확인)')
       return
@@ -84,6 +87,7 @@ function useCloudEntries(): EntriesApi {
     setEntries((q.data as EntryRow[]).map(toEntry).sort(byNewest))
     if (!c.error) setAdCosts(c.data as AdCost[]) // 원장·실장이 아니면 광고비는 읽을 수 없다
     if (!o.error) setOptionsState(mergeOptions(o.data as { kind: OptionKind; items: string[] }[]))
+    if (!r.error && r.data.length) setRates(Object.fromEntries((r.data as { source: string; rate: number }[]).map((x) => [x.source, Number(x.rate)])))
     setReady(true)
   }, [sb])
 
@@ -110,6 +114,17 @@ function useCloudEntries(): EntriesApi {
     entries,
     adCosts,
     options,
+    rates,
+    setRate: (source, rate) => {
+      setRates((x) => {
+        const n = { ...x }
+        if (rate > 0) n[source] = rate
+        else delete n[source]
+        return n
+      })
+      const q = rate > 0 ? sb.from('commission_rates').upsert({ source, rate }) : sb.from('commission_rates').delete().eq('source', source)
+      q.then(({ error: e }) => report(e, '수수료율 저장'))
+    },
     ready,
     error,
     add: (list) => {
@@ -144,16 +159,17 @@ interface LocalData {
   entries: Entry[]
   adCosts: AdCost[]
   options: OptionLists
+  rates: Rates
 }
 
 function loadLocal(): LocalData {
   try {
     const v = JSON.parse(localStorage.getItem(LOCAL_KEY) ?? '')
-    if (Array.isArray(v.entries) && Array.isArray(v.adCosts)) return { ...v, options: { ...DEFAULT_OPTIONS, ...v.options } }
+    if (Array.isArray(v.entries) && Array.isArray(v.adCosts)) return { ...v, options: { ...DEFAULT_OPTIONS, ...v.options }, rates: v.rates ?? DEFAULT_RATES }
   } catch {
     // 없거나 깨졌으면 예시로 시작
   }
-  return { ...sampleData(), options: DEFAULT_OPTIONS } // 처음 열면 예시로 채워 화면을 바로 볼 수 있게 한다 (시험 모드 전용, 가상 데이터)
+  return { ...sampleData(), options: DEFAULT_OPTIONS, rates: DEFAULT_RATES } // 처음 열면 예시로 채워 화면을 바로 볼 수 있게 한다 (시험 모드 전용, 가상 데이터)
 }
 
 function useLocalEntries(): EntriesApi {
@@ -170,6 +186,14 @@ function useLocalEntries(): EntriesApi {
     entries: data.entries,
     adCosts: data.adCosts,
     options: data.options,
+    rates: data.rates,
+    setRate: (source, rate) =>
+      setData((d) => {
+        const n = { ...d.rates }
+        if (rate > 0) n[source] = rate
+        else delete n[source]
+        return { ...d, rates: n }
+      }),
     ready: true,
     error: null,
     add: (list) => setData((d) => ({ ...d, entries: [...list.map((e, k) => ({ ...e, id: crypto.randomUUID(), createdAt: Date.now() + k })), ...d.entries].sort(byNewest) })),

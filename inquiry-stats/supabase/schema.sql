@@ -55,6 +55,13 @@ create table if not exists public.ad_costs (
   primary key (month, source)
 );
 
+-- 경로별 수수료율 (%): 그 경로 환자의 시술 총액 × 수수료율 = 마케팅비 (예: 메이비 30, 미뷰 40)
+create table if not exists public.commission_rates (
+  source text primary key,
+  rate numeric not null check (rate > 0 and rate <= 100)
+);
+insert into public.commission_rates (source, rate) values ('메이비', 30), ('미뷰', 40) on conflict (source) do nothing;
+
 -- 입력 화면 선택지 (문의 채널, 유입 경로, 국적, 관심 시술). 순서 그대로 화면에 나온다.
 -- 한 번도 저장하지 않은 종류는 앱의 기본 목록을 쓴다.
 create table if not exists public.option_lists (
@@ -75,6 +82,7 @@ $$;
 
 alter table public.entries enable row level security;
 alter table public.ad_costs enable row level security;
+alter table public.commission_rates enable row level security;
 alter table public.option_lists enable row level security;
 
 -- 기록: 활성 직원 누구나 입력·수정·삭제 (잘못 적은 카드를 바로 지울 수 있게)
@@ -96,6 +104,16 @@ create policy "staff can write option_lists" on public.option_lists for insert t
 drop policy if exists "lead can update option_lists" on public.option_lists;
 drop policy if exists "staff can update option_lists" on public.option_lists;
 create policy "staff can update option_lists" on public.option_lists for update to authenticated using (public.is_active_staff()) with check (public.is_active_staff());
+
+-- 수수료율: 원장·실장만 보고 입력
+drop policy if exists "lead can read commission_rates" on public.commission_rates;
+create policy "lead can read commission_rates" on public.commission_rates for select to authenticated using (public.is_active_lead());
+drop policy if exists "lead can write commission_rates" on public.commission_rates;
+create policy "lead can write commission_rates" on public.commission_rates for insert to authenticated with check (public.is_active_lead());
+drop policy if exists "lead can update commission_rates" on public.commission_rates;
+create policy "lead can update commission_rates" on public.commission_rates for update to authenticated using (public.is_active_lead()) with check (public.is_active_lead());
+drop policy if exists "lead can delete commission_rates" on public.commission_rates;
+create policy "lead can delete commission_rates" on public.commission_rates for delete to authenticated using (public.is_active_lead());
 
 -- 광고비: 원장·실장만 보고 입력
 drop policy if exists "lead can read ad_costs" on public.ad_costs;

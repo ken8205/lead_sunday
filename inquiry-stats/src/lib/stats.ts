@@ -1,4 +1,4 @@
-import type { AdCost, Entry } from '../inquiries'
+import type { AdCost, Entry, Rates } from '../inquiries'
 
 export type GroupKey = 'source' | 'channel' | 'nationality' | 'interest'
 export const GROUP_LABEL: Record<GroupKey, string> = {
@@ -19,6 +19,7 @@ export interface StatRow {
   consult: number // 상담 카드 수
   treatment: number // 시술 카드 수
   revenue: number // 시술 총액 합 (만원)
+  commission: number // 수수료 (시술 총액 × 그 경로 수수료율, 만원)
   adCost: number | null // 광고비 (만원). 알 수 없으면 null (경로가 아닌 항목, 주 단위)
   partial?: boolean // 기간 경계에 걸려 일부만 포함된 구간
 }
@@ -29,20 +30,22 @@ export const inPeriod = (date: string, from: string, to: string) => {
   return m >= from && m <= to
 }
 
-function summarize(key: string, label: string, list: Entry[], adCost: number | null): StatRow {
+function summarize(key: string, label: string, list: Entry[], adCost: number | null, rates: Rates): StatRow {
   let inquiry = 0
   let consult = 0
   let treatment = 0
   let revenue = 0
+  let commission = 0
   for (const e of list) {
     if (e.kind === 'inquiry') inquiry++
     else if (e.kind === 'consult') consult++
     else {
       treatment++
       revenue += e.amount ?? 0
+      commission += ((e.amount ?? 0) * (rates[e.source] ?? 0)) / 100
     }
   }
-  return { key, label, inquiry, consult, treatment, revenue, adCost }
+  return { key, label, inquiry, consult, treatment, revenue, commission: Math.round(commission), adCost }
 }
 
 const sumCost = (costs: AdCost[], pred: (c: AdCost) => boolean) => costs.filter(pred).reduce((s, c) => s + c.amount, 0)
@@ -55,14 +58,14 @@ export interface Scope {
 const costFilter = (scope?: Scope) => (c: AdCost) => !scope || (scope.by === 'source' && c.source === scope.value)
 const hasCost = (scope?: Scope) => !scope || scope.by === 'source'
 
-export function totalRow(list: Entry[], costs: AdCost[], from: string, to: string, scope?: Scope): StatRow {
+export function totalRow(list: Entry[], costs: AdCost[], rates: Rates, from: string, to: string, scope?: Scope): StatRow {
   const f = costFilter(scope)
-  return summarize('total', '합계', list, hasCost(scope) ? sumCost(costs, (c) => f(c) && c.month >= from && c.month <= to) : null)
+  return summarize('total', '합계', list, hasCost(scope) ? sumCost(costs, (c) => f(c) && c.month >= from && c.month <= to) : null, rates)
 }
 
 export const groupValue = (e: Entry, by: GroupKey) => e[by] || EMPTY_GROUP
 
-export function groupStats(list: Entry[], by: GroupKey, costs: AdCost[], from: string, to: string): StatRow[] {
+export function groupStats(list: Entry[], by: GroupKey, costs: AdCost[], rates: Rates, from: string, to: string): StatRow[] {
   const groups = new Map<string, Entry[]>()
   for (const e of list) {
     if (by === 'channel' && e.kind !== 'inquiry') continue // 문의 채널은 문의 카드에만 있다
@@ -76,7 +79,7 @@ export function groupStats(list: Entry[], by: GroupKey, costs: AdCost[], from: s
     for (const s of costBySource.keys()) if (!groups.has(s)) groups.set(s, []) // 광고비만 쓰고 기록이 0건인 경로도 보여 준다
   }
   return [...groups.entries()]
-    .map(([k, l]) => summarize(k, k, l, by === 'source' ? (costBySource.get(k) ?? 0) : null))
+    .map(([k, l]) => summarize(k, k, l, by === 'source' ? (costBySource.get(k) ?? 0) : null, rates))
     .sort((a, b) => b.revenue - a.revenue || b.inquiry - a.inquiry)
 }
 
@@ -124,7 +127,7 @@ function buckets(from: string, to: string, gran: Gran): { key: string; partial: 
   return out
 }
 
-export function trendStats(list: Entry[], costs: AdCost[], from: string, to: string, gran: Gran, scope?: Scope): StatRow[] {
+export function trendStats(list: Entry[], costs: AdCost[], rates: Rates, from: string, to: string, gran: Gran, scope?: Scope): StatRow[] {
   const byBucket = new Map<string, Entry[]>()
   for (const i of list) {
     const k = bucketOf(i.date, gran)
@@ -135,7 +138,7 @@ export function trendStats(list: Entry[], costs: AdCost[], from: string, to: str
   return buckets(from, to, gran).map(({ key, partial }) => {
     // 주 단위는 월 광고비를 나눌 수 없어 비워 둔다.
     const cost = gran === 'week' || !hasCost(scope) ? null : sumCost(costs, (c) => f(c) && c.month >= from && c.month <= to && c.month.startsWith(key))
-    return { ...summarize(key, bucketLabel(key, gran), byBucket.get(key) ?? [], cost), partial }
+    return { ...summarize(key, bucketLabel(key, gran), byBucket.get(key) ?? [], cost, rates), partial }
   })
 }
 
@@ -153,4 +156,7 @@ export function addMonths(m: string, n: number): string {
 // 건수가 이보다 적으면 비율을 흐리게 보여 준다 (우연에 크게 흔들림).
 export const SMALL_N = 10
 export const pct = (a: number, b: number) => (b > 0 ? `${Math.round((a / b) * 100)}%` : '–')
+// 마케팅비 = 광고비 + 수수료 (광고비를 알 수 없으면 수수료만)
+export const marketing = (r: StatRow) => (r.adCost ?? 0) + r.commission
+
 export const won = (manwon: number) => `${manwon.toLocaleString('ko-KR')}만원`
