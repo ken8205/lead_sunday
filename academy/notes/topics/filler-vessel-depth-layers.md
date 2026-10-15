@@ -47,3 +47,16 @@
 - 초음파 사전 지도를 한 군과 안 한 군의 합병증 비교
 - 시신 3D 혈관 지도(CT·MRI)와 실제 필러 위치(층)의 대응 연구
 - 위 표의 전문 확인 (초록만 확인)
+
+## 학습자 질문과 정정 (2026-10-15 후속)
+1. angular artery 문장 원문 (Gelezhe 2021 ASJ, PMID 32504489, 초록): "In contrast to current concepts, the angular artery is not located strictly subdermal to the nasolabial sulcus but at a variable depth, and in 100% of the investigated cases lateral to the nasolabial sulcus." 그리고 "The angular artery was lateral to the nasolabial sulcus in 100% of cases; the smallest distance between the artery and the nasolabial sulcus was at the oral commissure (11.91 [7.9] mm) and the greatest was at the nasal ala (13.73 [3.9] mm)." 대상: 러시아 백인 150명(300개 비순구), 조영 CT. 처음 요약("비순구 바로 아래가 아니라")은 원문의 "subdermal"(진피 바로 아래, 깊이 용어)을 위치로 옮긴 부정확한 번역이었음. 정확히는 "통념은 비순구 부위 진피 바로 아래에 있다는 것, 실제는 깊이가 다양하고 100%에서 비순구보다 가쪽(코에서 먼 쪽)"
+   - 연구 간 불일치: 안면동맥이 비순구 안쪽(medial)을 지나는 유형이 가장 흔하다는 메타분석(Pourani 2025: type A 46.2%)과 방향이 달라 보임. 대상 혈관(angular vs facial artery), 인종, 측정법 차이일 수 있음 [E]
+2. "주름"은 **미간의 세로 주름(vertical glabellar lines, 찡그릴 때 생기는 주름)**. 원문(Cotofana 2020 ASJ, PMID 32469392): "The hypothesis that injecting soft tissue fillers next to the vertical glabellar line is safe because the supratrochlear artery courses deep to the crease should be rejected." STA 표재가지는 이 주름에서 평균 10.59 mm(남), 8.21 mm(여), SOA는 22.38/20.73 mm 떨어져 있었고 찡그리면 STA는 1.63/1.84 mm, SOA는 3.9 mm 안쪽으로 이동, STA 평균 깊이 3.34 mm. **초록만으로는 "8~10 mm 떨어져 있음"이 왜 가설 기각으로 이어지는지 논리를 완전히 설명할 수 없음 → 전문 확인 필요**
+3. 층(layer) 서술은 있음. 초록 기준:
+   - Shen 2022(PMID 36443416): 모든 동맥이 superficial subcutaneous fascia 통과, 하부 이마 STA 영역은 supraperiosteal, SOA 영역은 supramuscular 층 제안
+   - Shen 2023(PMID 37327736): FA가 진피·피하조직에서 주행, Choi 2025(PMID 40762675): 비순구 부위와 angular artery가 78% 넘게 피하층
+   - Liao 2020 JAAD(PMID 32592875): 위 안와연 혈관이 deep과 superficial 두 층, 97.7%에서 표재 arcade, 59.3%에서 안와연 가까이 deep 혈관
+   - Zhang 2023 JPRAS(PMID 37717300): 골막 주사한 HA가 SMAS와 골막·심부 근막 사이 loose areolar tissue 층으로 흐름, 미간·코등·관자에서 혈관의 다층 분포
+   - 논문 4: STA는 눈 위쪽에서 깊다가 눈썹뼈 위 15~25 mm에서 피하로, SOA는 15~20 mm 위에서 피하로 올라옴
+   - mm 수치는 주로 초음파·CT 측정이고 층은 해부 소견과 저자 해석이라 두 서술이 섞여 있음. 층 용어(subcutaneous, supramuscular 등)가 연구마다 같은 기준인지는 전문 확인 필요
+   - Lee 2015 PRS 135:437-44 "Facial arterial depth and relationship with facial muscular layer"는 논문 4의 참고문헌 54번이지만 이번 PubMed 검색에서 찾지 못함 [U]
