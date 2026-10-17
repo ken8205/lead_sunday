@@ -29,3 +29,4 @@
 2026-10-15 | 아이디어 | 안면거상 NLF 교정·SMAS 절개 신경 안전(IDEA-009), SMAS flap이 mastoid·DTF에 안 닿음(IDEA-010) 기록, PubMed 1차 검색(Mendelson 1992, Öreroğlu 2026, Pankratz 2020 등), 보강 큐 추가 | - | - | - | 논문 4 Box 1 질문 보류 중, IDEA-009·010 질문 3개
 2026-10-15 | 저널리뷰·주제 노트 | 논문 4 Box 1 대응(진료 비교), 필러 혈관 깊이·층 지도 정리(filler-vessel-depth-layers.md), IDEA-011(흡인 실험, 바늘 굵기-압력) 기록 | - | 층 권고가 연구마다 엇갈림, 절대 안전한 층 없음 | 3줄 요약 미작성 | 논문 4 3줄 요약, 주간 종합
 2026-10-17 | 문헌 질의 | 필러 regurgitation(reflux) 문헌 검색, Lee 2021 ejection pressure 등 IDEA-011에 추가, 용어 확인 질문 | - | 'regurgitation'은 필러 문헌에서 reflux·retrograde flow | - | 학습자 의도 확인
+2026-10-17 | 문헌 질의 | 필러 주입 전 흡인(aspiration) 문헌 지도(Carey 2015, Torbeck 2019, Wang 2020, Kapoor 2020 SR/MA, Moon 2021, Nikolis 2025 등) IDEA-011에 정리 | - | 흡인 위음성 원인과 완화법 | - | 학습자 실험 설계 시 cannula 포함 여부
