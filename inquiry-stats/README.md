@@ -46,6 +46,7 @@ VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...   # 공개용 키만. secret/se
 
 - Supabase **서울 리전(ap-northeast-2)** 프로젝트의 SQL Editor에서 `supabase/schema.sql`을 실행합니다 (여러 번 실행해도 안전). 상담·시술 카드에 이름(선택)을 적을 수 있어 서울 리전을 씁니다. 보관 기간(자동 삭제)은 아직 정하지 않았습니다.
 - **동선 보드와 같은 Supabase 프로젝트**에 실행하면 직원 계정을 그대로 씁니다 (권장: 직원이 계정 하나로 두 앱 모두 로그인).
+- 이 앱의 표는 모두 `stats_`로 시작합니다(`stats_entries`, `stats_ad_costs`, `stats_commission_rates`, `stats_option_lists`). Table Editor에서 동선 보드 표(`patients`, `moves`, `rooms`)와 구분됩니다. 함께 쓰는 표는 직원 계정(`staff`) 하나입니다.
 - 새 프로젝트에 실행하면 직원 계정을 따로 만들어야 합니다 (`../patient-board/supabase/create-staff.sql` 참고).
 - 통계와 광고비 입력·조회는 원장·실장만 가능합니다 (광고비는 서버에서도 막음). 기록 입력·수정·삭제는 전 직원.
 - 기록은 통계용이라 자동 삭제하지 않습니다.
