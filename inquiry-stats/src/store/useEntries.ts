@@ -78,7 +78,7 @@ function useCloudEntries(): EntriesApi {
   const [error, setError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
-    const [q, c, o, r] = await Promise.all([sb.from('entries').select('*'), sb.from('ad_costs').select('*'), sb.from('option_lists').select('kind, items'), sb.from('commission_rates').select('source, rate')])
+    const [q, c, o, r] = await Promise.all([sb.from('stats_entries').select('*'), sb.from('stats_ad_costs').select('*'), sb.from('stats_option_lists').select('kind, items'), sb.from('stats_commission_rates').select('source, rate')])
     if (q.error) {
       setError('기록을 불러오지 못했습니다. (서버에 schema.sql을 실행했는지 확인)')
       return
@@ -95,8 +95,8 @@ function useCloudEntries(): EntriesApi {
     load()
     const ch = sb
       .channel('entries-sync')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'entries' }, load)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'option_lists' }, load)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'stats_entries' }, load)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'stats_option_lists' }, load)
       .subscribe()
     const t = setInterval(load, 60000)
     return () => {
@@ -122,30 +122,30 @@ function useCloudEntries(): EntriesApi {
         else delete n[source]
         return n
       })
-      const q = rate > 0 ? sb.from('commission_rates').upsert({ source, rate }) : sb.from('commission_rates').delete().eq('source', source)
+      const q = rate > 0 ? sb.from('stats_commission_rates').upsert({ source, rate }) : sb.from('stats_commission_rates').delete().eq('source', source)
       q.then(({ error: e }) => report(e, '수수료율 저장'))
     },
     ready,
     error,
     add: (list) => {
-      sb.from('entries').insert(list.map(toRow)).then(({ error: e }) => report(e, '저장'))
+      sb.from('stats_entries').insert(list.map(toRow)).then(({ error: e }) => report(e, '저장'))
     },
     update: (id, patch) => {
       setEntries((l) => l.map((x) => (x.id === id ? { ...x, ...patch } : x)))
-      sb.from('entries').update(toRow(patch)).eq('id', id).then(({ error: e }) => report(e, '수정'))
+      sb.from('stats_entries').update(toRow(patch)).eq('id', id).then(({ error: e }) => report(e, '수정'))
     },
     remove: (id) => {
       setEntries((l) => l.filter((x) => x.id !== id))
-      sb.from('entries').delete().eq('id', id).then(({ error: e }) => report(e, '삭제'))
+      sb.from('stats_entries').delete().eq('id', id).then(({ error: e }) => report(e, '삭제'))
     },
     setAdCost: (month, source, amount) => {
       setAdCosts((list) => [...list.filter((x) => !(x.month === month && x.source === source)), ...(amount > 0 ? [{ month, source, amount }] : [])])
-      const q = amount > 0 ? sb.from('ad_costs').upsert({ month, source, amount }) : sb.from('ad_costs').delete().eq('month', month).eq('source', source)
+      const q = amount > 0 ? sb.from('stats_ad_costs').upsert({ month, source, amount }) : sb.from('stats_ad_costs').delete().eq('month', month).eq('source', source)
       q.then(({ error: e }) => report(e, '광고비 저장'))
     },
     setOptions: (kind, items) => {
       setOptionsState((o) => ({ ...o, [kind]: items }))
-      sb.from('option_lists')
+      sb.from('stats_option_lists')
         .upsert({ kind, items })
         .then(({ error: e }) => report(e, '항목 저장'))
     },
