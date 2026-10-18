@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { isMuted, playFanfare, setMuted } from '../lib/fanfare'
 import type { EntriesApi } from '../store/useEntries'
 import { localDate } from '../inquiries'
 import type { Gran, GroupKey, StatRow } from '../lib/stats'
@@ -49,6 +50,14 @@ function Podium({ rows, showCost }: { rows: StatRow[]; showCost: boolean }) {
   const value = showCost ? rows.filter((r) => r.revenue > 0 && marketing(r) > 0).sort((a, b) => marketing(a) / a.revenue - marketing(b) / b.revenue)[0] : undefined
   const topInq = best((r) => r.inquiry)
   const topTreat = best((r) => r.treatment)
+  // 통계를 열 때 한 번 팡파레와 꽃가루. 시상대를 누르면 다시.
+  const [party, setParty] = useState(0)
+  const [muted, setMutedState] = useState(isMuted)
+  const celebrate = () => {
+    setParty((n) => n + 1)
+    void playFanfare()
+  }
+  useEffect(celebrate, [])
   const steps = [byRev[1], byRev[0], byRev[2]]
   const places = [2, 1, 3]
   const awards: [string, StatRow | undefined, string][] = [
@@ -58,7 +67,24 @@ function Podium({ rows, showCost }: { rows: StatRow[]; showCost: boolean }) {
   ]
   return (
     <div className="podium-wrap">
-      <div className="podium">
+      {party > 0 && (
+        <div key={party} className="confetti" aria-hidden="true">
+          {Array.from({ length: 28 }, (_, k) => (
+            <i key={k} style={{ ['--x' as string]: `${(k * 37) % 100}%`, ['--d' as string]: `${(k % 7) * 0.08}s`, ['--r' as string]: `${(k * 53) % 360}deg` }} />
+          ))}
+        </div>
+      )}
+      <button
+        type="button"
+        className="btn btn-small mute-toggle"
+        onClick={() => {
+          setMuted(!muted)
+          setMutedState(!muted)
+        }}
+      >
+        {muted ? '🔇 소리 꺼짐' : '🔊 소리 켜짐'}
+      </button>
+      <div className="podium" onClick={celebrate} title="누르면 다시 축하">
         {steps.map((r, k) =>
           r ? (
             <div key={r.key} className={`stand stand-${places[k]}`}>

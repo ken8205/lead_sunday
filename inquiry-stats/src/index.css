@@ -341,3 +341,15 @@ fieldset.who input[aria-invalid=true] { border-color: #f59e0b; }
 .day-nav .day-head { margin: 0; white-space: nowrap; }
 .day-jump { display: flex; gap: 8px; align-items: center; margin-left: auto; }
 .day-nav input[type=date] { min-height: 36px; padding: 0 8px; font-size: 15px; border: 1px solid #cbd5e1; border-radius: 8px; }
+
+/* 1위 발표: 꽃가루 + 소리 켜기/끄기 */
+.podium-wrap { position: relative; }
+.podium { cursor: pointer; }
+.mute-toggle { justify-self: end; }
+.confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 1; }
+.confetti i { position: absolute; top: -12px; left: var(--x); width: 8px; height: 12px; border-radius: 2px; background: #fbbf24; transform: rotate(var(--r)); animation: confetti-fall 1.8s ease-in var(--d) forwards; opacity: 0; }
+.confetti i:nth-child(4n) { background: #60a5fa; }
+.confetti i:nth-child(4n+1) { background: #f472b6; }
+.confetti i:nth-child(4n+2) { background: #34d399; }
+@keyframes confetti-fall { 0% { opacity: 1; transform: translateY(0) rotate(var(--r)); } 100% { opacity: 0; transform: translateY(260px) rotate(calc(var(--r) + 540deg)); } }
+@media (prefers-reduced-motion: reduce) { .confetti { display: none; } }
