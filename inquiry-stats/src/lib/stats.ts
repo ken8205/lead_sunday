@@ -2,8 +2,8 @@ import type { AdCost, Entry, Rates } from '../inquiries'
 
 export type GroupKey = 'source' | 'channel' | 'nationality' | 'interest'
 export const GROUP_LABEL: Record<GroupKey, string> = {
-  source: '유입 경로',
   channel: '문의 채널',
+  source: '유입 경로',
   nationality: '국적',
   interest: '시술',
 }
