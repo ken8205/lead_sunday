@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
 // 드롭다운 대신 눌러서 고르는 버튼 묶음. 같은 버튼을 다시 누르면 선택이 풀린다. 순서는 "항목 관리"에서 정한 순서.
-export function Chips({ label, value, options, onChange, required, onAdd }: { label: string; value: string; options: string[]; onChange: (v: string) => void; required?: boolean; onAdd?: (name: string) => void }) {
+export function Chips({ label, hint, value, options, onChange, required, onAdd }: { label: string; hint?: string; value: string; options: string[]; onChange: (v: string) => void; required?: boolean; onAdd?: (name: string) => void }) {
   const [adding, setAdding] = useState(false)
   const [draft, setDraft] = useState('')
   const all = value && !options.includes(value) ? [...options, value] : options // 목록에서 지운 예전 값도 수정할 때 보이게
@@ -17,6 +17,7 @@ export function Chips({ label, value, options, onChange, required, onAdd }: { la
     <fieldset className="chips">
       <legend>
         {label}
+        {hint && <small className="chip-hint"> {hint}</small>}
         {required && !value && <span className="need"> · 골라 주세요</span>}
       </legend>
       <div className="chip-row">

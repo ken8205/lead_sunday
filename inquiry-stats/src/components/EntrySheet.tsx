@@ -63,10 +63,10 @@ export function EntrySheet({ kind, date, options, onAddOption, onSubmit, onClose
         </div>
         <p className="help">{HELP[kind]}</p>
 
-        <Chips label="유입 경로" value={f.source} options={options.source} onChange={(v) => set('source', v)} onAdd={add('source')} required />
+        {kind === 'inquiry' && <Chips label="문의 채널" hint="어디로 연락이 왔나" value={f.channel} options={options.channel} onChange={(v) => set('channel', v)} onAdd={add('channel')} />}
+        <Chips label="유입 경로" hint="우리 병원을 어디서 알았나" value={f.source} options={options.source} onChange={(v) => set('source', v)} onAdd={add('source')} required />
         {walkIn && <p className="help ok">워크인: 저장하면 오늘 문의도 1건 같이 셉니다.</p>}
         {kind !== 'treatment' && options.agency.includes(f.source) && <p className="help need">에이전시 환자는 시술 카드만 적으세요. 여기 적어도 비율 계산에서는 빠집니다.</p>}
-        {kind === 'inquiry' && <Chips label="문의 채널" value={f.channel} options={options.channel} onChange={(v) => set('channel', v)} onAdd={add('channel')} />}
         <Chips label="국적" value={f.nationality} options={options.nationality} onChange={(v) => set('nationality', v)} onAdd={add('nationality')} />
         <Chips label={kind === 'treatment' ? '시술' : '관심 시술'} value={f.interest} options={options.interest} onChange={(v) => set('interest', v)} onAdd={add('interest')} />
 
