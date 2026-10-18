@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { EntriesApi } from '../store/useEntries'
 import { localDate } from '../inquiries'
 import type { Gran, GroupKey, StatRow } from '../lib/stats'
-import { GRAN_LABEL, GRAN_SPAN_LABEL, GROUP_LABEL, SMALL_N, addMonths, groupStats, inPeriod, marketing, pct, totalRow, trendWindow, won } from '../lib/stats'
+import { GRAN_LABEL, GRAN_SPAN_LABEL, GROUP_LABEL, SMALL_N, addMonths, costMonths, periodEnd as periodEndOf, groupStats, inPeriod, marketing, pct, totalRow, trendWindow, won } from '../lib/stats'
 import type { Route } from '../hooks/useHashRoute'
 import { buildHash } from '../hooks/useHashRoute'
 import { METRICS, TrendChart } from './TrendChart'
@@ -16,7 +16,7 @@ interface Props {
 }
 
 const GROUP_KEYS = Object.keys(GROUP_LABEL) as GroupKey[]
-const isMonth = (s?: string) => !!s && /^\d{4}-\d{2}$/.test(s)
+const isMonth = (s?: string) => !!s && /^\d{4}-\d{2}(-\d{2})?$/.test(s) // 달 또는 날
 
 // 비율: 분모가 작으면 흐리게 하고, 마우스를 올리면 실제 건수를 보여 준다.
 function Rate({ a, b }: { a: number; b: number }) {
@@ -153,7 +153,7 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
   const thisMonth = localDate().slice(0, 7)
   const q = route.query
   const from = isMonth(q.from) ? q.from : thisMonth
-  const to = isMonth(q.to) && q.to >= from ? q.to : from > thisMonth ? from : thisMonth
+  const to = isMonth(q.to) && q.to.length === from.length && q.to >= from ? q.to : from.length === 10 ? from : from > thisMonth ? from : thisMonth
   const gran: Gran = q.gran === 'day' || q.gran === 'week' || q.gran === 'year' ? q.gran : 'month'
   const metric: Metric = METRICS.some((m) => m.key === q.metric) ? (q.metric as Metric) : 'inquiry'
   const by: GroupKey = GROUP_KEYS.includes(q.by as GroupKey) ? (q.by as GroupKey) : 'source'
@@ -164,21 +164,29 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
 
   const period = api.entries.filter((e) => inPeriod(e.date, from, to))
   const showCost = canEditCost
-  const total = totalRow(period, api.adCosts, api.rates, from, to)
+  const fromDay = from.length === 10 ? from : `${from}-01`
+  const toDay = to.length === 10 ? to : (() => { const l = periodEndOf(to); return l > localDate() ? localDate() : l })()
+  const [cf, ct] = costMonths(from, to) // 광고비는 통째로 들어간 달만
+  const partialCost = from.length === 10 && (cf > ct || from.slice(0, 7) < cf || to.slice(0, 7) > ct)
+  const total = totalRow(period, api.adCosts, api.rates, cf, ct)
   // 비율(문의→상담, 상담→시술)은 에이전시 경로를 빼고 계산한다 (에이전시 환자는 문의·상담 없이 해외에서 확정해 온다)
   const isAgency = (src: string) => api.options.agency.includes(src)
   const direct = period.filter((e) => !isAgency(e.source))
-  const d = totalRow(direct, [], api.rates, from, to)
-  const ag = totalRow(period.filter((e) => isAgency(e.source)), [], api.rates, from, to)
-  const groups = groupStats(period, by, api.adCosts, api.rates, from, to)
-  const groupRates = new Map(groupStats(direct, by, [], api.rates, from, to).map((r) => [r.key, r]))
-  const bySource = by === 'source' ? groups : groupStats(period, 'source', api.adCosts, api.rates, from, to)
+  const d = totalRow(direct, [], api.rates, cf, ct)
+  const ag = totalRow(period.filter((e) => isAgency(e.source)), [], api.rates, cf, ct)
+  const groups = groupStats(period, by, api.adCosts, api.rates, cf, ct)
+  const groupRates = new Map(groupStats(direct, by, [], api.rates, cf, ct).map((r) => [r.key, r]))
+  const bySource = by === 'source' ? groups : groupStats(period, 'source', api.adCosts, api.rates, cf, ct)
   // 추이는 위의 기간과 상관없이 오늘을 끝으로 (일간 30일, 주간 12주, 월간 12개월, 연간 5년)
   const trend = trendWindow(src ? api.entries.filter((e) => e.source === src) : api.entries, api.rates, gran, localDate())
   const sources = [...new Set([...api.options.source, ...api.entries.map((e) => e.source)])]
   const year = thisMonth.slice(0, 4)
 
+  const today = localDate()
+  const yesterday = localDate(new Date(Date.now() - 86400000))
   const presets: [string, string, string][] = [
+    ['오늘', today, today],
+    ['어제', yesterday, yesterday],
     ['이번 달', thisMonth, thisMonth],
     ['지난 달', addMonths(thisMonth, -1), addMonths(thisMonth, -1)],
     ['최근 3개월', addMonths(thisMonth, -2), thisMonth],
@@ -202,11 +210,13 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
         </div>
         {(custom || !isPreset) && (
           <div className="period">
-            <input type="month" id="stats-from" aria-label="시작 달" value={from} onChange={(e) => e.target.value && set({ from: e.target.value, to: e.target.value > to ? e.target.value : to })} />
+            <input type="date" id="stats-from" aria-label="시작 날" max={today} value={fromDay} onChange={(e) => e.target.value && set({ from: e.target.value, to: e.target.value > toDay ? e.target.value : toDay })} />
             <span>~</span>
-            <input type="month" id="stats-to" aria-label="끝 달" value={to} onChange={(e) => e.target.value && set({ to: e.target.value, from: e.target.value < from ? e.target.value : from })} />
+            <input type="date" id="stats-to" aria-label="끝 날" max={today} value={toDay} onChange={(e) => e.target.value && set({ to: e.target.value, from: e.target.value < fromDay ? e.target.value : fromDay })} />
+            <span className="help">하루만 보려면 같은 날을 두 번 고르세요.</span>
           </div>
         )}
+        {partialCost && showCost && <p className="help">광고비는 달 단위라, 이 기간에 통째로 들어간 달의 광고비만 마케팅비에 넣었습니다.</p>}
         <div className="tiles tiles-4">
           <Tile label="문의" value={`${total.inquiry}건`} tone="inquiry" />
           <Tile label="상담" value={`${d.consult}건`} sub={`문의의 ${pct(d.consult, d.inquiry)}`} tone="consult" />

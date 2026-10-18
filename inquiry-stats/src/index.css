@@ -335,3 +335,9 @@ fieldset.who input[aria-invalid=true] { border-color: #f59e0b; }
 .panel-head h2 small { font-size: 13px; font-weight: 400; }
 .agency-check { font-size: 13px; white-space: nowrap; }
 .agency-tag { padding: 0 6px; border-radius: 6px; background: #fef3c7; color: #92400e; font-size: 11px; }
+
+.chip-hint { font-weight: 400; color: #64748b; font-size: 0.85em; }
+.day-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
+.day-nav .day-head { margin: 0; white-space: nowrap; }
+.day-jump { display: flex; gap: 8px; align-items: center; margin-left: auto; }
+.day-nav input[type=date] { min-height: 36px; padding: 0 8px; font-size: 15px; border: 1px solid #cbd5e1; border-radius: 8px; }

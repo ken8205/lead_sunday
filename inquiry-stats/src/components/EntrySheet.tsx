@@ -1,11 +1,13 @@
 import { useState } from 'react'
-import type { Kind, NewEntry, OptionKind, OptionLists } from '../inquiries'
+import type { Entry, Kind, NewEntry, OptionKind, OptionLists } from '../inquiries'
 import { KIND_LABEL, WALK_IN } from '../inquiries'
 import { Chips } from './Chips'
 
 interface Props {
   kind: Kind
-  date: string // 기록할 날 (오늘)
+  date: string // 기록할 날
+  dateLabel: string // 머리에 보일 날 ("오늘" 또는 "10월 15일 (수)")
+  initial?: Entry // 있으면 이 기록을 고친다
   options: OptionLists
   onAddOption?: (kind: OptionKind, name: string) => void
   onSubmit: (entries: NewEntry[]) => void // 워크인 상담이면 문의 카드도 같이 넘긴다
@@ -20,8 +22,18 @@ const HELP: Record<Kind, string> = {
   treatment: '수술·시술한 날 한 장. 총액이 그날 매출입니다. 같은 날 여러 시술이면 한 장에 합쳐서, 패키지는 첫 회에만 총액을 적습니다.',
 }
 
-export function EntrySheet({ kind, date, options, onAddOption, onSubmit, onClose }: Props) {
-  const [f, setF] = useState<NewEntry>(() => ({
+export function EntrySheet({ kind, date, dateLabel, initial, options, onAddOption, onSubmit, onClose }: Props) {
+  const [f, setF] = useState<NewEntry>(() => initial ? {
+    date: initial.date,
+    kind: initial.kind,
+    source: initial.source,
+    channel: initial.channel,
+    nationality: initial.nationality,
+    interest: initial.interest,
+    amount: initial.amount,
+    patientName: initial.patientName,
+    note: initial.note,
+  } : ({
     date,
     kind,
     source: '',
@@ -33,7 +45,7 @@ export function EntrySheet({ kind, date, options, onAddOption, onSubmit, onClose
     note: '',
   }))
   const set = <K extends keyof NewEntry>(k: K, v: NewEntry[K]) => setF((x) => ({ ...x, [k]: v }))
-  const walkIn = kind === 'consult' && f.source === WALK_IN // 워크인은 문의도 1장 같이 센다
+  const walkIn = !initial && kind === 'consult' && f.source === WALK_IN // 새 워크인 상담은 문의도 1장 같이 센다
   const valid = f.source !== '' && (kind !== 'treatment' || (f.amount ?? 0) > 0)
   const add = (k: OptionKind) => onAddOption && ((n: string) => onAddOption(k, n))
 
@@ -57,16 +69,16 @@ export function EntrySheet({ kind, date, options, onAddOption, onSubmit, onClose
       >
         <div className="sheet-head">
           <h2>
-            <span className={`kind-badge kind-${kind}`}>{KIND_LABEL[kind]}</span> 기록
+            <span className={`kind-badge kind-${kind}`}>{KIND_LABEL[kind]}</span> {initial ? '기록 고치기' : '기록'}
           </h2>
-          <span className="help">오늘</span>
+          <span className="help">{dateLabel}</span>
         </div>
         <p className="help">{HELP[kind]}</p>
 
-        <Chips label="유입 경로" value={f.source} options={options.source} onChange={(v) => set('source', v)} onAdd={add('source')} required />
+        {kind === 'inquiry' && <Chips label="문의 채널" hint="어디로 연락이 왔나" value={f.channel} options={options.channel} onChange={(v) => set('channel', v)} onAdd={add('channel')} />}
+        <Chips label="유입 경로" hint="우리 병원을 어디서 알았나" value={f.source} options={options.source} onChange={(v) => set('source', v)} onAdd={add('source')} required />
         {walkIn && <p className="help ok">워크인: 저장하면 오늘 문의도 1건 같이 셉니다.</p>}
         {kind !== 'treatment' && options.agency.includes(f.source) && <p className="help need">에이전시 환자는 시술 카드만 적으세요. 여기 적어도 비율 계산에서는 빠집니다.</p>}
-        {kind === 'inquiry' && <Chips label="문의 채널" value={f.channel} options={options.channel} onChange={(v) => set('channel', v)} onAdd={add('channel')} />}
         <Chips label="국적" value={f.nationality} options={options.nationality} onChange={(v) => set('nationality', v)} onAdd={add('nationality')} />
         <Chips label={kind === 'treatment' ? '시술' : '관심 시술'} value={f.interest} options={options.interest} onChange={(v) => set('interest', v)} onAdd={add('interest')} />
 
@@ -94,7 +106,7 @@ export function EntrySheet({ kind, date, options, onAddOption, onSubmit, onClose
             취소
           </button>
           <button type="submit" className="btn btn-primary btn-big" disabled={!valid}>
-            {valid ? '저장' : f.source === '' ? '유입 경로를 골라 주세요' : '총액을 입력해 주세요'}
+            {valid ? (initial ? '고친 내용 저장' : '저장') : f.source === '' ? '유입 경로를 골라 주세요' : '총액을 입력해 주세요'}
           </button>
         </div>
       </form>
