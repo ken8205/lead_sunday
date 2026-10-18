@@ -28,9 +28,18 @@ export interface StatRow {
 }
 
 // 기간은 달 단위 (광고비가 월 단위라서). from, to는 YYYY-MM, 둘 다 포함.
-export const inPeriod = (date: string, from: string, to: string) => {
-  const m = date.slice(0, 7)
-  return m >= from && m <= to
+// 기간은 달(YYYY-MM) 또는 날(YYYY-MM-DD). 달이면 그 달 전체.
+export const periodStart = (from: string) => (from.length === 7 ? `${from}-01` : from)
+export const periodEnd = (to: string) => (to.length === 7 ? lastDayOfMonth(to) : to)
+export const inPeriod = (date: string, from: string, to: string) => date >= periodStart(from) && date <= periodEnd(to)
+
+// 광고비는 달 단위로만 입력하므로, 기간에 통째로 들어간 달의 광고비만 센다. [첫 달, 끝 달] (없으면 첫 달 > 끝 달)
+export function costMonths(from: string, to: string): [string, string] {
+  const a = periodStart(from)
+  const b = periodEnd(to)
+  const first = a.endsWith('-01') ? a.slice(0, 7) : nextMonth(a.slice(0, 7))
+  const last = b === lastDayOfMonth(b.slice(0, 7)) ? b.slice(0, 7) : addMonths(b.slice(0, 7), -1)
+  return [first, last]
 }
 
 function summarize(key: string, label: string, list: Entry[], adCost: number | null, rates: Rates): StatRow {

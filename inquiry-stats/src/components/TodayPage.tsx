@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { Kind } from '../inquiries'
+import type { Entry, Kind } from '../inquiries'
 import { KINDS, KIND_LABEL, localDate } from '../inquiries'
 import type { EntriesApi } from '../store/useEntries'
 import { won } from '../lib/stats'
@@ -11,12 +11,17 @@ const dayTitle = (d: string) => `${Number(d.slice(5, 7))}월 ${Number(d.slice(8)
 
 interface Sheet {
   kind: Kind
+  edit?: Entry // 있으면 이 기록을 고친다
 }
 
-// 오늘 기록: 문의·상담·시술을 그날 당일 적는다. 지난날은 보지도 고치지도 않는다 (오늘 것만 지울 수 있다).
+const shift = (d: string, n: number) => localDate(new Date(new Date(`${d}T00:00:00`).getTime() + n * 86400000))
+
+// 오늘 기록: 문의·상담·시술을 그날 당일 적는다. 빠뜨리거나 잘못 적은 것은 ‹ › 로 지난날을 찾아 고치거나 지운다 (전 직원).
 export function TodayPage({ api }: { api: EntriesApi }) {
   const today = localDate()
-  const day = today // 그날 당일만 기록한다
+  const [picked, setPicked] = useState(today)
+  const day = picked > today ? today : picked
+  const isToday = day === today
   const [sheet, setSheet] = useState<Sheet | null>(null)
   const [cheer, setCheer] = useState<string | null>(null)
   const list = api.entries.filter((e) => e.date === day)
@@ -32,7 +37,16 @@ export function TodayPage({ api }: { api: EntriesApi }) {
   return (
     <div className="today">
       <section className="panel day-panel">
-        <h2 className="day-head">오늘 {dayTitle(day)}</h2>
+        <div className="day-nav">
+          <button className="btn btn-small" aria-label="전날" onClick={() => setPicked(shift(day, -1))}>‹</button>
+          <h2 className="day-head">{isToday ? '오늘 ' : ''}{dayTitle(day)}</h2>
+          <button className="btn btn-small" aria-label="다음 날" disabled={isToday} onClick={() => setPicked(shift(day, 1))}>›</button>
+          <span className="day-jump">
+            <input type="date" aria-label="날짜 고르기" max={today} value={day} onChange={(e) => e.target.value && setPicked(e.target.value)} />
+            {!isToday && <button className="btn btn-small btn-active" onClick={() => setPicked(today)}>오늘로</button>}
+          </span>
+        </div>
+        {!isToday && <p className="help need">지난 날짜를 보고 있습니다. 여기서 적거나 고치면 이 날짜 기록이 됩니다.</p>}
         <div className="counters">
           {KINDS.map((k) => (
             <button key={k} className={`counter counter-${k}`} onClick={() => setSheet({ kind: k })}>
@@ -43,7 +57,7 @@ export function TodayPage({ api }: { api: EntriesApi }) {
           ))}
         </div>
         <p className="day-revenue">
-          오늘 매출 <b>{won(revenue)}</b> <small>(시술 총액 합)</small>
+          {isToday ? '오늘' : '이날'} 매출 <b>{won(revenue)}</b> <small>(시술 총액 합)</small>
         </p>
       </section>
 
@@ -58,10 +72,10 @@ export function TodayPage({ api }: { api: EntriesApi }) {
       )}
 
       <section className="panel">
-        <h2>오늘 적은 기록</h2>
-        <p className="help">잘못 적은 기록은 여기서 지우세요. 내일이 되면 이 목록은 비고, 통계에만 남습니다.</p>
+        <h2>{isToday ? '오늘 적은 기록' : `${dayTitle(day)} 기록`}</h2>
+        <p className="help">잘못 적은 기록은 고치거나 지우세요. 지난날 기록은 위의 ‹ 버튼이나 날짜로 찾습니다.</p>
         {list.length === 0 ? (
-          <p className="empty-all">아직 없습니다. 위의 문의·상담·시술 버튼을 눌러 기록하세요.</p>
+          <p className="empty-all">{isToday ? '아직 없습니다. 위의 문의·상담·시술 버튼을 눌러 기록하세요.' : '이 날 기록이 없습니다.'}</p>
         ) : (
           <ul className="cards">
             {list.map((e) => (
@@ -76,6 +90,9 @@ export function TodayPage({ api }: { api: EntriesApi }) {
                   </span>
                   {e.kind === 'treatment' && <span className="ecard-amount">{won(e.amount ?? 0)}</span>}
                   <span className="ecard-actions">
+                    <button className="btn btn-small" onClick={() => setSheet({ kind: e.kind, edit: e })}>
+                      수정
+                    </button>
                     <ConfirmButton label="삭제" confirmLabel="정말 삭제" className="btn-small btn-danger" onConfirm={() => api.remove(e.id)} />
                   </span>
                 </li>
@@ -97,12 +114,21 @@ export function TodayPage({ api }: { api: EntriesApi }) {
 
       {sheet && (
         <EntrySheet
+          key={sheet.edit?.id ?? sheet.kind}
           kind={sheet.kind}
           date={day}
+          dateLabel={isToday ? '오늘' : dayTitle(day)}
+          initial={sheet.edit}
           options={api.options}
           onAddOption={(kind, name) => api.setOptions(kind, [...api.options[kind], name])}
           onClose={() => setSheet(null)}
           onSubmit={(entries) => {
+            if (sheet.edit) {
+              api.update(sheet.edit.id, entries[0])
+              setCheer('고쳤습니다')
+              setSheet(null)
+              return
+            }
             api.add(entries)
             const t = entries.find((x) => x.kind === 'treatment')
             setCheer(t ? `시술 기록! ${won(t.amount ?? 0)}` : `${entries.map((x) => KIND_LABEL[x.kind]).join(' + ')} 1건 기록`)
