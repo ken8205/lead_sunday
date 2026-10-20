@@ -31,3 +31,4 @@
 2026-10-17 | 문헌 질의 | 필러 regurgitation(reflux) 문헌 검색, Lee 2021 ejection pressure 등 IDEA-011에 추가, 용어 확인 질문 | - | 'regurgitation'은 필러 문헌에서 reflux·retrograde flow | - | 학습자 의도 확인
 2026-10-17 | 문헌 질의 | 필러 주입 전 흡인(aspiration) 문헌 지도(Carey 2015, Torbeck 2019, Wang 2020, Kapoor 2020 SR/MA, Moon 2021, Nikolis 2025 등) IDEA-011에 정리 | - | 흡인 위음성 원인과 완화법 | - | 학습자 실험 설계 시 cannula 포함 여부
 2026-10-20 | 문헌 질의 | 흡인 연구의 측정 방법 확인(초록 기준, 흡인력 직접 측정 서술 없음), IDEA-011 갱신 | - | - | - | PDF 확보 시 방법 확인
+2026-10-20 | 아이디어 | 흡인 시 혈관벽 흡착 가설 IDEA-011에 추가, 직접 문헌 못 찾음 | - | - | - | -
