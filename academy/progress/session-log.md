@@ -30,3 +30,4 @@
 2026-10-15 | 저널리뷰·주제 노트 | 논문 4 Box 1 대응(진료 비교), 필러 혈관 깊이·층 지도 정리(filler-vessel-depth-layers.md), IDEA-011(흡인 실험, 바늘 굵기-압력) 기록 | - | 층 권고가 연구마다 엇갈림, 절대 안전한 층 없음 | 3줄 요약 미작성 | 논문 4 3줄 요약, 주간 종합
 2026-10-17 | 문헌 질의 | 필러 regurgitation(reflux) 문헌 검색, Lee 2021 ejection pressure 등 IDEA-011에 추가, 용어 확인 질문 | - | 'regurgitation'은 필러 문헌에서 reflux·retrograde flow | - | 학습자 의도 확인
 2026-10-17 | 문헌 질의 | 필러 주입 전 흡인(aspiration) 문헌 지도(Carey 2015, Torbeck 2019, Wang 2020, Kapoor 2020 SR/MA, Moon 2021, Nikolis 2025 등) IDEA-011에 정리 | - | 흡인 위음성 원인과 완화법 | - | 학습자 실험 설계 시 cannula 포함 여부
+2026-10-20 | 문헌 질의 | 흡인 연구의 측정 방법 확인(초록 기준, 흡인력 직접 측정 서술 없음), IDEA-011 갱신 | - | - | - | PDF 확보 시 방법 확인
