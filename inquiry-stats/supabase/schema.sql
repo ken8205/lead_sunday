@@ -82,7 +82,7 @@ stable
 security definer
 set search_path = public
 as $$
-  select exists (select 1 from public.staff s where s.id = auth.uid() and s.active and s.role in ('doctor', 'manager'))
+  select exists (select 1 from public.staff s where s.id = auth.uid() and s.active and s.role in ('doctor', 'manager', 'coordinator'))
 $$;
 
 alter table public.stats_entries enable row level security;

@@ -21,9 +21,10 @@ interface MainProps {
 
 function Main({ user, onSignOut, onChangePassword }: MainProps) {
   const api = useEntries()
-  const isLead = !user || user.role === 'doctor' || user.role === 'manager' // 원장·실장: 통계, 광고비 (기록·항목 관리는 전 직원)
+  const isLead = !user || user.role === 'doctor' || user.role === 'manager' || user.role === 'coordinator' // 원장·실장·코디: 통계, 광고비·수수료 (기록·항목 관리는 전 직원)
+  const canSeeStats = isLead
   const { route, go } = useHashRoute()
-  const view: View = route.path[0] === 'options' ? 'options' : route.path[0] === 'stats' && isLead ? 'stats' : 'today'
+  const view: View = route.path[0] === 'options' ? 'options' : route.path[0] === 'stats' && canSeeStats ? 'stats' : 'today'
   const [changingPw, setChangingPw] = useState(false)
 
   return (
@@ -37,7 +38,7 @@ function Main({ user, onSignOut, onChangePassword }: MainProps) {
           {(
             [
               ['today', '오늘 기록'],
-              ...(isLead ? [['stats', '통계']] : []),
+              ...(canSeeStats ? [['stats', '통계']] : []),
               ['options', '항목 관리'],
             ] as [View, string][]
           ).map(([v, label]) => (
