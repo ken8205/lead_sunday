@@ -21,8 +21,8 @@ interface MainProps {
 
 function Main({ user, onSignOut, onChangePassword }: MainProps) {
   const api = useEntries()
-  const isLead = !user || user.role === 'doctor' || user.role === 'manager' // 원장·실장: 광고비·수수료·마케팅비
-  const canSeeStats = isLead || user?.role === 'coordinator' // 통계 탭: 원장·실장·코디 (코디는 광고비 없이). 기록·항목 관리는 전 직원
+  const isLead = !user || user.role === 'doctor' || user.role === 'manager' || user.role === 'coordinator' // 원장·실장·코디: 통계, 광고비·수수료 (기록·항목 관리는 전 직원)
+  const canSeeStats = isLead
   const { route, go } = useHashRoute()
   const view: View = route.path[0] === 'options' ? 'options' : route.path[0] === 'stats' && canSeeStats ? 'stats' : 'today'
   const [changingPw, setChangingPw] = useState(false)
