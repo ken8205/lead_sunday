@@ -1,5 +1,6 @@
 # 내 아이디어·질문 한눈에 보기 (원장님 말씀 기준, 모바일용 요약)
 
+> 논문으로 쓰기로 한 것: `research/paper-candidates.md` / 다시 살펴볼 것: `research/review-later.md`
 > 자세한 내용은 `research/ideas/IDEA-번호-*.md`, 전체 목록은 `research/ideas.md`, 목차는 `notes/INDEX.md`
 
 ## ★ IDEA-001 (2026-10-06) — 손으로 당겨보고 비순구 교정을 예측할 수 있나?

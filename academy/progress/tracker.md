@@ -32,8 +32,12 @@
 - [ ] S13 메타분석 기초
 - [ ] S14 종합 프로젝트
 
+## 저널리뷰 진도
+- [x] Week 01 (논문 1~4 완료, 종합 notes/journal-club/week-01-synthesis.md)
+- [ ] Week 02 제안(2026-11-05): 논문 5 Öreroğlu, 6 Mendelson, 7 Jia, 8 Liu (week-02-plan.md, 승인·PDF 대기)
+
 ## 약점·복습 큐 (개념 | 틀린 날짜 | 다음 복습)
-(없음)
+개념 복습 큐는 research/review-later.md F로 이동(2026-11-05). 초심자 개념을 중심으로 11-08 퀴즈 예정
 
 ## 열린 질문
 (없음)

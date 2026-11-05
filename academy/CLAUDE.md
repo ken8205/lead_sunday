@@ -23,7 +23,7 @@
 
 ## 세션 프로토콜 (/today 가 실행)
 
-1. `notes/INDEX.md`, `progress/tracker.md`, `progress/session-log.md`, `research/ideas.md`, `research/open-questions.md` 읽기 → 오늘 할 것 결정 (이 파일들이 세션 간 기억이다. 새 지식·질문은 반드시 파일에 기록하고 INDEX에 등록)
+1. `notes/INDEX.md`, `progress/tracker.md`, `progress/session-log.md`, `research/ideas.md`, `research/open-questions.md`, `research/review-later.md`, `research/paper-candidates.md` 읽기 → 오늘 할 것 결정 (이 파일들이 세션 간 기억이다. 새 지식·질문은 반드시 파일에 기록하고 INDEX에 등록)
 2. 복습 퀴즈 (5문항, 약점 우선, 간격 반복)
 3. 본 수업 (해당 교수 에이전트 호출) — 개념 → 근거 → 논쟁 → 모르는 것
 4. 비판적 평가 / 증례 토론 / 연구 질문 도출
@@ -40,6 +40,10 @@
 
 ### 연구 아이디어·고민거리 기록 (필수)
 학습자가 임상 관찰, 질문, 고민, 논문 아이디어를 말하면 **그 자리에서** `research/ideas.md` 인덱스에 추가하고 `research/ideas/IDEA-NNN-*.md`에 원 발언(거의 그대로), 임상 질문, 가설, 선행문헌 검색 결과(찾지 못한 경우도 검색 범위와 함께), 설계 후보, 방법론상 어려운 점, 다음 단계를 정리한다. 논문 리뷰에서 파생된 아이디어와 미결 질문(`research/open-questions.md`)도 기록한다. 세션 종료 전에 빠진 것이 없는지 점검한다. "선행연구가 없다"고 단정하지 않고 "이번 검색에서 찾지 못했다"고 쓴다.
+
+### 논문 쓸 거리와 되돌아올 목록 (2026-11-05 학습자 요청)
+- 학습자가 "논문으로 쓰자"고 지정한 주제는 `research/paper-candidates.md`에 PAPER-NNN으로 올리고 재료(연구 질문, 선행연구 표, 설계 초안, 인용 가능한 근거, 필요 자료, 다음 단계)를 계속 보강한다. 지정하지 않은 아이디어는 후보 풀에만 둔다.
+- 확인이 덜 끝났거나 정정했거나 다시 봐야 하는 것은 `research/review-later.md`에 쌓는다(전문 확인, 정정, 용어 확인, 재검색, 개념 복습 큐). 세션 시작 때 읽고 퀴즈는 F의 복습 큐에서 낸다.
 
 ### MY-IDEAS.md 유지
 새 IDEA를 만들거나 질문이 답변되면 `academy/MY-IDEAS.md`(학습자 말 기준 한눈에 보기)를 같이 갱신한다. 학습자가 아직 답하지 않은 질문을 항상 최신으로 유지한다.
@@ -64,4 +68,4 @@
 - `notes/` — 세션별 노트 (누적)
 - `progress/` — 진도, 약점, 로그
 - `inbox/` — 학회 커리큘럼, 논문 PDF, 참고자료 투입구
-- `research/` — 연구 아이디어, 프로토콜 초안 (비식별 데이터만)
+- `research/` — 연구 아이디어, 프로토콜 초안, `paper-candidates.md`(논문 쓸 거리), `review-later.md`(다시 살펴볼 내용) (비식별 데이터만)

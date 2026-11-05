@@ -5,6 +5,10 @@
 ## 먼저 보세요
 - `MY-IDEAS.md` — 원장님이 말씀하신 아이디어·질문 한눈에 보기(모바일용), 아직 답하지 않은 질문 포함
 
+## 논문 쓸 거리와 되돌아올 목록
+- `research/paper-candidates.md` — **논문으로 쓰기로 지정한 주제**(PAPER-NNN): 연구 질문, 선행연구 표, 설계 초안, 필요 자료. PAPER-001 = 필러 흡인 위음성 bench 연구
+- `research/review-later.md` — **다시 살펴볼 내용**: 전문 확인 필요, 정정·재확인, 학습자 확인 질문, 재검색 목록, 개념 복습 큐
+
 ## 질문·아이디어·연구 거리
 - `research/ideas.md` — 아이디어 목록(IDEA-001~): 수기 견인과 ZM 박리, ImageJ MRD1, brow-press, 안륜근 절제량, midcheek groove 저항 소실, 보톡스 후 눈꺼풀 처져 보임 위험 환자(IDEA-008), 안면거상 NLF·SMAS 절개·flap 도달(IDEA-009, 010)
 - `research/open-questions.md` — 확인해야 할 질문
@@ -24,7 +28,8 @@
 - `notes/journal-club/enrichment-queue.md` — 보강 트랙(스케줄 외 추가 논문)
 - `notes/journal-club/journals.md` — 우선순위 저널(PRS, ASJ, APS)과 검색식
 - `notes/journal-club/2026-*-*.md` — 개별 저널리뷰 노트
-- `notes/journal-club/week-NN-plan.md` — 주간 계획
+- `notes/journal-club/week-NN-plan.md` — 주간 계획 (week-01-plan, week-02-plan)
+- `notes/journal-club/week-01-synthesis.md` — 1주차 종합(확실/불확실/비어 있는 것)
 - `notes/glossary.md` — 용어 사전(통계, 눈 지표)
 
 ## 학습 계획·진도
