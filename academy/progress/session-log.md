@@ -34,3 +34,4 @@
 2026-10-20 | 아이디어 | 흡인 시 혈관벽 흡착 가설 IDEA-011에 추가, 직접 문헌 못 찾음 | - | - | - | -
 2026-11-05 | 기억 정리·저널리뷰 | 브랜치 로컬 상태를 원격으로 복원, paper-candidates.md(PAPER-001)·review-later.md 신설, 논문 4 마무리(Claude 3줄 요약 초안), Week 01 종합, Week 02 제안(논문 5~8) | - | - | 3줄 요약 학습자 수정 대기 | Week 02 승인과 PDF(월: Öreroğlu, 화: Mendelson)
 2026-11-05 | 저널리뷰 | 논문 5(Öreroğlu 2026 APS) PDF 10쪽 전체 확인, 사실·비판 정리, IDEA-010 갱신 | - | - | - | 학습자 응답(longevity를 말할 수 있나)
+2026-11-05 | 문헌 질의 | high-SMAS 대표 논문·영상 요청, PubMed 오류로 웹 검색 보완, review-later H에 서지 확인 항목 기록 | - | - | - | PubMed 복구 후 확인

@@ -61,3 +61,7 @@
 - [ ] 본문 분모 불일치(204 vs 207명, 2.7%/1.3% vs 2.8%/1.4%)가 오기인지 확인(저자 정오표 여부)
 - [ ] Pankratz 2020 frontal branch caution zone과 temporal tunnel 위치 대조
 - [ ] 3줄 요약(학습자)
+
+## H. high-SMAS 대표 논문·영상 (2026-11-05 학습자 요청, PubMed 장애로 서지 미확인)
+- [ ] PubMed에서 서지·PMID 확인(검색 API 오류로 이번엔 못 함): Barton 2002 ASJ "The 'high SMAS' face lift technique"(웹 검색 결과 기준), Marten 2008 Clin Plast Surg 35(4):569, Marten & Elyassnia 2022 Facial Plast Surg 38(6):593-612(Öreroğlu 참고문헌 20번), Connell & Marten 1995 APS 19(5):415-20(참고문헌 41), Guyuron 2018 APS 42(6):1531-9(참고문헌 19), Mentz 2005 Aesthet Surg J 29(5):353-62(참고문헌 18; ZM release와 SMAS advancement 측정)
+- [ ] 영상은 직접 열어보지 못함: Öreroğlu 2026 보충 영상(DOI 10.1007/s00266-026-05911-2 온라인 보충자료), Facial Plast Surg 2025 high SMAS vs deep plane 비교 논문의 동반 영상(Thieme 10.1055/a-2510-6495), PRS Global Open 2025 preservation 안면거상의 보충 영상
