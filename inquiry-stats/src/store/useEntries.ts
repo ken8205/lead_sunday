@@ -14,7 +14,7 @@ export interface EntriesApi {
   add: (e: NewEntry[]) => void // 여러 장을 한 번에 (예: 워크인 상담 = 상담 + 문의)
   update: (id: string, patch: Partial<NewEntry>) => void
   remove: (id: string) => void
-  setAdCost: (month: string, source: string, amount: number) => void // 0이면 지운다
+  setAdCost: (month: string, source: string, amount: number) => void // 0도 저장한다 (그달부터 이어지는 값을 멈춤)
   setOptions: (kind: StoredKind, items: string[]) => void
   setRate: (source: string, rate: number) => void // 0이면 지운다
   replaceAll?: (d: { entries: Entry[]; adCosts: AdCost[] }) => void // 이 브라우저 전용 모드에서만 (예시 채우기·비우기)
@@ -85,7 +85,7 @@ function useCloudEntries(): EntriesApi {
     }
     setError(null)
     setEntries((q.data as EntryRow[]).map(toEntry).sort(byNewest))
-    if (!c.error) setAdCosts(c.data as AdCost[]) // 원장·실장이 아니면 광고비는 읽을 수 없다
+    if (!c.error) setAdCosts(c.data as AdCost[]) // 원장·실장·코디가 아니면 광고비는 읽을 수 없다
     if (!o.error) setOptionsState(mergeOptions(o.data as { kind: StoredKind; items: string[] }[]))
     if (!r.error && r.data.length) setRates(Object.fromEntries((r.data as { source: string; rate: number }[]).map((x) => [x.source, Number(x.rate)])))
     setReady(true)
@@ -139,9 +139,8 @@ function useCloudEntries(): EntriesApi {
       sb.from('stats_entries').delete().eq('id', id).then(({ error: e }) => report(e, '삭제'))
     },
     setAdCost: (month, source, amount) => {
-      setAdCosts((list) => [...list.filter((x) => !(x.month === month && x.source === source)), ...(amount > 0 ? [{ month, source, amount }] : [])])
-      const q = amount > 0 ? sb.from('stats_ad_costs').upsert({ month, source, amount }) : sb.from('stats_ad_costs').delete().eq('month', month).eq('source', source)
-      q.then(({ error: e }) => report(e, '광고비 저장'))
+      setAdCosts((list) => [...list.filter((x) => !(x.month === month && x.source === source)), { month, source, amount }])
+      sb.from('stats_ad_costs').upsert({ month, source, amount }).then(({ error: e }) => report(e, '광고비 저장'))
     },
     setOptions: (kind, items) => {
       setOptionsState((o) => ({ ...o, [kind]: items }))
@@ -202,7 +201,7 @@ function useLocalEntries(): EntriesApi {
     setAdCost: (month, source, amount) =>
       setData((d) => ({
         ...d,
-        adCosts: [...d.adCosts.filter((x) => !(x.month === month && x.source === source)), ...(amount > 0 ? [{ month, source, amount }] : [])],
+        adCosts: [...d.adCosts.filter((x) => !(x.month === month && x.source === source)), { month, source, amount }],
       })),
     setOptions: (kind, items) => setData((d) => ({ ...d, options: { ...d.options, [kind]: items } })),
     replaceAll: (d) => setData((x) => ({ ...x, ...d })),
