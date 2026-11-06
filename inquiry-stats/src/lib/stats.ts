@@ -60,6 +60,26 @@ function summarize(key: string, label: string, list: Entry[], adCost: number | n
   return { key, label, inquiry, consult, treatment, revenue, commission: Math.round(commission), adCost }
 }
 
+// 광고비는 바꿀 때까지 지난달 값이 이어진다. 그 달에 적힌 값이 없으면 가장 가까운 이전 달 값 (0을 적으면 그달부터 멈춤).
+export function costFor(costs: AdCost[], month: string, source: string): { amount: number; carried: boolean } {
+  let best: AdCost | undefined
+  for (const c of costs) if (c.source === source && c.month <= month && (!best || c.month > best.month)) best = c
+  return { amount: best?.amount ?? 0, carried: !!best && best.month !== month }
+}
+
+// costs를 달마다 펼친다: 각 경로의 첫 기록 달부터 lastMonth까지, 이어진 값까지 넣는다.
+export function carryForward(costs: AdCost[], lastMonth: string): AdCost[] {
+  const out: AdCost[] = []
+  for (const source of new Set(costs.map((c) => c.source))) {
+    const first = costs.filter((c) => c.source === source).reduce((m, c) => (c.month < m ? c.month : m), lastMonth)
+    for (let m = first; m <= lastMonth; m = nextMonth(m)) {
+      const { amount } = costFor(costs, m, source)
+      if (amount > 0) out.push({ month: m, source, amount })
+    }
+  }
+  return out
+}
+
 const sumCost = (costs: AdCost[], pred: (c: AdCost) => boolean) => costs.filter(pred).reduce((s, c) => s + c.amount, 0)
 
 // 광고비는 유입 경로별로만 입력하므로, 경로로 좁힌 경우에만 그 경로 광고비를 쓴다.

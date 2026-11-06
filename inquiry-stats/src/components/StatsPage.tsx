@@ -3,7 +3,7 @@ import { isMuted, playFanfare, setMuted } from '../lib/fanfare'
 import type { EntriesApi } from '../store/useEntries'
 import { localDate } from '../inquiries'
 import type { Gran, GroupKey, StatRow } from '../lib/stats'
-import { GRAN_LABEL, GRAN_SPAN_LABEL, GROUP_LABEL, SMALL_N, addMonths, costMonths, periodEnd as periodEndOf, groupStats, inPeriod, marketing, pct, totalRow, trendWindow, won } from '../lib/stats'
+import { GRAN_LABEL, GRAN_SPAN_LABEL, GROUP_LABEL, SMALL_N, addMonths, carryForward, costFor, costMonths, periodEnd as periodEndOf, groupStats, inPeriod, marketing, pct, totalRow, trendWindow, won } from '../lib/stats'
 import type { Route } from '../hooks/useHashRoute'
 import { buildHash } from '../hooks/useHashRoute'
 import { METRICS, TrendChart } from './TrendChart'
@@ -194,15 +194,16 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
   const toDay = to.length === 10 ? to : (() => { const l = periodEndOf(to); return l > localDate() ? localDate() : l })()
   const [cf, ct] = costMonths(from, to) // 광고비는 통째로 들어간 달만
   const partialCost = from.length === 10 && (cf > ct || from.slice(0, 7) < cf || to.slice(0, 7) > ct)
-  const total = totalRow(period, api.adCosts, api.rates, cf, ct)
+  const costs = carryForward(api.adCosts, thisMonth) // 광고비는 바꿀 때까지 지난달 값을 이어 쓴다
+  const total = totalRow(period, costs, api.rates, cf, ct)
   // 비율(문의→상담, 상담→시술)은 에이전시 경로를 빼고 계산한다 (에이전시 환자는 문의·상담 없이 해외에서 확정해 온다)
   const isAgency = (src: string) => api.options.agency.includes(src)
   const direct = period.filter((e) => !isAgency(e.source))
   const d = totalRow(direct, [], api.rates, cf, ct)
   const ag = totalRow(period.filter((e) => isAgency(e.source)), [], api.rates, cf, ct)
-  const groups = groupStats(period, by, api.adCosts, api.rates, cf, ct)
+  const groups = groupStats(period, by, costs, api.rates, cf, ct)
   const groupRates = new Map(groupStats(direct, by, [], api.rates, cf, ct).map((r) => [r.key, r]))
-  const bySource = by === 'source' ? groups : groupStats(period, 'source', api.adCosts, api.rates, cf, ct)
+  const bySource = by === 'source' ? groups : groupStats(period, 'source', costs, api.rates, cf, ct)
   // 추이는 위의 기간과 상관없이 오늘을 끝으로 (일간 30일, 주간 12주, 월간 12개월, 연간 5년)
   const trend = trendWindow(src ? api.entries.filter((e) => e.source === src) : api.entries, api.rates, gran, localDate())
   const sources = [...new Set([...api.options.source, ...api.entries.map((e) => e.source)])]
@@ -308,13 +309,15 @@ export function StatsPage({ api, canEditCost, route, go }: Props) {
 // 광고비(월별)와 수수료율(경로별) 입력. 접어 두고 필요할 때 연다.
 function CostPanel({ api }: { api: EntriesApi }) {
   const [costMonth, setCostMonth] = useState(() => localDate().slice(0, 7))
-  const costOf = (s: string) => api.adCosts.find((c) => c.month === costMonth && c.source === s)?.amount ?? 0
+  const costOf = (s: string) => costFor(api.adCosts, costMonth, s).amount
+  const carried = (s: string) => costFor(api.adCosts, costMonth, s).carried && costOf(s) > 0
   const num = (v: string) => Math.max(0, Math.round(Number(v) || 0))
   const rate = (v: string) => Math.min(100, Math.max(0, Number(v) || 0))
   return (
     <details className="panel cost-panel">
       <summary>광고비·수수료 입력</summary>
-      <p className="help">마케팅비 = 그달 광고비 + 수수료(그 경로 시술 총액 × 수수료율). 원장·실장만 봅니다.</p>
+      <p className="help">마케팅비 = 그달 광고비 + 수수료(그 경로 시술 총액 × 수수료율). 원장·실장·코디만 봅니다.</p>
+      <p className="help">광고비는 바꿀 때까지 지난달 값이 그대로 이어집니다. 달라졌을 때만 고치고, 광고를 끊었으면 0을 적으세요.</p>
       <div className="panel-head">
         <h3>월 광고비 (만원)</h3>
         <input type="month" aria-label="광고비 달" value={costMonth} onChange={(e) => e.target.value && setCostMonth(e.target.value)} />
@@ -322,7 +325,9 @@ function CostPanel({ api }: { api: EntriesApi }) {
       <div className="cost-grid">
         {api.options.source.map((s) => (
           <label key={`${costMonth}-${s}-${costOf(s)}`}>
-            {s}
+            <span>
+              {s} {carried(s) && <small className="carried">지난달 값</small>}
+            </span>
             <input type="number" inputMode="numeric" min={0} defaultValue={costOf(s) || ''} onBlur={(e) => num(e.target.value) !== costOf(s) && api.setAdCost(costMonth, s, num(e.target.value))} />
           </label>
         ))}
